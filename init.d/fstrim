@@ -1,5 +1,5 @@
 #!/system/bin/sh
-busybox fstrim -v /cache
-busybox fstrim -v /system
-busybox fstrim -v /data
-busybox fstrim -v /persist
+for path in /*;
+do
+busybox fstrim -v $/path;
+done
