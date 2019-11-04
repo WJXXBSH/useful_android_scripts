@@ -1,59 +1,9 @@
 
-project bootable/recovery/
-diff --git a/Android.bp b/Android.bp
-index f9207825..fad08e3e 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -22,7 +22,6 @@ cc_defaults {
-         "-DRECOVERY_API_VERSION=3",
- 
-         "-Wall",
--        "-Werror",
-     ],
- }
- 
-
-project build/kati/
-diff --git a/Android.bp b/Android.bp
-index ef7c990..0560c66 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -17,7 +17,6 @@ cc_defaults {
-     cflags: [
-         "-W",
-         "-Wall",
--        "-Werror",
-         "-DNOLOG",
-     ],
-     tidy_checks: [
-diff --git a/main.cc b/main.cc
-index f2360cf..e14f0bc 100644
---- a/main.cc
-+++ b/main.cc
-@@ -98,7 +98,7 @@ static void ReadBootstrapMakefile(const vector<Symbol>& targets,
-   }
-   if (g_flags.generate_ninja) {
-     bootstrap += StringPrintf("MAKE?=make -j%d\n",
--                              g_flags.num_jobs <= 1 ? 1 : g_flags.num_jobs / 2);
-+                              g_flags.num_jobs <= 1 ? 1 : g_flags.num_jobs);
-   } else {
-     bootstrap += StringPrintf("MAKE?=%s\n",
-                               JoinStrings(g_flags.subkati_args, " ").c_str());
-
 project build/make/
 diff --git a/core/binary.mk b/core/binary.mk
-index 712f2df56..f96ee4920 100644
+index 712f2df56..4b8d36ac0 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
-@@ -400,7 +400,7 @@ ifdef LOCAL_CLANG_$($(my_prefix)$(LOCAL_2ND_ARCH_VAR_PREFIX)ARCH)
- my_clang := $(strip $(LOCAL_CLANG_$($(my_prefix)$(LOCAL_2ND_ARCH_VAR_PREFIX)ARCH)))
- endif
- ifeq ($(my_clang),false)
--    $(call pretty-error,LOCAL_CLANG false is no longer supported)
-+    $(warning LOCAL_CLANG false is no longer supported)
- endif
- 
- ifeq ($(LOCAL_C_STD),)
 @@ -613,7 +613,7 @@ endif
  
  # Turn on all warnings and warnings as errors for RS compiles.
@@ -63,15 +13,6 @@ index 712f2df56..f96ee4920 100644
  renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
  # -m32 or -m64
  renderscript_flags += -m$(my_32_64_bit_suffix)
-@@ -1450,7 +1450,7 @@ my_asflags := $(call convert-to-clang-flags,$(my_asflags))
- my_ldflags := $(call convert-to-clang-flags,$(my_ldflags))
- 
- ifeq ($(my_fdo_build), true)
--  my_cflags := $(patsubst -Os,-O2,$(my_cflags))
-+  my_cflags := $(patsubst -Ofast,-g0,$(my_cflags))
-   fdo_incompatible_flags := -fno-early-inlining -finline-limit=%
-   my_cflags := $(filter-out $(fdo_incompatible_flags),$(my_cflags))
- endif
 @@ -1490,10 +1490,10 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
        $(eval MODULES_USING_WNO_ERROR := $(MODULES_USING_WNO_ERROR) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
      else
@@ -85,41 +26,6 @@ index 712f2df56..f96ee4920 100644
          else
            $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
            my_cflags := -Wall $(my_cflags)
-@@ -1672,7 +1672,7 @@ ifeq ($(NATIVE_COVERAGE),true)
-         # with `--gcov-tool /usr/bin/gcov-4.6`.
-         #
-         # http://stackoverflow.com/questions/17758126/clang-code-coverage-invalid-output
--        my_cflags += --coverage -O0
-+        my_cflags += --coverage -Ofast
-         my_ldflags += --coverage
-     endif
- 
-diff --git a/core/definitions.mk b/core/definitions.mk
-index 09c127d4d..9808f08d5 100644
---- a/core/definitions.mk
-+++ b/core/definitions.mk
-@@ -949,7 +949,7 @@ endef
- define transform-bc-to-so
- @echo "Renderscript compatibility: $(notdir $@) <= $(notdir $<)"
- $(hide) mkdir -p $(dir $@)
--$(hide) $(BCC_COMPAT) -O3 -o $(dir $@)/$(notdir $(<:.bc=.o)) -fPIC -shared \
-+$(hide) $(BCC_COMPAT) -Ofast -o $(dir $@)/$(notdir $(<:.bc=.o)) -fPIC -shared \
- 	-rt-path $(RS_PREBUILT_CLCORE) -mtriple $(RS_COMPAT_TRIPLE) $<
- $(hide) $(PRIVATE_CXX) -shared -Wl,-soname,$(notdir $@) -nostdlib \
- 	-Wl,-rpath,\$$ORIGIN/../lib \
-diff --git a/core/host_test_internal.mk b/core/host_test_internal.mk
-index dfe8cf150..6284dd334 100644
---- a/core/host_test_internal.mk
-+++ b/core/host_test_internal.mk
-@@ -6,7 +6,7 @@ ifeq ($(LOCAL_GTEST),true)
-   LOCAL_CFLAGS_linux += -DGTEST_OS_LINUX
-   LOCAL_CFLAGS_darwin += -DGTEST_OS_MAC
- 
--  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O0 -g
-+  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -Ofast -g0
- 
-   LOCAL_STATIC_LIBRARIES += libgtest_main_host libgtest_host
- endif
 diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
 index 13a6f8e66..72801a92d 100644
 --- a/core/java_renderscript.mk
@@ -134,10 +40,10 @@ index 13a6f8e66..72801a92d 100644
  
  # prepend the RenderScript system include path
 diff --git a/core/main.mk b/core/main.mk
-index d6ccd7f2e..2c7959aaa 100644
+index d1bd43bba..901f8e978 100644
 --- a/core/main.mk
 +++ b/core/main.mk
-@@ -295,8 +295,6 @@ ifneq (,$(user_variant))
+@@ -290,8 +290,6 @@ ifneq (,$(user_variant))
    ADDITIONAL_DEFAULT_PROPERTIES += ro.allow.mock.location=0
  
  else # !user_variant
@@ -146,7 +52,7 @@ index d6ccd7f2e..2c7959aaa 100644
    # Set device insecure for non-user builds.
    ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
    # Allow mock locations by default for non user builds
-@@ -306,8 +304,6 @@ endif # !user_variant
+@@ -301,8 +299,6 @@ endif # !user_variant
  ifeq (true,$(strip $(enable_target_debugging)))
    # Target is more debuggable and adbd is on by default
    ADDITIONAL_DEFAULT_PROPERTIES += ro.debuggable=1
@@ -155,7 +61,7 @@ index d6ccd7f2e..2c7959aaa 100644
  else # !enable_target_debugging
    # Target is less debuggable and adbd is off by default
    ADDITIONAL_DEFAULT_PROPERTIES += ro.debuggable=0
-@@ -325,7 +321,7 @@ ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL
+@@ -320,7 +316,7 @@ ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL
  endif
  ifndef is_sdk_build
    # To speedup startup of non-preopted builds, don't verify or compile the boot image.
@@ -165,32 +71,26 @@ index d6ccd7f2e..2c7959aaa 100644
  endif
  
 diff --git a/core/product.mk b/core/product.mk
-index b45d802d0..05b362d08 100644
+index b45d802d0..5ba7730f5 100644
 --- a/core/product.mk
 +++ b/core/product.mk
-@@ -483,22 +483,6 @@ define resolve-short-product-name
- $(strip $(call _resolve-short-product-name,$(1)))
- endef
+@@ -491,10 +491,16 @@ _readonly_late_variables := \
  
--# BoardConfig variables that are also inherited in product mks. Should ideally
--# be cleaned up to not be product variables.
--_readonly_late_variables := \
--  DEVICE_PACKAGE_OVERLAYS \
--  WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY \
--
--# Modified internally in the build system
--_readonly_late_variables += \
--  PRODUCT_CFI_INCLUDE_PATHS \
--  PRODUCT_COPY_FILES \
--  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
--  PRODUCT_DEX_PREOPT_BOOT_FLAGS \
--  PRODUCT_SOONG_NAMESPACES
--
--_readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
--
- #
- # Mark the variables in _product_stash_var_list as readonly
- #
+ # Modified internally in the build system
+ _readonly_late_variables += \
++  PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD \
+   PRODUCT_CFI_INCLUDE_PATHS \
+   PRODUCT_COPY_FILES \
+   PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
+   PRODUCT_DEX_PREOPT_BOOT_FLAGS \
++  PRODUCT_DEX_PREOPT_DEFAULT_FLAGS \
++  PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER \
++  PRODUCT_SYSTEM_SERVER_COMPILER_FILTER \
++  PRODUCT_SYSTEM_SERVER_DEBUG_INFO \
++  PRODUCT_OTHER_JAVA_DEBUG_INFO \
+   PRODUCT_SOONG_NAMESPACES
+ 
+ _readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
 diff --git a/target/product/media_system.mk b/target/product/media_system.mk
 index 0489b28d9..d29350b96 100644
 --- a/target/product/media_system.mk
@@ -372,33 +272,62 @@ index 5ef45ed40..7d882ae72 100644
          windows: {
              enabled: true,
 
-project build/soong/
-diff --git a/cmd/path_interposer/main.go b/cmd/path_interposer/main.go
-index cd28b960..e021f095 100644
---- a/cmd/path_interposer/main.go
-+++ b/cmd/path_interposer/main.go
-@@ -53,7 +53,7 @@ func main() {
- 		os.Exit(1)
- 	}
+project device/qcom/sepolicy-legacy/
+diff --git a/common/file.te b/common/file.te
+index ce308010..12fd5d5d 100644
+--- a/common/file.te
++++ b/common/file.te
+@@ -341,3 +341,6 @@ type kgsl_debugfs, debugfs_type, fs_type;
  
--	disableError := false
-+	disableError := true
- 	if e, ok := os.LookupEnv("TEMPORARY_DISABLE_PATH_RESTRICTIONS"); ok {
- 		disableError = e == "1" || e == "y" || e == "yes" || e == "on" || e == "true"
- 	}
-diff --git a/ui/build/path.go b/ui/build/path.go
-index 0e1c02ca..944aa95a 100644
---- a/ui/build/path.go
-+++ b/ui/build/path.go
-@@ -131,7 +131,7 @@ func SetupPath(ctx Context, config Config) {
- 		execs = append(execs, parsePathDir(pathEntry)...)
- 	}
+ #sysfs emmc dload type
+ type sysfs_emmc_dload, sysfs_type, fs_type;
++
++# Custom policies
++type sysfs_disk_stat, fs_type, sysfs_type;
+
+project external/mksh/
+diff --git a/mkshrc b/mkshrc
+index 256f20e..ae4857b 100644
+--- a/mkshrc
++++ b/mkshrc
+@@ -1,20 +1,25 @@
+-# Copyright (c) 2010, 2012, 2013, 2014
+-#	Thorsten Glaser <tg@mirbsd.org>
++# Copyright (c) 2010
++#	Thorsten Glaser <t.glaser@tarent.de>
+ # This file is provided under the same terms as mksh.
+ #-
+ # Minimal /system/etc/mkshrc for Android
+-#
+-# Support: https://launchpad.net/mksh
+-
+-set +o nohup
  
--	allowAllSymlinks := config.Environment().IsEnvTrue("TEMPORARY_DISABLE_PATH_RESTRICTIONS")
-+	allowAllSymlinks := true
- 	for _, name := range execs {
- 		if !paths.GetConfig(name).Symlink && !allowAllSymlinks {
- 			continue
++: ${TERM:=xterm-256color} ${HOME:=/} ${MKSH:=/system/bin/sh} ${HOSTNAME:=android}
++: ${SHELL:=$MKSH} ${USER:=$(getprop ro.product.device)}
+ if (( USER_ID )); then PS1='$'; else PS1='#'; fi
+-PS4='[$EPOCHREALTIME] '; PS1='${|
+-	local e=$?
+ 
+-	(( e )) && REPLY+="$e|"
++PS1='$USER@$HOSTNAME:${PWD:-?} '"$PS1 "
++if [ -d "/sbin/.magisk/busybox" ]; then
++  BBDIR="/sbin/.magisk/busybox"
++elif [ -d "/sbin/.core/busybox" ]; then
++  BBDIR="/sbin/.core/busybox"
++fi
++PATH=$PATH:/sbin:$BBDIR:.
++export TERM HOME MKSH HOSTNAME SHELL USER PATH
+ 
+-	return $e
+-}$HOSTNAME:${PWD:-?} '"$PS1 "
++for p in ~/.bin; do
++	[[ -d $p/. ]] || continue
++	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
++done
+ 
+-export TERM=xterm-256color
++unset p
 
 project external/noto-fonts/
 diff --git a/Android.mk b/Android.mk
@@ -435,26 +364,6 @@ index bc5aacd..4141bc2 100644
  #############################################################################
  # Now "build" the Noto Color Emoji font, which is in its own directory. It is
  # not included in the MINIMAL_FONT_FOOTPRINT builds.
-diff --git a/cjk/NotoSansCJK-Regular.ttc b/cjk/NotoSansCJK-Regular.ttc
-index 7fc3586..bef0312 100644
-Binary files a/cjk/NotoSansCJK-Regular.ttc and b/cjk/NotoSansCJK-Regular.ttc differ
-diff --git a/cjk/NotoSerifCJK-Regular.ttc b/cjk/NotoSerifCJK-Regular.ttc
-deleted file mode 100644
-index f4ee450..0000000
-Binary files a/cjk/NotoSerifCJK-Regular.ttc and /dev/null differ
-diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
-index 5a324bf..851e0b7 100755
---- a/cjk/subset_noto_cjk.py
-+++ b/cjk/subset_noto_cjk.py
-@@ -99,5 +99,7 @@ def remove_codepoints_from_ttc(ttc_name):
-             os.remove(f)
- 
- 
-+remove_codepoints_from_ttc('NotoSansCJK.ttc')
- remove_codepoints_from_ttc('NotoSansCJK-Regular.ttc')
--remove_codepoints_from_ttc('NotoSerifCJK-Regular.ttc')
-+remove_codepoints_from_ttc('NotoSerif-Bold.ttc')
-+remove_codepoints_from_ttc('NotoSerif-Regular.ttc')
 diff --git a/fonts.mk b/fonts.mk
 index 1cccd97..58cb5a1 100644
 --- a/fonts.mk
@@ -483,24 +392,75 @@ diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
 index 9d9a347..78136ac 100644
 Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
 
-project frameworks/base/
+project external/perfetto/
 diff --git a/Android.bp b/Android.bp
-index 16abdbf79de..dfdeae46e67 100644
+index b7f12d29..e9ffde1d 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -1018,7 +1018,6 @@ cc_defaults {
+@@ -3352,49 +3352,6 @@ cc_binary_host {
+   ],
+ }
  
-     cflags: [
-         "-Wall",
--        "-Werror",
-         "-Wno-unused-parameter",
-     ],
- 
+-// GN target: //:traced
+-cc_binary {
+-  name: "traced",
+-  srcs: [
+-    "src/traced/service/main.cc",
+-  ],
+-  shared_libs: [
+-    "liblog",
+-    "libperfetto",
+-  ],
+-  init_rc: [
+-    "perfetto.rc",
+-  ],
+-  defaults: [
+-    "perfetto_defaults",
+-  ],
+-  cflags: [
+-    "-DPERFETTO_BUILD_WITH_ANDROID",
+-  ],
+-}
+-
+-// GN target: //:traced_probes
+-cc_binary {
+-  name: "traced_probes",
+-  srcs: [
+-    "src/traced/probes/main.cc",
+-  ],
+-  shared_libs: [
+-    "liblog",
+-    "libperfetto",
+-  ],
+-  defaults: [
+-    "perfetto_defaults",
+-  ],
+-  cflags: [
+-    "-DPERFETTO_BUILD_WITH_ANDROID",
+-  ],
+-  required: [
+-    "libperfetto_android_internal",
+-    "trigger_perfetto",
+-  ],
+-}
+-
+ // GN target: //:trigger_perfetto
+ cc_binary {
+   name: "trigger_perfetto",
+@@ -3585,4 +3542,4 @@ java_library_host {
+   srcs: [
+     "protos/perfetto/config/perfetto_config.proto",
+   ],
+-}
+\ No newline at end of file
++}
+
+project frameworks/base/
 diff --git a/data/fonts/fonts.xml b/data/fonts/fonts.xml
-index 072beae8baf..87302bf8e53 100644
+index 072beae8baf..5cb3f11dcf0 100644
 --- a/data/fonts/fonts.xml
 +++ b/data/fonts/fonts.xml
-@@ -544,20 +544,64 @@
+@@ -544,20 +544,56 @@
          <font weight="400" style="normal">NotoSansSymbols-Regular-Subsetted.ttf</font>
      </family>
      <family lang="zh-Hans">
@@ -517,8 +477,6 @@ index 072beae8baf..87302bf8e53 100644
 +        <font weight="500" style="normal" index="27">NotoSansCJK.ttc</font>
 +        <font weight="700" style="normal" index="32">NotoSansCJK.ttc</font>
 +        <font weight="900" style="normal" index="42">NotoSansCJK.ttc</font>
-+        <font weight="400" style="mono" index="22">NotoSansCJK.ttc</font>
-+        <font weight="700" style="mono" index="37">NotoSansCJK.ttc</font>
 +        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
 +        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
 +        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
@@ -532,8 +490,6 @@ index 072beae8baf..87302bf8e53 100644
 +        <font weight="500" style="normal" index="28">NotoSansCJK.ttc</font>
 +        <font weight="700" style="normal" index="33">NotoSansCJK.ttc</font>
 +        <font weight="900" style="normal" index="43">NotoSansCJK.ttc</font>
-+        <font weight="400" style="mono" index="23">NotoSansCJK.ttc</font>
-+        <font weight="700" style="mono" index="38">NotoSansCJK.ttc</font>
 +        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
 +        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
 +        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
@@ -549,8 +505,6 @@ index 072beae8baf..87302bf8e53 100644
 +        <font weight="500" style="normal" index="25">NotoSansCJK.ttc</font>
 +        <font weight="700" style="normal" index="30">NotoSansCJK.ttc</font>
 +        <font weight="900" style="normal" index="40">NotoSansCJK.ttc</font>
-+        <font weight="400" style="mono" index="20">NotoSansCJK.ttc</font>
-+        <font weight="700" style="mono" index="35">NotoSansCJK.ttc</font>
 +        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
 +        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
 +        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
@@ -566,8 +520,6 @@ index 072beae8baf..87302bf8e53 100644
 +        <font weight="500" style="normal" index="26">NotoSansCJK.ttc</font>
 +        <font weight="700" style="normal" index="31">NotoSansCJK.ttc</font>
 +        <font weight="900" style="normal" index="41">NotoSansCJK.ttc</font>
-+        <font weight="400" style="mono" index="21">NotoSansCJK.ttc</font>
-+        <font weight="700" style="mono" index="36">NotoSansCJK.ttc</font>
 +        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
 +        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
 +        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
@@ -575,6 +527,112 @@ index 072beae8baf..87302bf8e53 100644
      </family>
      <family lang="und-Zsye">
          <font weight="400" style="normal">NotoColorEmoji.ttf</font>
+diff --git a/packages/CtsShim/Android.mk b/packages/CtsShim/Android.mk
+index 12972f14514..e8e634c947b 100644
+--- a/packages/CtsShim/Android.mk
++++ b/packages/CtsShim/Android.mk
+@@ -14,51 +14,11 @@
+ # limitations under the License.
+ #
+ 
+-LOCAL_PATH := $(call my-dir)
++# LOCAL_PATH := $(call my-dir)
+ 
+ ###########################################################
+ # Variant: Privileged app
+ 
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE := CtsShimPrivPrebuilt
+-LOCAL_MODULE_TAGS := optional
+-# this needs to be a privileged application
+-LOCAL_PRIVILEGED_MODULE := true
+-LOCAL_MODULE_CLASS := APPS
+-LOCAL_BUILT_MODULE_STEM := package.apk
+-# Make sure the build system doesn't try to resign the APK
+-LOCAL_CERTIFICATE := PRESIGNED
+-LOCAL_DEX_PREOPT := false
+-LOCAL_MODULE_TARGET_ARCH := arm arm64 x86 x86_64
+-
+-LOCAL_SRC_FILES_arm := apk/arm/CtsShimPriv.apk
+-LOCAL_SRC_FILES_arm64 := apk/arm/CtsShimPriv.apk
+-LOCAL_SRC_FILES_x86 := apk/x86/CtsShimPriv.apk
+-LOCAL_SRC_FILES_x86_64 := apk/x86/CtsShimPriv.apk
+-
+-include $(BUILD_PREBUILT)
+-
+-
+ ###########################################################
+ # Variant: System app
+ 
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE := CtsShimPrebuilt
+-LOCAL_MODULE_TAGS := optional
+-LOCAL_MODULE_CLASS := APPS
+-LOCAL_BUILT_MODULE_STEM := package.apk
+-# Make sure the build system doesn't try to resign the APK
+-LOCAL_CERTIFICATE := PRESIGNED
+-LOCAL_DEX_PREOPT := false
+-LOCAL_MODULE_TARGET_ARCH := arm arm64 x86 x86_64
+-
+-LOCAL_SRC_FILES_arm := apk/arm/CtsShim.apk
+-LOCAL_SRC_FILES_arm64 := apk/arm/CtsShim.apk
+-LOCAL_SRC_FILES_x86 := apk/x86/CtsShim.apk
+-LOCAL_SRC_FILES_x86_64 := apk/x86/CtsShim.apk
+-
+-include $(BUILD_PREBUILT)
+-
+-include $(call all-makefiles-under,$(LOCAL_PATH))
+diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
+index 3f16c128f66..17ad7e0137e 100644
+--- a/packages/overlays/Android.mk
++++ b/packages/overlays/Android.mk
+@@ -16,43 +16,7 @@ LOCAL_PATH:= $(call my-dir)
+ include $(CLEAR_VARS)
+ 
+ LOCAL_MODULE := frameworks-base-overlays
+-LOCAL_REQUIRED_MODULES := \
+-	AccentColorBlackOverlay \
+-	AccentColorCinnamonOverlay \
+-	AccentColorOceanOverlay \
+-	AccentColorOrchidOverlay \
+-	AccentColorSpaceOverlay \
+-	AccentColorGreenOverlay \
+-	AccentColorPurpleOverlay \
+-	DisplayCutoutEmulationCornerOverlay \
+-	DisplayCutoutEmulationDoubleOverlay \
+-	DisplayCutoutEmulationTallOverlay \
+-	FontNotoSerifSourceOverlay \
+-	IconPackCircularAndroidOverlay \
+-	IconPackCircularLauncherOverlay \
+-	IconPackCircularSettingsOverlay \
+-	IconPackCircularSystemUIOverlay \
+-	IconPackCircularThemePickerOverlay \
+-	IconPackFilledAndroidOverlay \
+-	IconPackFilledLauncherOverlay \
+-	IconPackFilledSettingsOverlay \
+-	IconPackFilledSystemUIOverlay \
+-	IconPackFilledThemePickerOverlay \
+-	IconPackRoundedAndroidOverlay \
+-	IconPackRoundedLauncherOverlay \
+-	IconPackRoundedSettingsOverlay \
+-	IconPackRoundedSystemUIOverlay \
+-	IconPackRoundedThemePickerUIOverlay \
+-	IconShapeRoundedRectOverlay \
+-	IconShapeSquareOverlay \
+-	IconShapeSquircleOverlay \
+-	IconShapeTeardropOverlay \
+-	NavigationBarMode3ButtonOverlay \
+-	NavigationBarMode2ButtonOverlay \
+-	NavigationBarModeGesturalOverlay \
+-	NavigationBarModeGesturalOverlayNarrowBack \
+-	NavigationBarModeGesturalOverlayWideBack \
+-	NavigationBarModeGesturalOverlayExtraWideBack
++LOCAL_REQUIRED_MODULES :=
+ 
+ include $(BUILD_PHONY_PACKAGE)
+ include $(CLEAR_VARS)
 diff --git a/services/core/jni/Android.bp b/services/core/jni/Android.bp
 index fdcefd42316..a920971d84d 100644
 --- a/services/core/jni/Android.bp
@@ -587,6 +645,40 @@ index fdcefd42316..a920971d84d 100644
          "-Wno-unused-parameter",
          "-Wthread-safety",
  
+
+project hardware/qcom-caf/msm8994/audio/
+diff --git a/hal/Android.mk b/hal/Android.mk
+index 890d4722e..04bf84f02 100644
+--- a/hal/Android.mk
++++ b/hal/Android.mk
+@@ -260,7 +260,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_AUXPCM_BT)),true)
+     LOCAL_CFLAGS += -DAUXPCM_BT_ENABLED
+ endif
+ 
+-LOCAL_CFLAGS += -Wall -Werror
++LOCAL_CFLAGS += -Wall -Wno-error=implicit-function-declaration
+ 
+ LOCAL_COPY_HEADERS_TO   := mm-audio
+ LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
+diff --git a/hal/audio_hw.c b/hal/audio_hw.c
+index 260f156b9..3dc11ea60 100644
+--- a/hal/audio_hw.c
++++ b/hal/audio_hw.c
+@@ -2381,12 +2381,14 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
+             ALOGD("copl(%p):send new gapless metadata", out);
+             compress_set_gapless_metadata(out->compr, &out->gapless_mdata);
+             out->send_new_metadata = 0;
++#if defined(SNDRV_COMPRESS_SET_NEXT_TRACK_PARAM)
+             if (out->send_next_track_params && out->is_compr_metadata_avail) {
+                 ALOGD("copl(%p):send next track params in gapless", out);
+                 compress_set_next_track_param(out->compr, &(out->compr_config.codec->options));
+                 out->send_next_track_params = false;
+                 out->is_compr_metadata_avail = false;
+             }
++#endif
+         }
+ 
+         ret = compress_write(out->compr, buffer, bytes);
 
 project hardware/qcom-caf/msm8994/display/
 diff --git a/libhwcomposer/Android.mk b/libhwcomposer/Android.mk
@@ -643,28 +735,1106 @@ index ff43abdcd..f1b15dfc3 100644
  libmm-venc-def += -D_MSM8974_
  
 
-project hardware/qcom/bt/
-diff --git a/msm8992/libbt-vendor/src/hw_ar3k.c b/msm8992/libbt-vendor/src/hw_ar3k.c
-index dbe6b51..dceff29 100644
---- a/msm8992/libbt-vendor/src/hw_ar3k.c
-+++ b/msm8992/libbt-vendor/src/hw_ar3k.c
-@@ -1208,11 +1208,11 @@ int hci_send_cmd(int dd, uint16_t ogf, uint16_t ocf, uint8_t plen, void *param)
-         ivn = 3;
-     }
+project kernel/xiaomi/libra/
+diff --git a/Documentation/ptp/testptp.mk b/Documentation/ptp/testptp.mk
+index ede848c80fbf..4ef2d9755421 100644
+--- a/Documentation/ptp/testptp.mk
++++ b/Documentation/ptp/testptp.mk
+@@ -18,7 +18,7 @@
  
--    while (writev(dd, iv, ivn) < 0) {
--        if (errno == EAGAIN || errno == EINTR)
--            continue;
--        return -1;
--    }
-+/*    while (writev(dd, iv, ivn) < 0) {*/
-+/*        if (errno == EAGAIN || errno == EINTR)*/
-+/*            continue;*/
-+/*        return -1;*/
-+/*    }*/
-     return 0;
- }
+ CC        = $(CROSS_COMPILE)gcc
+ INC       = -I$(KBUILD_OUTPUT)/usr/include
+-CFLAGS    = $(INC)
++CFLAGS    = -Wall $(INC)
+ LDLIBS    = -lrt
+ PROGS     = testptp
  
+diff --git a/Makefile b/Makefile
+index 206ff15e8ae5..5fecbee18bea 100644
+--- a/Makefile
++++ b/Makefile
+@@ -240,8 +240,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
+ 
+ HOSTCC       = gcc
+ HOSTCXX      = g++
+-HOSTCFLAGS   = -O3 -g0 -pipe -fomit-frame-pointer -std=gnu89
+-HOSTCXXFLAGS = -O3 -g0 -pipe
++HOSTCFLAGS   = -Ofast -g0 -pipe -fomit-frame-pointer -std=gnu89
++HOSTCXXFLAGS = -Ofast -g0 -pipe
+ 
+ # Decide whether to build built-in, modular, or both.
+ # Normally, just do built-in.
+@@ -325,9 +325,9 @@ include $(srctree)/scripts/Kbuild.include
+ 
+ AS		= $(CROSS_COMPILE)as
+ LD		= $(CROSS_COMPILE)ld
+-LD		+= -O3
++LD		+= -Ofast
+ CC		= $(CROSS_COMPILE)gcc
+-CC		+= -O3
++CC		+= -Ofast
+ CPP		= $(CC) -E
+ AR		= $(CROSS_COMPILE)ar
+ NM		= $(CROSS_COMPILE)nm
+@@ -366,8 +366,8 @@ LINUXINCLUDE    := \
+ 		-Iinclude \
+ 		$(USERINCLUDE)
+ 
+-KBUILD_CPPFLAGS := -O3 -g0 -pipe -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 -D__KERNEL__
+-KBUILD_CFLAGS   := -O3 -g0 -pipe -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 -fno-strict-aliasing -fno-common -fno-delete-null-pointer-checks -std=gnu89
++KBUILD_CPPFLAGS := -Ofast -g0 -pipe -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 -D__KERNEL__
++KBUILD_CFLAGS   := -Ofast -g0 -pipe -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53 -fno-strict-aliasing -fno-common -fno-delete-null-pointer-checks -std=gnu89
+ KBUILD_AFLAGS_KERNEL :=
+ KBUILD_CFLAGS_KERNEL :=
+ KBUILD_AFLAGS   := -D__ASSEMBLY__
+@@ -565,7 +565,7 @@ endif # $(dot-config)
+ all: vmlinux
+ 
+ KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
+-KBUILD_CFLAGS	+= -O3 -g0 -pipe
++KBUILD_CFLAGS	+= -Ofast -g0 -pipe
+ 
+ include $(srctree)/arch/$(SRCARCH)/Makefile
+ 
+diff --git a/arch/arc/Makefile b/arch/arc/Makefile
+index 5f45daa31b06..bbeb68919843 100644
+--- a/arch/arc/Makefile
++++ b/arch/arc/Makefile
+@@ -36,7 +36,7 @@ cflags-$(CONFIG_ARC_HAS_RTSC)		+= -mrtsc
+ cflags-$(CONFIG_ARC_DW2_UNWIND)		+= -fasynchronous-unwind-tables
+ 
+ # Generic build system uses -O2, we want -O3 or higher
+-cflags-y  += -O3
++cflags-y  += -Ofast
+ 
+ # small data is default for elf32 tool-chain. If not usable, disable it
+ # This also allows repurposing GP as scratch reg to gcc reg allocator
+diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
+index 04e7306aa923..7f88a4f3dd74 100644
+--- a/arch/arm/boot/compressed/Makefile
++++ b/arch/arm/boot/compressed/Makefile
+@@ -31,7 +31,7 @@ FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
+ 
+ # string library code (-Os is not enforced to keep it much smaller)
+ OBJS		+= string.o
+-CFLAGS_string.o	:= -O3
++CFLAGS_string.o	:= -Ofast
+ 
+ ifeq ($(CONFIG_ARM_VIRT_EXT),y)
+ OBJS		+= hyp-stub.o
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+new file mode 100644
+index 000000000000..f5a67338cab5
+--- /dev/null
++++ b/arch/arm64/configs/defconfig
+@@ -0,0 +1,102 @@
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_AUDIT=y
++CONFIG_NO_HZ_IDLE=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_BSD_PROCESS_ACCT_V3=y
++CONFIG_TASKSTATS=y
++CONFIG_TASK_DELAY_ACCT=y
++CONFIG_TASK_XACCT=y
++CONFIG_TASK_IO_ACCOUNTING=y
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_LOG_BUF_SHIFT=14
++CONFIG_RESOURCE_COUNTERS=y
++CONFIG_MEMCG=y
++CONFIG_MEMCG_SWAP=y
++CONFIG_MEMCG_KMEM=y
++CONFIG_CGROUP_HUGETLB=y
++CONFIG_SCHED_AUTOGROUP=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_KALLSYMS_ALL=y
++CONFIG_PROFILING=y
++CONFIG_JUMP_LABEL=y
++CONFIG_MODULES=y
++CONFIG_MODULE_UNLOAD=y
++CONFIG_ARCH_VEXPRESS=y
++CONFIG_ARCH_XGENE=y
++CONFIG_SMP=y
++CONFIG_PREEMPT=y
++CONFIG_KSM=y
++CONFIG_TRANSPARENT_HUGEPAGE=y
++CONFIG_CMA=y
++CONFIG_CMDLINE="console=ttyAMA0"
++CONFIG_COMPAT=y
++CONFIG_NET=y
++CONFIG_PACKET=y
++CONFIG_UNIX=y
++CONFIG_INET=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_DEVTMPFS=y
++CONFIG_DMA_CMA=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_VIRTIO_BLK=y
++CONFIG_BLK_DEV_SD=y
++CONFIG_ATA=y
++CONFIG_PATA_PLATFORM=y
++CONFIG_PATA_OF_PLATFORM=y
++CONFIG_NETDEVICES=y
++CONFIG_TUN=y
++CONFIG_SMC91X=y
++CONFIG_SMSC911X=y
++CONFIG_INPUT_EVDEV=y
++CONFIG_LEGACY_PTY_COUNT=16
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_AMBA_PL011=y
++CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
++CONFIG_SERIAL_OF_PLATFORM=y
++CONFIG_REGULATOR=y
++CONFIG_REGULATOR_FIXED_VOLTAGE=y
++CONFIG_FB=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++CONFIG_LOGO=y
++CONFIG_USB=y
++CONFIG_USB_ISP1760_HCD=y
++CONFIG_USB_STORAGE=y
++CONFIG_MMC=y
++CONFIG_MMC_ARMMMCI=y
++CONFIG_VIRTIO_MMIO=y
++CONFIG_EXT2_FS=y
++CONFIG_EXT3_FS=y
++CONFIG_EXT4_FS=y
++CONFIG_FANOTIFY=y
++CONFIG_FANOTIFY_ACCESS_PERMISSIONS=y
++CONFIG_FUSE_FS=y
++CONFIG_CUSE=y
++CONFIG_VFAT_FS=y
++CONFIG_TMPFS=y
++CONFIG_HUGETLBFS=y
++CONFIG_NFS_FS=y
++CONFIG_ROOT_NFS=y
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_ISO8859_1=y
++CONFIG_VIRTUALIZATION=y
++CONFIG_KVM=y
++CONFIG_MAGIC_SYSRQ=y
++CONFIG_LOCKUP_DETECTOR=y
++CONFIG_SECURITY=y
++CONFIG_CRYPTO_ANSI_CPRNG=y
++CONFIG_ARM64_CRYPTO=y
++CONFIG_CRYPTO_SHA1_ARM64_CE=y
++CONFIG_CRYPTO_SHA2_ARM64_CE=y
++CONFIG_CRYPTO_GHASH_ARM64_CE=y
++CONFIG_CRYPTO_AES_ARM64_CE=y
++CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
++CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
++CONFIG_CRYPTO_AES_ARM64_NEON_BLK=y
++
+diff --git a/arch/cris/Makefile b/arch/cris/Makefile
+index c40722fb5ffa..39dc7d00083e 100644
+--- a/arch/cris/Makefile
++++ b/arch/cris/Makefile
+@@ -49,7 +49,7 @@ KBUILD_CFLAGS += -mlinux -march=$(arch-y) -pipe $(inc)
+ KBUILD_CPPFLAGS += $(inc)
+ 
+ ifdef CONFIG_FRAME_POINTER
+-KBUILD_CFLAGS := $(subst -fomit-frame-pointer,,$(KBUILD_CFLAGS)) -g0
++KBUILD_CFLAGS := $(subst -fomit-frame-pointer,,$(KBUILD_CFLAGS)) -g
+ KBUILD_CFLAGS += -fno-omit-frame-pointer
+ endif
+ 
+diff --git a/arch/cris/boot/compressed/Makefile b/arch/cris/boot/compressed/Makefile
+index c1987a28eac8..e64e777e9877 100644
+--- a/arch/cris/boot/compressed/Makefile
++++ b/arch/cris/boot/compressed/Makefile
+@@ -3,11 +3,11 @@
+ #
+ 
+ asflags-y += $(LINUXINCLUDE)
+-ccflags-y += -O3 $(LINUXINCLUDE)
++ccflags-y += -Ofast $(LINUXINCLUDE)
+ 
+ # asflags-$(CONFIG_ETRAX_ARCH_V32) += -I$(srctree)/include/asm/mach \
+ # 				    -I$(srctree)/include/asm/arch
+-# ccflags-$(CONFIG_ETRAX_ARCH_V32) += -O3 -I$(srctree)/include/asm/mach
++# ccflags-$(CONFIG_ETRAX_ARCH_V32) += -Ofast -I$(srctree)/include/asm/mach
+ # 					-I$(srctree)/include/asm/arch
+ 
+ arch-$(CONFIG_ETRAX_ARCH_V10) = v10
+diff --git a/arch/cris/boot/rescue/Makefile b/arch/cris/boot/rescue/Makefile
+index 05a1d388f15f..a5e6b2a45efb 100644
+--- a/arch/cris/boot/rescue/Makefile
++++ b/arch/cris/boot/rescue/Makefile
+@@ -9,7 +9,7 @@
+ # LD = gcc-cris -mlinux -march=v32 -nostdlib
+ 
+ asflags-y += $(LINUXINCLUDE)
+-ccflags-y += -O3 $(LINUXINCLUDE)
++ccflags-y += -Ofast $(LINUXINCLUDE)
+ 
+ ifdef CONFIG_ETRAX_AXISFLASHMAP
+ 
+diff --git a/arch/frv/boot/Makefile b/arch/frv/boot/Makefile
+index 74cfacb42636..636d5bbcd53f 100644
+--- a/arch/frv/boot/Makefile
++++ b/arch/frv/boot/Makefile
+@@ -36,8 +36,8 @@ targets: $(obj)/Image
+ $(obj)/Image: vmlinux FORCE
+ 	$(OBJCOPY) $(OBJCOPYFLAGS) -S vmlinux $@
+ 
+-$(obj)/Image:	$(CONFIGURE) $(SYSTEM)
+-	$(OBJCOPY) $(OBJCOPYFLAGS) -g0 -S $(SYSTEM) $@
++#$(obj)/Image:	$(CONFIGURE) $(SYSTEM)
++#	$(OBJCOPY) $(OBJCOPYFLAGS) -g -S $(SYSTEM) $@
+ 
+ bzImage: zImage
+ 
+diff --git a/arch/h8300/Makefile b/arch/h8300/Makefile
+index b5939618571e..a556447877b4 100644
+--- a/arch/h8300/Makefile
++++ b/arch/h8300/Makefile
+@@ -32,7 +32,7 @@ ldflags-$(CONFIG_CPU_H8S)	:= -mh8300self
+ 
+ KBUILD_CFLAGS += $(cflags-y)
+ KBUILD_CFLAGS += -mint32 -fno-builtin
+-KBUILD_CFLAGS += -g0
++KBUILD_CFLAGS += -g
+ KBUILD_CFLAGS += -D__linux__
+ KBUILD_CFLAGS += -DUTS_SYSNAME=\"uClinux\"
+ KBUILD_AFLAGS += -DPLATFORM=$(PLATFORM) -DMODEL=$(MODEL) $(cflags-y)
+diff --git a/arch/m32r/Makefile b/arch/m32r/Makefile
+index 06fe7339b7c5..4044a3ad1a7d 100644
+--- a/arch/m32r/Makefile
++++ b/arch/m32r/Makefile
+@@ -17,14 +17,14 @@ KBUILD_CFLAGS_MODULE += -mmodel=large
+ 
+ ifdef CONFIG_CHIP_VDEC2
+ cflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -Wa,-bitinst
+-aflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -O3 -Wa,-bitinst -Wa,-no-parallel
++aflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -Ofast -Wa,-bitinst -Wa,-no-parallel
+ else
+ cflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -m32r2
+-aflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -m32r2 -O3
++aflags-$(CONFIG_ISA_M32R2)	+= -DNO_FPU -m32r2 -Ofast
+ endif
+ 
+ cflags-$(CONFIG_ISA_M32R)	+= -DNO_FPU
+-aflags-$(CONFIG_ISA_M32R)	+= -DNO_FPU -O3 -Wa,-no-bitinst
++aflags-$(CONFIG_ISA_M32R)	+= -DNO_FPU -Ofast -Wa,-no-bitinst
+ 
+ KBUILD_CFLAGS += $(cflags-y)
+ KBUILD_AFLAGS += $(aflags-y)
+diff --git a/arch/m68k/Makefile b/arch/m68k/Makefile
+index 4fe781f450a7..7f7830f2c5bc 100644
+--- a/arch/m68k/Makefile
++++ b/arch/m68k/Makefile
+@@ -83,7 +83,7 @@ CHECKFLAGS += -D__mc68000__
+ ifdef CONFIG_KGDB
+ # If configured for kgdb support, include debugging infos and keep the
+ # frame pointer
+-KBUILD_CFLAGS := $(subst -fomit-frame-pointer,,$(KBUILD_CFLAGS)) -g0
++KBUILD_CFLAGS := $(subst -fomit-frame-pointer,,$(KBUILD_CFLAGS)) -g
+ endif
+ 
+ #
+diff --git a/arch/m68k/tools/amiga/Makefile b/arch/m68k/tools/amiga/Makefile
+index 354c87d67942..dc8adaa2306c 100644
+--- a/arch/m68k/tools/amiga/Makefile
++++ b/arch/m68k/tools/amiga/Makefile
+@@ -1,6 +1,6 @@
+ 
+ CC =		m68k-cbm-amigados-gcc
+-CFLAGS =	-O3
++CFLAGS =	-Wall -Ofast
+ 
+ 
+ All:		dmesg
+diff --git a/arch/powerpc/boot/Makefile b/arch/powerpc/boot/Makefile
+index 944b7b94eec5..61a5cdf168c8 100644
+--- a/arch/powerpc/boot/Makefile
++++ b/arch/powerpc/boot/Makefile
+@@ -19,14 +19,14 @@
+ 
+ all: $(obj)/zImage
+ 
+-BOOTCFLAGS    := -Wno-trigraphs \
++BOOTCFLAGS    := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+ 		 -fno-strict-aliasing -msoft-float -pipe \
+ 		 -fomit-frame-pointer -fno-builtin -fPIC -nostdinc \
+ 		 -isystem $(shell $(CROSS32CC) -print-file-name=include)
+ BOOTAFLAGS	:= -D__ASSEMBLY__ $(BOOTCFLAGS) -traditional -nostdinc
+ 
+ ifdef CONFIG_DEBUG_INFO
+-BOOTCFLAGS	+= -g0
++BOOTCFLAGS	+= -g
+ endif
+ 
+ ifeq ($(call cc-option-yn, -fstack-protector),y)
+diff --git a/arch/powerpc/platforms/cell/spufs/Makefile b/arch/powerpc/platforms/cell/spufs/Makefile
+index 77cbc2000abe..02974c103748 100644
+--- a/arch/powerpc/platforms/cell/spufs/Makefile
++++ b/arch/powerpc/platforms/cell/spufs/Makefile
+@@ -13,7 +13,7 @@ SPU_CC		:= $(SPU_CROSS)gcc
+ SPU_AS		:= $(SPU_CROSS)gcc
+ SPU_LD		:= $(SPU_CROSS)ld
+ SPU_OBJCOPY	:= $(SPU_CROSS)objcopy
+-SPU_CFLAGS	:= -O3 -I$(srctree)/include -D__KERNEL__
++SPU_CFLAGS	:= -Ofast -Wall -I$(srctree)/include -D__KERNEL__
+ SPU_AFLAGS	:= -c -D__ASSEMBLY__ -I$(srctree)/include -D__KERNEL__
+ SPU_LDFLAGS	:= -N -Ttext=0x0
+ 
+diff --git a/arch/s390/boot/Makefile b/arch/s390/boot/Makefile
+index ea36783d94b4..f2737a005afc 100644
+--- a/arch/s390/boot/Makefile
++++ b/arch/s390/boot/Makefile
+@@ -6,7 +6,7 @@ COMPILE_VERSION := __linux_compile_version_id__`hostname |  \
+ 			tr -c '[0-9A-Za-z]' '_'`__`date | \
+ 			tr -c '[0-9A-Za-z]' '_'`_t
+ 
+-ccflags-y  := -DCOMPILE_VERSION=$(COMPILE_VERSION) -g0 -I.
++ccflags-y  := -DCOMPILE_VERSION=$(COMPILE_VERSION) -gstabs -I.
+ 
+ targets := image
+ targets += bzImage
+diff --git a/arch/s390/boot/compressed/Makefile b/arch/s390/boot/compressed/Makefile
+index eb2e771678a8..b252056bb5f8 100644
+--- a/arch/s390/boot/compressed/Makefile
++++ b/arch/s390/boot/compressed/Makefile
+@@ -10,7 +10,7 @@ targets	:= vmlinux.lds vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 \
+ 	   vmlinux.bin.xz vmlinux.bin.lzma vmlinux.bin.lzo misc.o piggy.o \
+ 	   sizes.h head$(BITS).o
+ 
+-KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O3
++KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -Ofast
+ KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
+ KBUILD_CFLAGS += $(cflags-y)
+ KBUILD_CFLAGS += $(call cc-option,-mpacked-stack)
+diff --git a/arch/x86/boot/Makefile b/arch/x86/boot/Makefile
+index 8c7ac93368ad..21009dbe787a 100644
+--- a/arch/x86/boot/Makefile
++++ b/arch/x86/boot/Makefile
+@@ -53,8 +53,9 @@ $(obj)/cpustr.h: $(obj)/mkcpustr FORCE
+ 
+ # How to compile the 16-bit code.  Note we always compile for -march=i386,
+ # that way we can complain to the user if the CPU is insufficient.
+-KBUILD_CFLAGS	:= $(USERINCLUDE) -m32 -g0 -D_SETUP -D__KERNEL__ \
++KBUILD_CFLAGS	:= $(USERINCLUDE) -m32 -g -D_SETUP -D__KERNEL__ \
+ 		   -DDISABLE_BRANCH_PROFILING \
++		   -Wall -Wstrict-prototypes \
+ 		   -march=i386 -mregparm=3 \
+ 		   -include $(srctree)/$(src)/code16gcc.h \
+ 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
+diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
+index b1a0b3ceb5af..bfe89143c620 100644
+--- a/arch/x86/boot/compressed/Makefile
++++ b/arch/x86/boot/compressed/Makefile
+@@ -6,7 +6,7 @@
+ 
+ targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma vmlinux.bin.xz vmlinux.bin.lzo
+ 
+-KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -O3
++KBUILD_CFLAGS := -m$(BITS) -D__KERNEL__ $(LINUX_INCLUDE) -Ofast
+ KBUILD_CFLAGS += -fno-strict-aliasing $(call cc-option, -fPIE, -fPIC)
+ KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
+ cflags-$(CONFIG_X86_32) := -march=i386
+diff --git a/arch/x86/realmode/rm/Makefile b/arch/x86/realmode/rm/Makefile
+index 31871425646f..29a420f8b075 100644
+--- a/arch/x86/realmode/rm/Makefile
++++ b/arch/x86/realmode/rm/Makefile
+@@ -66,9 +66,10 @@ $(obj)/realmode.relocs: $(obj)/realmode.elf FORCE
+ 
+ # How to compile the 16-bit code.  Note we always compile for -march=i386,
+ # that way we can complain to the user if the CPU is insufficient.
+-KBUILD_CFLAGS	:= $(LINUXINCLUDE) -m32 -g0 -D_SETUP -D__KERNEL__ -D_WAKEUP \
++KBUILD_CFLAGS	:= $(LINUXINCLUDE) -m32 -g -D_SETUP -D__KERNEL__ -D_WAKEUP \
+ 		   -I$(srctree)/arch/x86/boot \
+ 		   -DDISABLE_BRANCH_PROFILING \
++		   -Wall -Wstrict-prototypes \
+ 		   -march=i386 -mregparm=3 \
+ 		   -include $(srctree)/$(src)/../../boot/code16gcc.h \
+ 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
+diff --git a/arch/x86/tools/Makefile b/arch/x86/tools/Makefile
+index 5fd6a98e27c8..e8120346903b 100644
+--- a/arch/x86/tools/Makefile
++++ b/arch/x86/tools/Makefile
+@@ -28,9 +28,9 @@ posttest: $(obj)/test_get_len vmlinux $(obj)/insn_sanity
+ hostprogs-y	+= test_get_len insn_sanity
+ 
+ # -I needed for generated C source and C source which in the kernel tree.
+-HOSTCFLAGS_test_get_len.o := -I$(objtree)/arch/x86/lib/ -I$(srctree)/arch/x86/include/uapi/ -I$(srctree)/arch/x86/include/ -I$(srctree)/arch/x86/lib/ -I$(srctree)/include/uapi/
++HOSTCFLAGS_test_get_len.o := -Wall -I$(objtree)/arch/x86/lib/ -I$(srctree)/arch/x86/include/uapi/ -I$(srctree)/arch/x86/include/ -I$(srctree)/arch/x86/lib/ -I$(srctree)/include/uapi/
+ 
+-HOSTCFLAGS_insn_sanity.o := -I$(objtree)/arch/x86/lib/ -I$(srctree)/arch/x86/include/ -I$(srctree)/arch/x86/lib/ -I$(srctree)/include/
++HOSTCFLAGS_insn_sanity.o := -Wall -I$(objtree)/arch/x86/lib/ -I$(srctree)/arch/x86/include/ -I$(srctree)/arch/x86/lib/ -I$(srctree)/include/
+ 
+ # Dependencies are also needed.
+ $(obj)/test_get_len.o: $(srctree)/arch/x86/lib/insn.c $(srctree)/arch/x86/lib/inat.c $(srctree)/arch/x86/include/asm/inat_types.h $(srctree)/arch/x86/include/asm/inat.h $(srctree)/arch/x86/include/asm/insn.h $(objtree)/arch/x86/lib/inat-tables.c
+diff --git a/arch/x86/um/vdso/Makefile b/arch/x86/um/vdso/Makefile
+index a745a553d2d4..44a4fc63cc32 100644
+--- a/arch/x86/um/vdso/Makefile
++++ b/arch/x86/um/vdso/Makefile
+@@ -37,8 +37,8 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ # Don't omit frame pointers for ease of userspace debugging, but do
+ # optimize sibling calls.
+ #
+-CFL := $(PROFILING) -mcmodel=small -fPIC -O3 -fasynchronous-unwind-tables -m64 \
+-       -g0 $(call cc-option, -fno-stack-protector) \
++CFL := $(PROFILING) -mcmodel=small -fPIC -Ofast -fasynchronous-unwind-tables -m64 \
++       $(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
+        -fno-omit-frame-pointer -foptimize-sibling-calls
+ 
+ $(vobjs): KBUILD_CFLAGS += $(CFL)
+diff --git a/arch/x86/vdso/Makefile b/arch/x86/vdso/Makefile
+index 19f9221b36e8..6fb454fd5223 100644
+--- a/arch/x86/vdso/Makefile
++++ b/arch/x86/vdso/Makefile
+@@ -50,8 +50,8 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ # Don't omit frame pointers for ease of userspace debugging, but do
+ # optimize sibling calls.
+ #
+-CFL := $(PROFILING) -mcmodel=small -fPIC -O3 -fasynchronous-unwind-tables -m64 \
+-       -g0 $(call cc-option, -fno-stack-protector) \
++CFL := $(PROFILING) -mcmodel=small -fPIC -Ofast -fasynchronous-unwind-tables -m64 \
++       $(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
+        -fno-omit-frame-pointer -foptimize-sibling-calls
+ 
+ $(vobjs): KBUILD_CFLAGS += $(CFL)
+diff --git a/crypto/Makefile b/crypto/Makefile
+index ffc79b1077df..992138bcbdef 100644
+--- a/crypto/Makefile
++++ b/crypto/Makefile
+@@ -5,7 +5,7 @@
+ # memneq MUST be built with -Os or -O0 to prevent early-return optimizations
+ # that will defeat memneq's actual purpose to prevent timing attacks.
+ CFLAGS_REMOVE_memneq.o := -O1 -O2 -O3
+-CFLAGS_memneq.o := -O3
++CFLAGS_memneq.o := -Ofast
+ 
+ obj-$(CONFIG_CRYPTO) += crypto.o
+ crypto-y := api.o cipher.o compress.o memneq.o
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index 7d41a9d703ba..e7d703626639 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for ACPICA Core interpreter
+ #
+ 
+-ccflags-y			:= -O3
++ccflags-y			:= -Ofast
+ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ 
+ # use acpi.o to put all files here into acpi.o modparam namespace
+diff --git a/drivers/gud/MobiCoreDriver/Makefile b/drivers/gud/MobiCoreDriver/Makefile
+index 9fd3fc5fcb70..71be258f7622 100644
+--- a/drivers/gud/MobiCoreDriver/Makefile
++++ b/drivers/gud/MobiCoreDriver/Makefile
+@@ -3,7 +3,7 @@
+ # add things to "obj-m" here.
+ 
+ ifeq ($(MODE),release)
+-    ccflags-y = -O3 -DNDEBUG
++    ccflags-y = -Ofast -DNDEBUG
+ else
+     ccflags-y = -DDEBUG
+ endif # DEBUG/RELEASE
+@@ -19,7 +19,7 @@ ifdef MOBICORE_CFLAGS
+ endif
+ #EXTRA_CFLAGS+=-DDEBUG_VERBOSE
+ 
+-ccflags-y += -D__$(PLATFORM)__
++ccflags-y += -Wall -D__$(PLATFORM)__
+ # add our module to kernel.
+ obj-m += mcDrvModule.o
+ 
+diff --git a/drivers/gud/MobiCoreKernelApi/Makefile b/drivers/gud/MobiCoreKernelApi/Makefile
+index fb7fbcc5cb1b..f2149698aea0 100644
+--- a/drivers/gud/MobiCoreKernelApi/Makefile
++++ b/drivers/gud/MobiCoreKernelApi/Makefile
+@@ -1,6 +1,6 @@
+ #
+ # this makefile is called from the kernel make syste
+-ccflags-y += -O3 -DNDEBUG
++ccflags-y += -Ofast -DNDEBUG
+ 
+ ifdef MOBICORE_CFLAGS
+     ccflags-y +=$(MOBICORE_CFLAGS)
+diff --git a/drivers/input/Makefile b/drivers/input/Makefile
+index df928edf6350..778fc00e3e27 100644
+--- a/drivers/input/Makefile
++++ b/drivers/input/Makefile
+@@ -29,4 +29,4 @@ obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
+ obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
+ obj-$(CONFIG_SENSORS_HALL)	+= hall_sensor.o
+ 
+-subdir-ccflags-y := -O3
++subdir-ccflags-y := -Ofast
+diff --git a/drivers/net/Makefile b/drivers/net/Makefile
+index 94702849bc14..02e8ce677fc6 100644
+--- a/drivers/net/Makefile
++++ b/drivers/net/Makefile
+@@ -74,4 +74,4 @@ obj-$(CONFIG_USB_CDC_PHONET)   += usb/
+ obj-$(CONFIG_HYPERV_NET) += hyperv/
+ obj-$(CONFIG_NTB_NETDEV) += ntb_netdev.o
+ 
+-subdir-ccflags-y := -O3
++subdir-ccflags-y := -Ofast
+diff --git a/drivers/scsi/aic7xxx/aicasm/Makefile b/drivers/scsi/aic7xxx/aicasm/Makefile
+index ce3842aba64d..b98c5c1056c3 100644
+--- a/drivers/scsi/aic7xxx/aicasm/Makefile
++++ b/drivers/scsi/aic7xxx/aicasm/Makefile
+@@ -27,6 +27,7 @@ AICASM_CC= $(CC)
+ endif
+ 
+ ifdef DEBUG
++CFLAGS+= -DDEBUG -g
+ YFLAGS+= -t -v
+ LFLAGS= -d
+ endif
+diff --git a/drivers/scsi/lpfc/Makefile b/drivers/scsi/lpfc/Makefile
+index 618217ec140a..4306aeb24958 100644
+--- a/drivers/scsi/lpfc/Makefile
++++ b/drivers/scsi/lpfc/Makefile
+@@ -20,7 +20,7 @@
+ ######################################################################
+ 
+ ccflags-$(GCOV) := -fprofile-arcs -ftest-coverage
+-ccflags-$(GCOV) += -O3
++ccflags-$(GCOV) += -Ofast
+ 
+ ifdef WARNINGS_BECOME_ERRORS
+ ccflags-y += -Werror
+diff --git a/drivers/staging/qcacld-2.0/Kbuild b/drivers/staging/qcacld-2.0/Kbuild
+index 2ace0a5dd425..04f1323a4ebc 100644
+--- a/drivers/staging/qcacld-2.0/Kbuild
++++ b/drivers/staging/qcacld-2.0/Kbuild
+@@ -957,6 +957,7 @@ CDEFINES :=	-DANI_LITTLE_BYTE_ENDIAN \
+ 		-DANI_OS_TYPE_ANDROID=6 \
+ 		-DWLAN_PERF \
+ 		-DPTT_SOCK_SVC_ENABLE \
++		-Wall\
+ 		-D__linux__ \
+ 		-DHAL_SELF_STA_PER_BSS=1 \
+ 		-DWLAN_FEATURE_VOWIFI_11R \
+@@ -977,7 +978,7 @@ CDEFINES :=	-DANI_LITTLE_BYTE_ENDIAN \
+ 		-DWLAN_FEATURE_GTK_OFFLOAD \
+ 		-DWLAN_WAKEUP_EVENTS \
+ 		-DFEATURE_WLAN_RA_FILTERING\
+-	    -DWLAN_KD_READY_NOTIFIER \
++	        -DWLAN_KD_READY_NOTIFIER \
+ 		-DWLAN_NL80211_TESTMODE \
+ 		-DFEATURE_WLAN_LPHB \
+ 		-DFEATURE_WLAN_PAL_TIMER_DISABLE \
+@@ -1531,8 +1532,16 @@ endif
+ 
+ KBUILD_CPPFLAGS += $(CDEFINES)
+ 
++# Currently, for versions of gcc which support it, the kernel Makefile
++# is disabling the maybe-uninitialized warning.  Re-enable it for the
++# WLAN driver.  Note that we must use EXTRA_CFLAGS here so that it
++# will override the kernel settings.
++ifeq ($(call cc-option-yn, -Wmaybe-uninitialized),y)
++EXTRA_CFLAGS += -Wmaybe-uninitialized
++endif
++
+ EXTRA_CFLAGS += $(call cc-option, -g0)
+-EXTRA_CFLAGS += $(call cc-option, -O3)
++EXTRA_CFLAGS += $(call cc-option, -Ofast)
+ 
+ # If the module name is not "wlan", then the define MULTI_IF_NAME to be the
+ # same a the QCA CHIP name. The host driver will then append MULTI_IF_NAME to
+diff --git a/drivers/staging/rtl8187se/Makefile b/drivers/staging/rtl8187se/Makefile
+index bf36c8e072b3..ae1a326f2309 100644
+--- a/drivers/staging/rtl8187se/Makefile
++++ b/drivers/staging/rtl8187se/Makefile
+@@ -1,7 +1,7 @@
+ 
+ #ccflags-y += -DCONFIG_IEEE80211_NOWEP=y
+ #ccflags-y += -std=gnu89
+-ccflags-y += -O3
++ccflags-y += -Ofast
+ #CC            = gcc
+ 
+ ccflags-y := -DSW_ANTE
+diff --git a/drivers/staging/rtl8192u/Makefile b/drivers/staging/rtl8192u/Makefile
+index 1457822332c1..4d0007a7f09a 100644
+--- a/drivers/staging/rtl8192u/Makefile
++++ b/drivers/staging/rtl8192u/Makefile
+@@ -1,7 +1,7 @@
+ NIC_SELECT = RTL8192U
+ 
+ ccflags-y := -std=gnu89
+-ccflags-y += -O3
++ccflags-y += -Ofast
+ 
+ ccflags-y += -DCONFIG_FORCE_HARD_FLOAT=y
+ ccflags-y += -DJACKSON_NEW_8187 -DJACKSON_NEW_RX
+diff --git a/drivers/staging/rtl8192u/ieee80211/Makefile b/drivers/staging/rtl8192u/ieee80211/Makefile
+index bf32efad6f4e..28fdc466fb79 100644
+--- a/drivers/staging/rtl8192u/ieee80211/Makefile
++++ b/drivers/staging/rtl8192u/ieee80211/Makefile
+@@ -1,7 +1,7 @@
+ NIC_SELECT = RTL8192U
+ 
+ ccflags-y := -I$(TOPDIR)/drivers/net/wireless
+-ccflags-y += -O3
++ccflags-y += -Ofast
+ ccflags-y += -DJACKSON_NEW_8187 -DJACKSON_NEW_RX
+ 
+ ieee80211-rsl-objs := ieee80211_rx.o \
+diff --git a/drivers/staging/usbip/userspace/configure.ac b/drivers/staging/usbip/userspace/configure.ac
+index 22256d637fe1..2be4060f9036 100644
+--- a/drivers/staging/usbip/userspace/configure.ac
++++ b/drivers/staging/usbip/userspace/configure.ac
+@@ -18,7 +18,7 @@ LT_INIT
+ # Silent build for automake >= 1.11
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+-AC_SUBST([EXTRA_CFLAGS], ["-std=gnu99"])
++AC_SUBST([EXTRA_CFLAGS], ["-Wall -Werror -Wextra -std=gnu99"])
+ 
+ # Checks for programs.
+ AC_PROG_CC
+diff --git a/drivers/usb/Makefile b/drivers/usb/Makefile
+index 37a1b624d3c0..e15550f24644 100644
+--- a/drivers/usb/Makefile
++++ b/drivers/usb/Makefile
+@@ -59,4 +59,4 @@ obj-$(CONFIG_USB_GADGET)	+= gadget/
+ 
+ obj-$(CONFIG_USB_COMMON)	+= usb-common.o
+ 
+-subdir-ccflags-y := -O3
++subdir-ccflags-y := -Ofast
+diff --git a/fs/sdcardfs/main.c b/fs/sdcardfs/main.c
+index 4ca40a74c371..24381bfb1db8 100755
+--- a/fs/sdcardfs/main.c
++++ b/fs/sdcardfs/main.c
+@@ -89,7 +89,7 @@ static int parse_options(struct super_block *sb, char *options, int silent,
+ 
+ 		switch (token) {
+ 		case Opt_debug:
+-			*debug = 0;
++			*debug = 1;
+ 			break;
+ 		case Opt_fsuid:
+ 			if (match_int(&args[0], &option))
+@@ -173,7 +173,7 @@ int parse_options_remount(struct super_block *sb, char *options, int silent,
+ 
+ 		switch (token) {
+ 		case Opt_debug:
+-			debug = 0;
++			debug = 1;
+ 			break;
+ 		case Opt_gid:
+ 			if (match_int(&args[0], &option))
+diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+index 750c8a98ea46..6313b69b6644 100644
+--- a/fs/xfs/Makefile
++++ b/fs/xfs/Makefile
+@@ -18,6 +18,8 @@
+ 
+ ccflags-y += -I$(src)			# needed for trace events
+ 
++ccflags-$(CONFIG_XFS_DEBUG) += -g
++
+ obj-$(CONFIG_XFS_FS)		+= xfs.o
+ 
+ # this one should be compiled first, as the tracing macros can easily blow up
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 2ab83dd6e8cb..663736e4828e 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -875,7 +875,6 @@ config DEBUG_BUGVERBOSE
+ config DEBUG_INFO
+ 	bool "Compile the kernel with debug info"
+ 	depends on DEBUG_KERNEL
+-	default n
+ 	help
+           If you say Y here the resulting kernel image will include
+ 	  debugging info resulting in a larger kernel image.
+@@ -1258,7 +1257,6 @@ config DEBUG_PER_CPU_MAPS
+ 	bool "Debug access to per_cpu maps"
+ 	depends on DEBUG_KERNEL
+ 	depends on SMP
+-	default n
+ 	help
+ 	  Say Y to verify that the per_cpu map being accessed has
+ 	  been set up. This adds a fair amount of code to kernel memory
+diff --git a/lib/lz4/Makefile b/lib/lz4/Makefile
+index f7b113271d13..8157bb0e2bd8 100644
+--- a/lib/lz4/Makefile
++++ b/lib/lz4/Makefile
+@@ -1,4 +1,4 @@
+-ccflags-y += -O3
++ccflags-y += -Ofast
+ 
+ obj-$(CONFIG_LZ4_COMPRESS) += lz4_compress.o
+ obj-$(CONFIG_LZ4HC_COMPRESS) += lz4hc_compress.o
+diff --git a/lib/raid6/test/Makefile b/lib/raid6/test/Makefile
+index 25913c936b03..1b8304dd6ff9 100644
+--- a/lib/raid6/test/Makefile
++++ b/lib/raid6/test/Makefile
+@@ -4,8 +4,8 @@
+ #
+ 
+ CC	 = gcc
+-OPTFLAGS = -O3			# Adjust as desired
+-CFLAGS	 = -I.. -I ../../../include -g0 $(OPTFLAGS)
++OPTFLAGS = -Ofast			# Adjust as desired
++CFLAGS	 = -I.. -I ../../../include -g $(OPTFLAGS)
+ LD	 = ld
+ AWK	 = awk -f
+ AR	 = ar
+diff --git a/net/Makefile b/net/Makefile
+index 432c4f90b6bb..3b0886b9bfc9 100644
+--- a/net/Makefile
++++ b/net/Makefile
+@@ -74,4 +74,4 @@ obj-$(CONFIG_NET_ACTIVITY_STATS)		+= activity_stats.o
+ obj-$(CONFIG_RMNET_DATA) += rmnet_data/
+ obj-$(CONFIG_IPC_ROUTER)	+= ipc_router/
+ 
+-subdir-ccflags-y := -O3
++subdir-ccflags-y := -Ofast
+diff --git a/scripts/Makefile.build b/scripts/Makefile.build
+index b7c8da5f0355..d5d859c80729 100644
+--- a/scripts/Makefile.build
++++ b/scripts/Makefile.build
+@@ -316,7 +316,7 @@ $(single-used-m): $(obj)/%.o: $(src)/%.c $(recordmcount_source) FORCE
+ 	@{ echo $(@:.o=.ko); echo $@; } > $(MODVERDIR)/$(@F:.o=.mod)
+ 
+ quiet_cmd_cc_lst_c = MKLST   $@
+-      cmd_cc_lst_c = $(CC) $(c_flags) -g0 -c -o $*.o $< && \
++      cmd_cc_lst_c = $(CC) $(c_flags) -g -c -o $*.o $< && \
+ 		     $(CONFIG_SHELL) $(srctree)/scripts/makelst $*.o \
+ 				     System.map $(OBJDUMP) > $@
+ 
+diff --git a/sound/Makefile b/sound/Makefile
+index b2d692c77fc6..273977963b74 100644
+--- a/sound/Makefile
++++ b/sound/Makefile
+@@ -18,4 +18,4 @@ endif
+ 
+ soundcore-objs  := sound_core.o
+ 
+-subdir-ccflags-y := -O3
++subdir-ccflags-y := -Ofast
+diff --git a/tools/cgroup/Makefile b/tools/cgroup/Makefile
+index bca4a1d3c4dd..b4286196b763 100644
+--- a/tools/cgroup/Makefile
++++ b/tools/cgroup/Makefile
+@@ -1,6 +1,7 @@
+ # Makefile for cgroup tools
+ 
+ CC = $(CROSS_COMPILE)gcc
++CFLAGS = -Wall -Wextra
+ 
+ all: cgroup_event_listener
+ %: %.c
+diff --git a/tools/firewire/Makefile b/tools/firewire/Makefile
+index 9c165d95acb0..cfc6cd66a2dd 100644
+--- a/tools/firewire/Makefile
++++ b/tools/firewire/Makefile
+@@ -5,9 +5,9 @@ CC = gcc
+ 
+ all : nosy-dump
+ 
+-nosy-dump : CFLAGS = -O3 -g0
++nosy-dump : CFLAGS = -Wall -Ofast -g
+ nosy-dump : CPPFLAGS = -DVERSION=\"$(nosy-dump-version)\" -I../../drivers/firewire
+-nosy-dump : LDFLAGS = -g0
++nosy-dump : LDFLAGS = -g
+ nosy-dump : LDLIBS = -lpopt
+ 
+ nosy-dump : nosy-dump.o decode-fcp.o
+diff --git a/tools/lguest/Makefile b/tools/lguest/Makefile
+index 7d5356688890..7f524695aa33 100644
+--- a/tools/lguest/Makefile
++++ b/tools/lguest/Makefile
+@@ -1,6 +1,6 @@
+ # This creates the demonstration utility "lguest" which runs a Linux guest.
+ # Missing headers?  Add "-I../../../include -I../../../arch/x86/include"
+-CFLAGS:=-m32 -O3 -U_FORTIFY_SOURCE
++CFLAGS:=-m32 -Wall -Wmissing-declarations -Wmissing-prototypes -Ofast -U_FORTIFY_SOURCE
+ 
+ all: lguest
+ 
+diff --git a/tools/lib/lk/Makefile b/tools/lib/lk/Makefile
+index c70c70b1075b..2c5a19733357 100644
+--- a/tools/lib/lk/Makefile
++++ b/tools/lib/lk/Makefile
+@@ -13,7 +13,7 @@ LIB_OBJS += $(OUTPUT)debugfs.o
+ 
+ LIBFILE = liblk.a
+ 
+-CFLAGS = -g0 -std=gnu99 -O3 -D_FORTIFY_SOURCE=2 $(EXTRA_WARNINGS) $(EXTRA_CFLAGS) -fPIC
++CFLAGS = -ggdb3 -Wall -Wextra -std=gnu99 -Werror -O6 -D_FORTIFY_SOURCE=2 $(EXTRA_WARNINGS) $(EXTRA_CFLAGS) -fPIC
+ EXTLIBS = -lpthread -lrt -lelf -lm
+ ALL_CFLAGS = $(CFLAGS) $(BASIC_CFLAGS) -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+ ALL_LDFLAGS = $(LDFLAGS)
+diff --git a/tools/lib/traceevent/Makefile b/tools/lib/traceevent/Makefile
+index 3fd1f49b2cb7..0b0a90787db6 100644
+--- a/tools/lib/traceevent/Makefile
++++ b/tools/lib/traceevent/Makefile
+@@ -125,7 +125,7 @@ EVENT_PARSE_VERSION = $(EP_VERSION).$(EP_PATCHLEVEL).$(EP_EXTRAVERSION)
+ INCLUDES = -I. $(CONFIG_INCLUDES)
+ 
+ # Set compile option CFLAGS if not set elsewhere
+-CFLAGS ?= -g0
++CFLAGS ?= -g -Wall
+ 
+ # Append required CFLAGS
+ override CFLAGS += $(CONFIG_FLAGS) $(INCLUDES) $(PLUGIN_DIR_SQ)
+diff --git a/tools/net/Makefile b/tools/net/Makefile
+index dfb981eb635a..7e36d30a49ba 100644
+--- a/tools/net/Makefile
++++ b/tools/net/Makefile
+@@ -4,7 +4,7 @@ CC = gcc
+ 
+ all : bpf_jit_disasm
+ 
+-bpf_jit_disasm : CFLAGS = -O3
++bpf_jit_disasm : CFLAGS = -Wall -Ofast
+ bpf_jit_disasm : LDLIBS = -lopcodes -lbfd -ldl
+ bpf_jit_disasm : bpf_jit_disasm.o
+ 
+diff --git a/tools/perf/Makefile b/tools/perf/Makefile
+index deb90d90de20..a89d1339f0dd 100644
+--- a/tools/perf/Makefile
++++ b/tools/perf/Makefile
+@@ -110,7 +110,7 @@ ifdef NO_NEWT
+ 	NO_SLANG=1
+ endif
+ 
+-CFLAGS = -fno-omit-frame-pointer -g0 -funwind-tables -std=gnu99 $(CFLAGS_OPTIMIZE) $(EXTRA_CFLAGS) $(PARSER_DEBUG_CFLAGS)
++CFLAGS = -fno-omit-frame-pointer -ggdb3 -funwind-tables -Wall -Wextra -std=gnu99 $(CFLAGS_WERROR) $(CFLAGS_OPTIMIZE) $(EXTRA_WARNINGS) $(EXTRA_CFLAGS) $(PARSER_DEBUG_CFLAGS)
+ EXTLIBS = -lpthread -lrt -lelf -lm
+ ALL_CFLAGS = $(CFLAGS) -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
+ ALL_LDFLAGS = $(LDFLAGS)
+diff --git a/tools/perf/tests/attr/test-record-graph-default b/tools/perf/tests/attr/test-record-graph-default
+index 23ac83670e21..833d1849d767 100644
+--- a/tools/perf/tests/attr/test-record-graph-default
++++ b/tools/perf/tests/attr/test-record-graph-default
+@@ -1,6 +1,6 @@
+ [config]
+ command = record
+-args    = -g0 -- kill >/dev/null 2>&1
++args    = -g -- kill >/dev/null 2>&1
+ 
+ [event:base-record]
+ sample_type=295
+diff --git a/tools/perf/tests/attr/test-record-graph-dwarf b/tools/perf/tests/attr/test-record-graph-dwarf
+index dc9b2900dc39..e93e082f5208 100644
+--- a/tools/perf/tests/attr/test-record-graph-dwarf
++++ b/tools/perf/tests/attr/test-record-graph-dwarf
+@@ -1,6 +1,6 @@
+ [config]
+ command = record
+-args    = -g0 dwarf -- kill >/dev/null 2>&1
++args    = -g dwarf -- kill >/dev/null 2>&1
+ 
+ [event:base-record]
+ sample_type=12583
+diff --git a/tools/perf/tests/attr/test-record-graph-fp b/tools/perf/tests/attr/test-record-graph-fp
+index 593430b24751..7cef3743f03f 100644
+--- a/tools/perf/tests/attr/test-record-graph-fp
++++ b/tools/perf/tests/attr/test-record-graph-fp
+@@ -1,6 +1,6 @@
+ [config]
+ command = record
+-args    = -g0 fp kill >/dev/null 2>&1
++args    = -g fp kill >/dev/null 2>&1
+ 
+ [event:base-record]
+ sample_type=295
+diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
+index d6dafa3d5257..44f85e84b1c8 100644
+--- a/tools/power/acpi/Makefile
++++ b/tools/power/acpi/Makefile
+@@ -1,7 +1,7 @@
+ PROG= acpidump
+ SRCS=	acpidump.c
+ KERNEL_INCLUDE := ../../../include
+-CFLAGS += -s -D_LINUX -DDEFINE_ALTERNATE_TYPES -I$(KERNEL_INCLUDE) 
++CFLAGS += -Wall -Wstrict-prototypes -Wdeclaration-after-statement -s -D_LINUX -DDEFINE_ALTERNATE_TYPES -I$(KERNEL_INCLUDE) 
+ 
+ all: acpidump
+ $(PROG) : $(SRCS)
+diff --git a/tools/power/cpupower/Makefile b/tools/power/cpupower/Makefile
+index 8be40309dd79..b0a767ab8801 100644
+--- a/tools/power/cpupower/Makefile
++++ b/tools/power/cpupower/Makefile
+@@ -113,8 +113,13 @@ export CROSS CC AR STRIP RANLIB CFLAGS LDFLAGS LIB_OBJS
+ # check if compiler option is supported
+ cc-supports = ${shell if $(CC) ${1} -S -o /dev/null -x c /dev/null > /dev/null 2>&1; then echo "$(1)"; fi;}
+ 
+-# use '-Os' optimization if available, else use -O3
+-OPTIMIZATION := -O3
++# use '-Os' optimization if available, else use -Ofast
++OPTIMIZATION := -Ofast
++
++WARNINGS := -Wall -Wchar-subscripts -Wpointer-arith -Wsign-compare
++WARNINGS += $(call cc-supports,-Wno-pointer-sign)
++WARNINGS += $(call cc-supports,-Wdeclaration-after-statement)
++WARNINGS += -Wshadow
+ 
+ CFLAGS += -DVERSION=\"$(VERSION)\" -DPACKAGE=\"$(PACKAGE)\" \
+ 		-DPACKAGE_BUGREPORT=\"$(PACKAGE_BUGREPORT)\" -D_GNU_SOURCE
+@@ -167,7 +172,7 @@ export QUIET ECHO
+ 
+ # if DEBUG is enabled, then we do not strip or optimize
+ ifeq ($(strip $(DEBUG)),true)
+-	CFLAGS += -O3 -g0 -DDEBUG
++	CFLAGS += -O1 -g -DDEBUG
+ 	STRIPCMD = /bin/true -Since_we_are_debugging
+ else
+ 	CFLAGS += $(OPTIMIZATION) -fomit-frame-pointer
+diff --git a/tools/power/x86/turbostat/Makefile b/tools/power/x86/turbostat/Makefile
+index 3ba7c6f35e49..4039854560d0 100644
+--- a/tools/power/x86/turbostat/Makefile
++++ b/tools/power/x86/turbostat/Makefile
+@@ -8,6 +8,7 @@ ifeq ("$(origin O)", "command line")
+ endif
+ 
+ turbostat : turbostat.c
++CFLAGS +=	-Wall
+ CFLAGS +=	-DMSRHEADER='"../../../../arch/x86/include/uapi/asm/msr-index.h"'
+ 
+ %: %.c
+diff --git a/tools/testing/selftests/efivarfs/Makefile b/tools/testing/selftests/efivarfs/Makefile
+index dffbae398ba8..29e8c6bc81b0 100644
+--- a/tools/testing/selftests/efivarfs/Makefile
++++ b/tools/testing/selftests/efivarfs/Makefile
+@@ -1,4 +1,5 @@
+ CC = $(CROSS_COMPILE)gcc
++CFLAGS = -Wall
+ 
+ test_objs = open-unlink create-read
+ 
+diff --git a/tools/testing/selftests/mount/Makefile b/tools/testing/selftests/mount/Makefile
+index 4212b3adfb4f..948856e16527 100644
+--- a/tools/testing/selftests/mount/Makefile
++++ b/tools/testing/selftests/mount/Makefile
+@@ -3,7 +3,7 @@
+ all: unprivileged-remount-test
+ 
+ unprivileged-remount-test: unprivileged-remount-test.c
+-	gcc -O3 unprivileged-remount-test.c -o unprivileged-remount-test
++	gcc -Wall -Ofast unprivileged-remount-test.c -o unprivileged-remount-test
+ 
+ # Allow specific tests to be selected.
+ test_unprivileged_remount: unprivileged-remount-test
+diff --git a/tools/testing/selftests/mqueue/Makefile b/tools/testing/selftests/mqueue/Makefile
+index d4cf9e56db5e..5a2819eef8a4 100644
+--- a/tools/testing/selftests/mqueue/Makefile
++++ b/tools/testing/selftests/mqueue/Makefile
+@@ -1,6 +1,6 @@
+ all:
+-	gcc -O3 -lrt mq_open_tests.c -o mq_open_tests
+-	gcc -O3 -lrt -lpthread -lpopt -o mq_perf_tests mq_perf_tests.c
++	gcc -Ofast -lrt mq_open_tests.c -o mq_open_tests
++	gcc -Ofast -lrt -lpthread -lpopt -o mq_perf_tests mq_perf_tests.c
+ 
+ run_tests:
+ 	@./mq_open_tests /test1 || echo "mq_open_tests: [FAIL]"
+diff --git a/tools/testing/selftests/net/Makefile b/tools/testing/selftests/net/Makefile
+index e00e2187e9e1..f4cea5b018be 100644
+--- a/tools/testing/selftests/net/Makefile
++++ b/tools/testing/selftests/net/Makefile
+@@ -1,7 +1,7 @@
+ # Makefile for net selftests
+ 
+ CC = $(CROSS_COMPILE)gcc
+-CFLAGS = -O3 -g0
++CFLAGS = -Wall -Ofast -g
+ 
+ CFLAGS += -I../../../../usr/include/
+ 
+diff --git a/tools/testing/selftests/ptrace/Makefile b/tools/testing/selftests/ptrace/Makefile
+index 1f306b45d692..47ae2d385ce8 100644
+--- a/tools/testing/selftests/ptrace/Makefile
++++ b/tools/testing/selftests/ptrace/Makefile
+@@ -1,4 +1,4 @@
+-CFLAGS += -iquote../../../../include/uapi
++CFLAGS += -iquote../../../../include/uapi -Wall
+ peeksiginfo: peeksiginfo.c
+ 
+ all: peeksiginfo
+diff --git a/tools/testing/selftests/vm/Makefile b/tools/testing/selftests/vm/Makefile
+index 33dc54210eaf..436d2e81868b 100644
+--- a/tools/testing/selftests/vm/Makefile
++++ b/tools/testing/selftests/vm/Makefile
+@@ -1,6 +1,7 @@
+ # Makefile for vm selftests
+ 
+ CC = $(CROSS_COMPILE)gcc
++CFLAGS = -Wall
+ 
+ all: hugepage-mmap hugepage-shm  map_hugetlb thuge-gen
+ %: %.c
+diff --git a/tools/usb/Makefile b/tools/usb/Makefile
+index 90c694c8ccf2..396d6c44e9d7 100644
+--- a/tools/usb/Makefile
++++ b/tools/usb/Makefile
+@@ -2,7 +2,8 @@
+ 
+ CC = $(CROSS_COMPILE)gcc
+ PTHREAD_LIBS = -lpthread
+-CFLAGS = $(WARNINGS) -g0 $(PTHREAD_LIBS) -I../include
++WARNINGS = -Wall -Wextra
++CFLAGS = $(WARNINGS) -g $(PTHREAD_LIBS) -I../include
+ 
+ all: testusb ffs-test
+ %: %.c
+diff --git a/tools/virtio/Makefile b/tools/virtio/Makefile
+index 4e1b52c52fea..14542ff5eb8c 100644
+--- a/tools/virtio/Makefile
++++ b/tools/virtio/Makefile
+@@ -3,7 +3,7 @@ test: virtio_test vringh_test
+ virtio_test: virtio_ring.o virtio_test.o
+ vringh_test: vringh_test.o vringh.o virtio_ring.o
+ 
+-CFLAGS += -g0 -O3 -I. -I ../../usr/include/ -Wno-pointer-sign -fno-strict-overflow -fno-strict-aliasing -fno-common -MMD -U_FORTIFY_SOURCE
++CFLAGS += -g -Ofast -Wall -I. -I ../../usr/include/ -Wno-pointer-sign -fno-strict-overflow -fno-strict-aliasing -fno-common -MMD -U_FORTIFY_SOURCE
+ vpath %.c ../../drivers/virtio ../../drivers/vhost
+ mod:
+ 	${MAKE} -C `pwd`/../.. M=`pwd`/vhost_test
+diff --git a/tools/virtio/virtio-trace/Makefile b/tools/virtio/virtio-trace/Makefile
+index 7735c15c75c1..bbfe60645788 100644
+--- a/tools/virtio/virtio-trace/Makefile
++++ b/tools/virtio/virtio-trace/Makefile
+@@ -1,5 +1,5 @@
+ CC = gcc
+-CFLAGS = -O3 -pthread
++CFLAGS = -Ofast -Wall -pthread
+ 
+ all: trace-agent
+ 
+diff --git a/tools/vm/Makefile b/tools/vm/Makefile
+index 640c46248794..24e9ddd93fa4 100644
+--- a/tools/vm/Makefile
++++ b/tools/vm/Makefile
+@@ -6,7 +6,7 @@ LK_DIR = ../lib/lk
+ LIBLK = $(LK_DIR)/liblk.a
+ 
+ CC = $(CROSS_COMPILE)gcc
+-CFLAGS = -I../lib/
++CFLAGS = -Wall -Wextra -I../lib/
+ LDFLAGS = $(LIBLK)
+ 
+ $(TARGETS): liblk
+diff --git a/usr/Makefile b/usr/Makefile
+index dfcc628dab89..029ffe6cd0d8 100644
+--- a/usr/Makefile
++++ b/usr/Makefile
+@@ -40,7 +40,7 @@ ramfs-input := $(if $(filter-out "",$(CONFIG_INITRAMFS_SOURCE)), \
+ 			$(shell echo $(CONFIG_INITRAMFS_SOURCE)),-d)
+ ramfs-args  := \
+         $(if $(CONFIG_INITRAMFS_ROOT_UID), -u $(CONFIG_INITRAMFS_ROOT_UID)) \
+-        $(if $(CONFIG_INITRAMFS_ROOT_GID), -g0 $(CONFIG_INITRAMFS_ROOT_GID))
++        $(if $(CONFIG_INITRAMFS_ROOT_GID), -g $(CONFIG_INITRAMFS_ROOT_GID))
+ 
+ # .initramfs_data.cpio.d is used to identify all files included
+ # in initramfs and to detect if any files are added/removed.
 
 project packages/apps/AudioFX/
 diff --git a/Android.mk b/Android.mk
@@ -810,24 +1980,13 @@ index 4b5744a7..792d6005 100644
 
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
-index c354471bd..792d60054 100644
+index 4fa104752..c54a7949e 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -1,82 +1 @@
--# Copyright 2008, The Android Open Source Project
- #
--# Licensed under the Apache License, Version 2.0 (the "License");
--# you may not use this file except in compliance with the License.
--# You may obtain a copy of the License at
--#
--#     http://www.apache.org/licenses/LICENSE-2.0
--#
--# Unless required by applicable law or agreed to in writing, software
--# distributed under the License is distributed on an "AS IS" BASIS,
--# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--# See the License for the specific language governing permissions and
--# limitations under the License.
--
+@@ -12,72 +12,3 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
 -LOCAL_PATH := $(call my-dir)
 -
 -# Build the Email application itself, along with its tests and tests for the emailcommon
@@ -860,7 +2019,6 @@ index c354471bd..792d60054 100644
 -    libchips \
 -    libphotoviewer_appcompat \
 -    android-opt-bitmap \
--    android-opt-datetimepicker \
 -    androidx.core_core \
 -    androidx.media_media \
 -    androidx.legacy_legacy-support-core-utils \
@@ -883,11 +2041,13 @@ index c354471bd..792d60054 100644
 -LOCAL_PRODUCT_MODULE := true
 -
 -LOCAL_PROGUARD_FLAG_FILES := proguard.flags $(unified_email_dir)/proguard.flags
--ifeq (eng,$(TARGET_BUILD_VARIANT))
--  LOCAL_PROGUARD_FLAG_FILES += proguard-test.flags
--endif
+-LOCAL_PROGUARD_FLAG_FILES += proguard-test.flags
 -
 -LOCAL_SDK_VERSION := current
+-
+-LOCAL_MODULE_PATH := $(TARGET_OUT_PRODUCT_APPS)
+-
+-LOCAL_COMPATIBILITY_SUITE := general-tests
 -
 -include $(BUILD_PACKAGE)
 -
@@ -896,6 +2056,52 @@ index c354471bd..792d60054 100644
 -# additionally, build unit tests in a separate .apk
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 -endif
+
+project packages/apps/Exchange/
+diff --git a/Android.mk b/Android.mk
+index fb1e6d14..c54a7949 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -12,39 +12,3 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-LOCAL_PATH:= $(call my-dir)
+-include $(CLEAR_VARS)
+-
+-#
+-# Exchange2
+-#
+-LOCAL_MODULE_TAGS := optional
+-
+-# Include res dir from emailcommon
+-emailcommon_dir := ../Email/emailcommon
+-res_dir := res $(emailcommon_dir)/res
+-
+-LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dir))
+-
+-LOCAL_AAPT_FLAGS := --auto-add-overlay
+-LOCAL_AAPT_FLAGS += --extra-packages com.android.emailcommon
+-
+-LOCAL_SRC_FILES := $(call all-java-files-under, src)
+-LOCAL_SRC_FILES += $(call all-java-files-under, build/src)
+-
+-LOCAL_STATIC_ANDROID_LIBRARIES := androidx.core_core
+-LOCAL_STATIC_JAVA_LIBRARIES := android-common com.android.emailcommon
+-LOCAL_STATIC_JAVA_LIBRARIES += calendar-common
+-
+-LOCAL_PACKAGE_NAME := Exchange2
+-LOCAL_OVERRIDES_PACKAGES := Exchange
+-
+-LOCAL_PROGUARD_FLAG_FILES := proguard.flags
+-LOCAL_SDK_VERSION := 19
+-
+-LOCAL_JACK_COVERAGE_INCLUDE_FILTER += com.android.exchange.*
+-
+-include $(BUILD_PACKAGE)
+-
+-# additionally, build unit tests in a separate .apk
+-include $(call all-makefiles-under,$(LOCAL_PATH))
 
 project packages/apps/Stk/
 diff --git a/Android.bp b/Android.bp
@@ -1050,6 +2256,87 @@ index 0097373..8337712 100644
 +//
 
 project system/core/
+diff --git a/debuggerd/Android.bp b/debuggerd/Android.bp
+index 2e226da6c..2b66a94ac 100644
+--- a/debuggerd/Android.bp
++++ b/debuggerd/Android.bp
+@@ -258,76 +258,6 @@ cc_benchmark {
+     ],
+ }
+ 
+-cc_binary {
+-    name: "crash_dump",
+-    srcs: [
+-        "crash_dump.cpp",
+-        "util.cpp",
+-    ],
+-    defaults: ["debuggerd_defaults"],
+-
+-    compile_multilib: "both",
+-    multilib: {
+-        lib32: {
+-            suffix: "32",
+-        },
+-        lib64: {
+-            suffix: "64",
+-        },
+-    },
+-
+-    static_libs: [
+-        "libtombstoned_client_static",
+-        "libdebuggerd",
+-        "libcutils",
+-    ],
+-
+-    shared_libs: [
+-        "libbase",
+-        "liblog",
+-        "libprocinfo",
+-        "libunwindstack",
+-    ],
+-}
+-
+-cc_binary {
+-    name: "debuggerd",
+-    srcs: [
+-        "debuggerd.cpp",
+-    ],
+-    defaults: ["debuggerd_defaults"],
+-
+-    shared_libs: [
+-        "libbase",
+-        "libdebuggerd_client",
+-        "liblog",
+-        "libprocinfo",
+-    ],
+-
+-    local_include_dirs: ["include"],
+-}
+-
+-cc_binary {
+-    name: "tombstoned",
+-    srcs: [
+-        "util.cpp",
+-        "tombstoned/intercept_manager.cpp",
+-        "tombstoned/tombstoned.cpp",
+-    ],
+-    defaults: ["debuggerd_defaults"],
+-
+-    header_libs: ["libdebuggerd_common_headers"],
+-
+-    static_libs: [
+-        "libbase",
+-        "libcutils",
+-        "libevent",
+-        "liblog",
+-    ],
+-
+-    init_rc: ["tombstoned/tombstoned.rc"],
+-}
+-
+ subdirs = [
+     "crasher",
+ ]
 diff --git a/healthd/Android.bp b/healthd/Android.bp
 index 2cf6be96d..b744e96b2 100644
 --- a/healthd/Android.bp
@@ -1080,7 +2367,7 @@ index 2cf6be96d..b744e96b2 100644
  
      header_libs: [
 diff --git a/healthd/Android.mk b/healthd/Android.mk
-index 05123af80..711629623 100644
+index 4eb98dae0..fb50aad80 100644
 --- a/healthd/Android.mk
 +++ b/healthd/Android.mk
 @@ -31,7 +31,6 @@ include $(BUILD_STATIC_LIBRARY)
@@ -1118,7 +2405,7 @@ index 05123af80..711629623 100644
  LOCAL_SHARED_LIBRARIES := $(CHARGER_SHARED_LIBRARIES)
  LOCAL_SRC_FILES := \
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index 7559886d9..419c19791 100644
+index 7559886d9..e3b0eaa3e 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
 @@ -429,11 +429,6 @@ on post-fs-data
@@ -1168,16 +2455,16 @@ index 7559886d9..419c19791 100644
      mkdir /data/data 0771 system system
      mkdir /data/app-private 0771 system system
      mkdir /data/app-ephemeral 0771 system system
-@@ -533,18 +518,9 @@ on post-fs-data
+@@ -533,18 +518,6 @@ on post-fs-data
      mkdir /data/app-lib 0771 system system
      mkdir /data/app 0771 system system
      mkdir /data/property 0700 root root
 -    mkdir /data/tombstones 0771 system system
 -    mkdir /data/vendor/tombstones 0771 root root
 -    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
- 
-     # create dalvik-cache, so as to enforce our permissions
-     mkdir /data/dalvik-cache 0771 root root
+-
+-    # create dalvik-cache, so as to enforce our permissions
+-    mkdir /data/dalvik-cache 0771 root root
 -    # create the A/B OTA directory, so as to enforce our permissions
 -    mkdir /data/ota 0771 root root
 -
@@ -1187,7 +2474,7 @@ index 7559886d9..419c19791 100644
  
      # create resource-cache and double-check the perms
      mkdir /data/resource-cache 0771 system system
-@@ -562,16 +538,9 @@ on post-fs-data
+@@ -562,20 +535,11 @@ on post-fs-data
      # the following directory.
      mkdir /data/mediadrm 0770 mediadrm mediadrm
  
@@ -1203,11 +2490,15 @@ index 7559886d9..419c19791 100644
 -    mkdir /data/ss 0700 system system
  
      mkdir /data/system 0775 system system
-     mkdir /data/system/dropbox 0700 system system
+-    mkdir /data/system/dropbox 0700 system system
+-    mkdir /data/system/heapdump 0700 system system
+     mkdir /data/system/users 0775 system system
+ 
+     mkdir /data/system_de 0770 system system
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
-index dadd7b0a..56144b36 100644
+index dadd7b0a..b07223bf 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -7,6 +7,7 @@ include $(CLEAR_VARS)
@@ -1231,20 +2522,7 @@ index dadd7b0a..56144b36 100644
  endif
  $(warning Be careful when using the SELINUX_IGNORE_NEVERALLOWS flag. \
            It does not work in user builds and using it will \
-@@ -309,12 +310,6 @@ LOCAL_REQUIRED_MODULES += \
- 
- endif
- 
--ifneq ($(TARGET_BUILD_VARIANT), user)
--LOCAL_REQUIRED_MODULES += \
--    selinux_denial_metadata \
--
--endif
--
- # Builds an addtional userdebug sepolicy into the debug ramdisk.
- LOCAL_REQUIRED_MODULES += \
-     userdebug_plat_sepolicy.cil \
-@@ -980,10 +975,9 @@ $(built_sepolicy_neverallows)
+@@ -980,10 +981,9 @@ $(built_sepolicy_neverallows)
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -1256,7 +2534,7 @@ index dadd7b0a..56144b36 100644
  		fi
  	$(hide) mv $@.tmp $@
  
-@@ -1034,10 +1028,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
+@@ -1034,10 +1034,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -1267,32 +2545,6 @@ index dadd7b0a..56144b36 100644
 -		exit 1; \
  		fi
  	$(hide) mv $@.tmp $@
- 
-@@ -1165,25 +1158,6 @@ file_contexts.device.sorted.tmp :=
- file_contexts.device.tmp :=
- file_contexts.local.tmp :=
- 
--##################################
--ifneq ($(TARGET_BUILD_VARIANT), user)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE := selinux_denial_metadata
--LOCAL_MODULE_CLASS := ETC
--LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR)/etc/selinux
--
--include $(BUILD_SYSTEM)/base_rules.mk
--
--bug_files := $(call build_policy, bug_map, $(LOCAL_PATH) $(PLAT_PRIVATE_POLICY) $(PLAT_VENDOR_POLICY) $(BOARD_SEPOLICY_DIRS) $(PLAT_PUBLIC_POLICY))
--
--$(LOCAL_BUILT_MODULE) : $(bug_files)
--	@mkdir -p $(dir $@)
--	cat $^ > $@
--
--bug_files :=
--endif
--
- ##################################
- include $(LOCAL_PATH)/file_contexts.mk
  
 
 project vendor/lineage/
@@ -1353,48 +2605,24 @@ index 2bc78ceb..34316ed5 100644
 -
 -$(LOCAL_BUILT_MODULE): $(TARGET_BOOTANIMATION)
 -	@cp $(TARGET_BOOTANIMATION) $@
-diff --git a/overlay/common/frameworks/base/core/res/res/values/config.xml b/overlay/common/frameworks/base/core/res/res/values/config.xml
-index 74bf944d..7c5d6cef 100644
---- a/overlay/common/frameworks/base/core/res/res/values/config.xml
-+++ b/overlay/common/frameworks/base/core/res/res/values/config.xml
-@@ -79,7 +79,7 @@
-     <!-- Whether action menu items should be displayed in ALLCAPS or not.
-          Defaults to true. If this is not appropriate for specific locales
-          it should be disabled in that locale's resources. -->
--    <bool name="config_buttonTextAllCaps">false</bool>
-+    <bool name="config_buttonTextAllCaps">true</bool>
- 
-     <!-- Flag indicating whether round icons should be parsed from the application manifest. -->
-     <bool name="config_useRoundIcon">true</bool>
 diff --git a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml b/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
-index 363e254b..8571df19 100644
+index 6dc72ff1..b26117e1 100644
 --- a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
 +++ b/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
-@@ -30,5 +30,5 @@
+@@ -27,5 +27,5 @@
      <!-- If true, enable the advance anti-falsing classifier on the lockscreen. On some devices it
           does not work well, particularly with noisy touchscreens. Note that disabling it may
           increase the rate of unintentional unlocks. -->
 -    <bool name="config_lockscreenAntiFalsingClassifierEnabled">false</bool>
 +    <bool name="config_lockscreenAntiFalsingClassifierEnabled">true</bool>
  </resources>
-diff --git a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-index 56031b7f..5c17b840 100644
---- a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-+++ b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-@@ -18,5 +18,5 @@
-     <!-- Defaults for Secure -->
+diff --git a/overlay/common/packages/apps/Settings/res/values/config.xml b/overlay/common/packages/apps/Settings/res/values/config.xml
+index 480dcbaa..dd1db971 100644
+--- a/overlay/common/packages/apps/Settings/res/values/config.xml
++++ b/overlay/common/packages/apps/Settings/res/values/config.xml
+@@ -22,8 +22,8 @@
+     <bool name="config_storage_manager_settings_enabled">true</bool>
  
-     <!-- Default for LineageSettings.Secure.STATS_COLLECTION -->
--    <bool name="def_stats_collection">true</bool>
-+    <bool name="def_stats_collection">false</bool>
- </resources>
-diff --git a/overlay/common/packages/apps/Settings/res/values/bools.xml b/overlay/common/packages/apps/Settings/res/values/bools.xml
-index 2060de12..823e89b9 100644
---- a/overlay/common/packages/apps/Settings/res/values/bools.xml
-+++ b/overlay/common/packages/apps/Settings/res/values/bools.xml
-@@ -16,8 +16,8 @@
- 
- <resources>
      <!-- Whether to show a preference item for mobile plan -->
 -    <bool name="config_show_mobile_plan">false</bool>
 +    <bool name="config_show_mobile_plan">true</bool>
