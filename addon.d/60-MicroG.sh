@@ -17,9 +17,7 @@ etc/default-permissions/microg-permissions.xml
 etc/default-permissions/phonesky-permissions.xml
 etc/permissions/features.xml
 etc/permissions/privapp-permissions-google.xml
-etc/init.d/fstrim
 etc/init.d/logscleaner
-etc/init.d/sqlite
 etc/sysconfig/microg.xml
 priv-app/FakeStore/FakeStore.apk
 priv-app/GmsCore/GmsCore.apk

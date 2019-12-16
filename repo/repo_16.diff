@@ -1,7 +1,23 @@
 
 project build/make/
+diff --git a/core/Makefile b/core/Makefile
+index 404bb5413..92b010ec4 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -222,9 +222,9 @@ endif
+ # Both of these tags will be removed and replaced with "release-keys"
+ # when the target-files is signed in a post-build step.
+ ifeq ($(DEFAULT_SYSTEM_DEV_CERTIFICATE),build/target/product/security/testkey)
+-BUILD_KEYS := test-keys
++BUILD_KEYS := release-keys
+ else
+-BUILD_KEYS := dev-keys
++BUILD_KEYS := release-keys
+ endif
+ BUILD_VERSION_TAGS += $(BUILD_KEYS)
+ BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
 diff --git a/core/binary.mk b/core/binary.mk
-index d2c8c1eaf..0d7726f24 100644
+index d2c8c1eaf..bd0ce2985 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
 @@ -594,7 +594,7 @@ ifeq ($(NATIVE_COVERAGE),true)
@@ -9,12 +25,12 @@ index d2c8c1eaf..0d7726f24 100644
          #
          # http://stackoverflow.com/questions/17758126/clang-code-coverage-invalid-output
 -        my_cflags += --coverage -O0
-+        my_cflags += --coverage -O3
++        my_cflags += --coverage -O3 -g0
          my_ldflags += --coverage
      endif
-
+ 
 @@ -797,7 +797,7 @@ endif
-
+ 
  # Turn on all warnings and warnings as errors for RS compiles.
  # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
 -renderscript_flags := -Wall -Werror
@@ -24,10 +40,10 @@ index d2c8c1eaf..0d7726f24 100644
  renderscript_flags += -m$(my_32_64_bit_suffix)
 @@ -1664,7 +1664,7 @@ my_cflags += -Wno-attributes
  endif
-
+ 
  ifeq ($(my_fdo_build), true)
 -  my_cflags := $(patsubst -Os,-O2,$(my_cflags))
-+  my_cflags := $(patsubst -g0,-O3,$(my_cflags))
++  my_cflags := $(patsubst -O3,-g0,$(my_cflags))
    fdo_incompatible_flags := -fno-early-inlining -finline-limit=%
    my_cflags := $(filter-out $(fdo_incompatible_flags),$(my_cflags))
  endif
@@ -51,10 +67,10 @@ index 42e01e1e4..e8955fa6c 100644
 @@ -7,7 +7,7 @@ ifeq ($(LOCAL_GTEST),true)
    LOCAL_CFLAGS_linux += -DGTEST_OS_LINUX
    LOCAL_CFLAGS_darwin += -DGTEST_OS_MAC
-
+ 
 -  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O0 -g
 +  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O3 -g0
-
+ 
    LOCAL_STATIC_LIBRARIES += libgtest_main_host libgtest_host
  endif
 diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
@@ -62,13 +78,13 @@ index 191b3be6a..34f3b9ea8 100644
 --- a/core/java_renderscript.mk
 +++ b/core/java_renderscript.mk
 @@ -46,7 +46,7 @@ endif
-
+ 
  # Turn on all warnings and warnings as errors for RS compiles.
  # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
 -renderscript_flags := -Wall -Werror
 +renderscript_flags := -Wall
  renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
-
+ 
  # prepend the RenderScript system include path
 diff --git a/core/main.mk b/core/main.mk
 index 97ec295f8..363c1e302 100644
@@ -91,11 +107,11 @@ index 97ec295f8..363c1e302 100644
 +  ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.image-dex2oat-filter=speed
  endif
  endif
-
+ 
 @@ -359,10 +357,6 @@ BUILD_WITHOUT_PV := true
-
+ 
  ADDITIONAL_BUILD_PROPERTIES += net.bt.name=Android
-
+ 
 -# Sets the location that the runtime dumps stack traces to when signalled
 -# with SIGQUIT. Stack trace dumping is turned on for all android builds.
 -ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.stack-trace-dir=/data/anr
@@ -110,7 +126,7 @@ index b8e04e0ca..79f5ae37e 100644
 @@ -168,16 +168,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
  PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
      frameworks/base/dirty-image-objects-phone:system/etc/dirty-image-objects)
-
+ 
 -# On userdebug builds, collect more tombstones by default.
 -ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
 -PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
@@ -123,7 +139,7 @@ index b8e04e0ca..79f5ae37e 100644
 -
  $(call inherit-product, $(SRC_TARGET_DIR)/product/runtime_libart.mk)
  $(call inherit-product, $(SRC_TARGET_DIR)/product/base.mk)
-
+ 
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
 index bda45244d..1b386cd27 100644
 --- a/target/product/runtime_libart.mk
@@ -143,7 +159,7 @@ index bda45244d..1b386cd27 100644
 +        pm.dexopt.first-boot=speed \
 +        pm.dexopt.boot=speed
  endif
-
+ 
  # The install filter is speed-profile in order to enable the use of
  # profiles from the dex metadata files. Note that if a profile is not provided
  # or if it is empty speed-profile is equivalent to (quicken + empty app image).
@@ -157,7 +173,7 @@ index bda45244d..1b386cd27 100644
 +    pm.dexopt.ab-ota=speed \
 +    pm.dexopt.inactive=speed \
      pm.dexopt.shared=speed
-
+ 
 -# Enable minidebuginfo generation unless overridden.
 -PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
 -    dalvik.vm.dex2oat-minidebuginfo=true
@@ -167,11 +183,11 @@ index 64f5a1013..8b84418b3 100644
 +++ b/tools/acp/Android.bp
 @@ -5,7 +5,7 @@
  cc_binary_host {
-
+ 
      srcs: ["acp.c"],
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
-
+ 
      static_libs: ["libhost"],
      name: "acp",
 diff --git a/tools/atree/Android.bp b/tools/atree/Android.bp
@@ -196,7 +212,7 @@ index 797cfe228..5dfc129dc 100644
      ],
 -    cflags: ["-Werror"],
  }
-
+ 
  // -----------------------------------------------------------------------------
 @@ -30,8 +29,6 @@ test_c_flags = [
      "-fstack-protector-all",
@@ -217,7 +233,7 @@ index f6c8132b4..19b357315 100644
  LOCAL_SHARED_LIBRARIES := libcutils
 -LOCAL_CFLAGS := -Werror -Wno-error=\#warnings
 +LOCAL_CFLAGS := -Wall
-
+ 
  ifneq ($(TARGET_FS_CONFIG_GEN),)
  system_android_filesystem_config := system/core/include/private/android_filesystem_config.h
 diff --git a/tools/fs_get_stats/Android.bp b/tools/fs_get_stats/Android.bp
@@ -239,12 +255,12 @@ index 4c9100f15..82268553b 100644
 +++ b/tools/libhost/Android.bp
 @@ -3,7 +3,6 @@ cc_library_host_static {
      srcs: ["CopyFile.c"],
-
+ 
      cflags: [
 -        "-Werror",
          "-Wall",
      ],
-
+ 
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
 index 898db6861..14be89ac2 100644
 --- a/tools/makeparallel/Android.bp
@@ -263,10 +279,10 @@ index 82a4abfac..b2595d45e 100644
 @@ -27,7 +27,7 @@ MAKEPARALLEL_BIN_PATH ?= .
  MAKEPARALLEL_CXX_SRCS := \
  	makeparallel.cpp
-
+ 
 -MAKEPARALLEL_CXXFLAGS := -Wall -Werror -MMD -MP
 +MAKEPARALLEL_CXXFLAGS := -Wall -MMD -MP
-
+ 
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
@@ -275,7 +291,7 @@ index f7ab11cd8..22c6106c9 100644
 +++ b/tools/releasetools/common.py
 @@ -1751,7 +1751,7 @@ class BlockDifference(object):
      #   decompression_time: 15s  | 25s                | 25s
-
+ 
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
 +      brotli_cmd = ['brotli', '--quality=7',
@@ -289,10 +305,10 @@ index 8e6196d29..9e65a5cf9 100644
 @@ -13,7 +13,7 @@ cc_binary_host {
          "ZipFile.cpp",
      ],
-
+ 
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
-
+ 
      // NOTE: Do not add any shared_libs dependencies because they will break the
      // static_sdk_tools target.
 diff --git a/tools/ziptime/Android.bp b/tools/ziptime/Android.bp
@@ -301,7 +317,7 @@ index 5ef45ed40..7d882ae72 100644
 +++ b/tools/ziptime/Android.bp
 @@ -27,7 +27,7 @@ cc_binary_host {
      ],
-
+ 
      name: "ziptime",
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
@@ -310,18 +326,80 @@ index 5ef45ed40..7d882ae72 100644
              enabled: true,
 
 project device/lineage/sepolicy/
+diff --git a/common/private/backuptool.te b/common/private/backuptool.te
+index b948b61..d62a3e0 100644
+--- a/common/private/backuptool.te
++++ b/common/private/backuptool.te
+@@ -6,6 +6,6 @@ neverallow {
+     -update_engine
+ } backuptool:process transition;
+ 
+-userdebug_or_eng(`
++
+     permissive backuptool;
+-')
++
+diff --git a/common/private/init.te b/common/private/init.te
+index 9eca0e5..58b5322 100644
+--- a/common/private/init.te
++++ b/common/private/init.te
+@@ -1,3 +1,5 @@
++permissive init;
++
+ allow init sysfs_dm:dir relabelfrom;
+ allow init sysfs_dm:file relabelfrom;
+ 
+diff --git a/common/private/recovery.te b/common/private/recovery.te
+index 9a9d7cd..fb877e1 100644
+--- a/common/private/recovery.te
++++ b/common/private/recovery.te
+@@ -4,10 +4,10 @@ r_dir_file(recovery, adb_keys_file)
+ set_prop(recovery, shell_prop)
+ 
+ # Manage fstab and /adb_keys
+-userdebug_or_eng(`
++
+ allow recovery rootfs:file create_file_perms;
+ allow recovery rootfs:file link;
+-')
++
+ allow recovery rootfs:dir create_dir_perms;
+ 
+ # Sideload cache
+@@ -31,9 +31,9 @@ allow recovery self:process setexec;
+ domain_trans(recovery, otapreopt_chroot_exec, backuptool)
+ 
+ # Some addons require this for A/B installation compatibility
+-userdebug_or_eng(`
++
+ allow recovery system_file:dir mounton;
+-')
++
+ 
+ # Volume manager
+ allow recovery block_device:dir create_dir_perms;
+@@ -51,7 +51,7 @@ allow recovery sysfs_batteryinfo:dir search;
+ r_dir_file(recovery, unencrypted_data_file)
+ 
+ # setenforce
+-userdebug_or_eng(`
++
+ permissive recovery;
+-')
++
+ ')
 diff --git a/common/private/su.te b/common/private/su.te
 index ed573a7..5e99f30 100644
 --- a/common/private/su.te
 +++ b/common/private/su.te
 @@ -2,7 +2,7 @@ type superuser_device, file_type, mlstrustedobject;
-
+ 
  ## Perms for the daemon
-
+ 
 -userdebug_or_eng(`
 +
    domain_trans(init, su_exec, sudaemon)
-
+ 
    typeattribute sudaemon domain, coredomain, mlstrustedsubject;
 @@ -44,11 +44,11 @@ userdebug_or_eng(`
    dontaudit sudaemon domain:binder *;
@@ -329,9 +407,9 @@ index ed573a7..5e99f30 100644
    dontaudit sudaemon appops_service:service_manager *;
 -')
 +
-
+ 
  ## Perms for the app
-
+ 
 -userdebug_or_eng(`
 +
    # Translate user apps to the shell domain when using su
@@ -339,28 +417,31 @@ index ed573a7..5e99f30 100644
    # PR_SET_NO_NEW_PRIVS blocks this :(
 @@ -67,6 +67,6 @@ userdebug_or_eng(`
    allow system_app superuser_device:dir { create rw_dir_perms setattr unlink };
-
+ 
    allow kernel sudaemon:fd { use };
 -')
-
+ 
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su -untrusted_app_all -init -sudaemon') } su_exec:file no_x_file_perms;
 +
 +neverallow { domain -dumpstate -shell -su -untrusted_app_all -init -sudaemon } su_exec:file no_x_file_perms;
-
-project device/xiaomi/libra/
-diff --git a/BoardConfig.mk b/BoardConfig.mk
-index 7da74a7..7ab8293 100644
---- a/BoardConfig.mk
-+++ b/BoardConfig.mk
-@@ -151,7 +151,7 @@ BOARD_KERNEL_TAGS_OFFSET := 0x00000100
- BOARD_RAMDISK_OFFSET := 0x01000000
- TARGET_KERNEL_ARCH := arm64
- TARGET_KERNEL_CONFIG := libra_defconfig
--TARGET_KERNEL_CROSS_COMPILE_PREFIX := /media/wjxxbsh/Data/gcc/gcc-linaro-6.5.0-2018.12-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-+TARGET_KERNEL_CROSS_COMPILE_PREFIX := /media/wjxxbsh/Data/gcc/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
- TARGET_KERNEL_HEADER_ARCH := arm64
- TARGET_KERNEL_SOURCE := kernel/xiaomi/libra
-
+diff --git a/common/private/sysinit.te b/common/private/sysinit.te
+index 9a09004..9fb0284 100644
+--- a/common/private/sysinit.te
++++ b/common/private/sysinit.te
+@@ -5,11 +5,10 @@ type sysinit_exec, exec_type, file_type;
+ init_daemon_domain(sysinit)
+ neverallow { domain -init } sysinit:process transition;
+ 
+-userdebug_or_eng(`
+-    permissive sysinit;
+-')
++permissive sysinit;
+ 
+ dontaudit sysinit shell_exec:file rx_file_perms;
+ dontaudit sysinit toolbox_exec:file rx_file_perms;
+ dontaudit sysinit system_file:file rx_file_perms;
+ dontaudit sysinit system_file:dir r_dir_perms;
++
 
 project external/ant-wireless/ant_native/
 diff --git a/Android.mk b/Android.mk
@@ -368,12 +449,12 @@ index 3ed9138..569b00c 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -82,7 +82,7 @@ LOCAL_C_INCLUDES:= \
-
+ 
  LOCAL_C_INCLUDES += frameworks/base/core/jni/include
-
+ 
 -LOCAL_CFLAGS:= -g -c -W -Wall -O2
 +LOCAL_CFLAGS:= -g0 -c -W -Wall -O3
-
+ 
  LOCAL_SRC_FILES:= \
  	app/ant_app.c
 diff --git a/src/bluez_hci/Android.mk b/src/bluez_hci/Android.mk
@@ -381,12 +462,12 @@ index 8487cd5..903d880 100644
 --- a/src/bluez_hci/Android.mk
 +++ b/src/bluez_hci/Android.mk
 @@ -16,7 +16,7 @@
-
+ 
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -g -c -W -Wall -O2
 +LOCAL_CFLAGS := -g0 -c -W -Wall -O3
-
+ 
  # Check which chip is used so correct values in messages
  ifeq ($(BOARD_ANT_WIRELESS_DEVICE),"wl12xx")
 diff --git a/src/bt-vendor_vfs/Android.mk b/src/bt-vendor_vfs/Android.mk
@@ -394,12 +475,12 @@ index 733c7bc..75ab073 100644
 --- a/src/bt-vendor_vfs/Android.mk
 +++ b/src/bt-vendor_vfs/Android.mk
 @@ -16,7 +16,7 @@
-
+ 
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -g -c -W -Wall -O2
 +LOCAL_CFLAGS := -g0 -c -W -Wall -O3
-
+ 
  # needed to pull in the header file for libbt-vendor.so
  BDROID_DIR:= system/bt
 diff --git a/src/qcomm-hidl/Android.mk b/src/qcomm-hidl/Android.mk
@@ -409,7 +490,7 @@ index a349bbe..9424485 100644
 @@ -17,7 +17,7 @@
  ifneq ($(QCPATH),)
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -g -c -W -Wall -O2
 +LOCAL_CFLAGS := -g0 -c -W -Wall -O3
  LOCAL_CFLAGS += -Wno-unused-variable
@@ -420,12 +501,12 @@ index 28ae431..6e9482b 100644
 --- a/src/vfs/Android.mk
 +++ b/src/vfs/Android.mk
 @@ -16,7 +16,7 @@
-
+ 
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -g -c -W -Wall -O2
 +LOCAL_CFLAGS := -g0 -c -W -Wall -O3
-
+ 
  LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/src/common/inc \
 
@@ -532,7 +613,7 @@ index e0880f6..c28acb1 100644
 -	@echo "Install: $@ -> $(BASH_ETC)"
 -	@mkdir -p $(BASH_ETC)
 -	$(hide) cp $@ $(BASH_ETC)
-
+ 
 -ALL_DEFAULT_INSTALLED_MODULES += $(BASH_CONFIGS)
 -
 -ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
@@ -604,12 +685,12 @@ index fc45c43..0ed620a 100644
 -        "-Werror",
          "-Wno-unused-parameter",
      ],
-
+ 
      cppflags: [
          "-Wall",
 -        "-Werror",
      ],
-
+ 
      conlyflags: ["-std=c99"],
 
 project external/brotli/
@@ -670,7 +751,7 @@ index f1a9f41d53..76b0ba7bed 100644
 -    CmdArgs.push_back("-O0");
 +    CmdArgs.push_back("-O3");
    }
-
+ 
    CmdArgs.push_back("--gpu-name");
 
 project external/cn-cbor/
@@ -681,7 +762,7 @@ index d60adba..a3143ef 100644
 @@ -114,6 +114,6 @@ macro(coveralls_turn_on_coverage)
  		message(FATAL_ERROR "Coveralls: Code coverage results with an optimised (non-Debug) build may be misleading! Add -DCMAKE_BUILD_TYPE=Debug")
  	endif()
-
+ 
 -	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 -	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 +	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0 -O3 -fprofile-arcs -ftest-coverage")
@@ -732,17 +813,18 @@ index 7aacaf41..e2daa40b 100644
 
 project external/flac/
 diff --git a/libFLAC/Android.bp b/libFLAC/Android.bp
-index d1b51f1..7fcba21 100644
+index d1b51f1..42c7640 100644
 --- a/libFLAC/Android.bp
 +++ b/libFLAC/Android.bp
-@@ -40,7 +40,6 @@ cc_library_static {
+@@ -40,7 +40,7 @@ cc_library_static {
          "-O3",
          "-funroll-loops",
          "-finline-functions",
 -        "-Werror",
++        "-Wno-unused-const-variable",
          "-Wno-unused-parameter",
      ],
-
+ 
 
 project external/freetype/
 diff --git a/Android.bp b/Android.bp
@@ -754,16 +836,16 @@ index 4b6a34e11..deb0e0bb5 100644
          "-W",
          "-Wall",
 -        "-Werror",
-
+ 
          "-fPIC",
          "-DPIC",
 @@ -51,7 +50,7 @@ cc_library_shared {
          "-DDARWIN_NO_CARBON",
          "-DFT2_BUILD_LIBRARY",
-
+ 
 -        "-O2",
 +        "-O3",
-
+ 
          // Upstream ignores unused parameter warning
          "-Wno-unused-parameter",
 diff --git a/builds/compiler/gcc-dev.mk b/builds/compiler/gcc-dev.mk
@@ -773,7 +855,7 @@ index 48d284898..619124f22 100644
 @@ -68,7 +68,7 @@ ifndef CFLAGS
      strict_prototypes := -Wstrict-prototypes
    endif
-
+ 
 -  CFLAGS := -c -g -O0 \
 +  CFLAGS := -c -g0 -O3 \
              -Wall \
@@ -786,7 +868,7 @@ index 9c48cb1..e449b91 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -2,8 +2,8 @@ LOCAL_PATH := $(call my-dir)
-
+ 
  common_src_files := boot.c check.c dir.c fat.c main.c
  common_includes := external/fsck_msdos
 -common_cflags := -O2 -g \
@@ -804,7 +886,7 @@ index 35705d9..9bfb163 100644
 +++ b/Android.bp
 @@ -14,7 +14,6 @@ cc_library_static {
      ],
-
+ 
      cflags: [
 -        "-Werror",
          "-Wno-format",
@@ -817,14 +899,14 @@ index db47ce3..d3b2872 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -24,7 +24,7 @@ LOCAL_CPP_EXTENSION := .cc
-
+ 
  LOCAL_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib
  LOCAL_SRC_FILES := $(sgdisk_src_files)
 -LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack -Werror
 +LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack
-
+ 
  LOCAL_SHARED_LIBRARIES := libext2_uuid
-
+ 
 @@ -38,7 +38,7 @@ ifeq ($(HOST_OS),darwin)
  LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -Doff64_t=off_t
  endif
@@ -835,14 +917,14 @@ index db47ce3..d3b2872 100644
  LOCAL_SRC_FILES := $(sgdisk_src_files)
  LOCAL_MODULE := libsgdisk_static
 @@ -55,7 +55,7 @@ endif
-
+ 
  LOCAL_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib
  LOCAL_SRC_FILES := $(sgdisk_src_files)
 -LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack -Werror
 +LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack
-
+ 
  LOCAL_SHARED_LIBRARIES := libext2_uuid
-
+ 
 
 project external/javasqlite/
 diff --git a/Android.bp b/Android.bp
@@ -898,7 +980,7 @@ index 4f16430..2b1cbc9 100644
          "-Wall",
 -        "-Werror",
      ],
-
+ 
      target: {
 
 project external/libavc/
@@ -913,15 +995,15 @@ index 4abfa16..081adc4 100644
 -        "-Werror",
          "-Wno-unused-variable",
      ],
-
+ 
 @@ -254,7 +253,6 @@ cc_library_static {
-
+ 
          "-O3",
          "-Wall",
 -        "-Werror",
          "-Wno-error=constant-conversion",
      ],
-
+ 
 
 project external/libchrome/
 diff --git a/Android.bp b/Android.bp
@@ -929,7 +1011,7 @@ index 9dfffca..f874b26 100644
 --- a/Android.bp
 +++ b/Android.bp
 @@ -34,7 +34,6 @@ cc_defaults {
-
+ 
      cflags: [
          "-Wall",
 -        "-Werror",
@@ -948,7 +1030,7 @@ index 4ab57d7..78c245e 100644
          "-Wno-implicit-function-declaration",
 -        "-Werror",
      ],
-
+ 
      export_include_dirs: [
 
 project external/libcxx/
@@ -959,14 +1041,14 @@ index b552e0c40..c792ab70a 100644
 @@ -36,10 +36,6 @@ LOCAL_CPPFLAGS := \
      -Wno-unused-variable \
      -Wno-format-zero-length \
-
+ 
 -# Optimization is causing relocation for nothrow new to be thrown away.
 -# http://llvm.org/bugs/show_bug.cgi?id=21421
 -LOCAL_CPPFLAGS += -O0
 -
  LOCAL_RTTI_FLAG := -frtti
  include $(LOCAL_PATH)/testconfig.mk
-
+ 
 
 project external/libcxxabi/
 diff --git a/Android.bp b/Android.bp
@@ -984,16 +1066,20 @@ index 167f6b0..afb840d 100644
 
 project external/libexif/
 diff --git a/Android.bp b/Android.bp
-index 62ba943..a553f8e 100644
+index 62ba943..e95ecbe 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -61,7 +61,6 @@ cc_library_shared {
+@@ -58,10 +58,10 @@ cc_library_shared {
+         // TODO(b/27347470): Disable the following warnings.
+         "-Wno-conversion",
+         "-Wno-unused-parameter",
++        "-Wno-unused-value",
          "-Wno-missing-field-initializers",
          "-Wno-switch",
          "-Wno-absolute-value",
 -        "-Werror",
      ],
-
+ 
      sanitize: {
 
 project external/libffi/
@@ -1012,17 +1098,19 @@ index 923cb10..e005bd2 100644
 
 project external/libgsm/
 diff --git a/Android.bp b/Android.bp
-index 5ef4777..dfff63f 100644
+index 5ef4777..1d4ed6a 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -38,7 +38,6 @@ cc_library_static {
+@@ -38,8 +38,8 @@ cc_library_static {
      cflags: [
          "-DSASR",
          "-DWAV49",
 -        "-Werror",
          "-Wno-unused-parameter",
++        "-Wno-unused-const-variable",
      ],
-
+ 
+     export_include_dirs: ["inc"],
 
 project external/libhevc/
 diff --git a/Android.bp b/Android.bp
@@ -1049,7 +1137,7 @@ index 1c5d924..b045337 100644
          "-Wno-unused-parameter",
 -        "-Werror",
      ],
-
+ 
      srcs: [
 
 project external/libldac/
@@ -1064,7 +1152,7 @@ index 97420a3..dbf4c82 100644
 -    cflags: ["-O2", "-Werror", "-Wall", "-Wextra"],
 +    cflags: ["-O3", "-Wall", "-Wextra"],
  }
-
+ 
  cc_library_shared {
 @@ -33,5 +33,5 @@ cc_library_shared {
      export_include_dirs: ["abr/inc"],
@@ -1080,12 +1168,12 @@ index c5487c3..f541d48 100644
 --- a/Android.bp
 +++ b/Android.bp
 @@ -10,7 +10,6 @@ cc_library_static {
-
+ 
          "-O3",
          "-DANDROID",
 -        "-Werror",
      ],
-
+ 
      export_include_dirs: [
 
 project external/libogg/
@@ -1096,12 +1184,12 @@ index 01f038b..740bada 100644
 @@ -6,7 +6,7 @@ cc_library_static {
          "src/framing.c",
      ],
-
+ 
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
-
+ 
      export_include_dirs: ["include"],
-
+ 
 
 project external/libopus/
 diff --git a/Android.bp b/Android.bp
@@ -1125,7 +1213,7 @@ index 82f6a7c..6b4d62d 100644
 +        "-O3",
          "-funroll-loops",
      ],
-
+ 
 
 project external/libpcap/
 diff --git a/Android.bp b/Android.bp
@@ -1209,7 +1297,7 @@ index e81c5b49b3c..c8d615ff5b7 100644
 -        "-Werror",
          "-Dsprintf=sprintf",
      ],
-
+ 
 
 project external/mdnsresponder/
 diff --git a/Android.bp b/Android.bp
@@ -1218,7 +1306,7 @@ index 68a7959..b9e24d4 100644
 +++ b/Android.bp
 @@ -7,8 +7,8 @@ cc_defaults {
      name: "mdnsresponder_default_cflags",
-
+ 
      cflags: [
 -        "-O2",
 -        "-g",
@@ -1243,7 +1331,7 @@ index 77879d8..083366c 100644
  CFLAGS += $(COMMON_CFLAGS) $(COMMON_CFLAGS-$(CDRIVER)) -std=gnu11
  CPPFLAGS += -D_FORTIFY_SOURCE=2
 @@ -336,8 +336,8 @@ endif
-
+ 
  ifeq ($(MODE),opt)
    # Up the optimizations.
 -  CFLAGS := $(filter-out -O1,$(CFLAGS)) -O2
@@ -1255,7 +1343,7 @@ index 77879d8..083366c 100644
      # TODO: do we want -fomit-frame-pointer on x86?
 @@ -347,8 +347,8 @@ ifeq ($(MODE),opt)
  endif
-
+ 
  ifeq ($(MODE),profiling)
 -  CFLAGS := $(CFLAGS) -O0 -g  --coverage
 -  CXXFLAGS := $(CXXFLAGS) -O0 -g  --coverage
@@ -1263,7 +1351,7 @@ index 77879d8..083366c 100644
 +  CXXFLAGS := $(CXXFLAGS) -O3 -g0  --coverage
    LDFLAGS := $(LDFLAGS) --coverage
  endif
-
+ 
 
 project external/mksh/
 diff --git a/Android.bp b/Android.bp
@@ -1300,13 +1388,13 @@ index 4cc8bac..ae4857b 100644
  # Minimal /system/etc/mkshrc for Android
 -#
 -# Support: https://launchpad.net/mksh
-
+ 
 +: ${TERM:=xterm-256color} ${HOME:=/} ${MKSH:=/system/bin/sh} ${HOSTNAME:=android}
 +: ${SHELL:=$MKSH} ${USER:=$(getprop ro.product.device)}
  if (( USER_ID )); then PS1='$'; else PS1='#'; fi
 -PS4='[$EPOCHREALTIME] '; PS1='${|
 -	local e=$?
-
+ 
 -	(( e )) && REPLY+="$e|"
 +PS1='$USER@$HOSTNAME:${PWD:-?} '"$PS1 "
 +if [ -d "/sbin/.magisk/busybox" ]; then
@@ -1316,14 +1404,14 @@ index 4cc8bac..ae4857b 100644
 +fi
 +PATH=$PATH:/sbin:$BBDIR:.
 +export TERM HOME MKSH HOSTNAME SHELL USER PATH
-
+ 
 -	return $e
 -}$HOSTNAME:${PWD:-?} '"$PS1 "
 +for p in ~/.bin; do
 +	[[ -d $p/. ]] || continue
 +	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
 +done
-
+ 
 -export TERM=xterm-256color
 \ No newline at end of file
 +unset p
@@ -1382,7 +1470,7 @@ index 014d5d75..99286ccb 100644
 -	-DHAVE_CONFIG_H \
 -	-DLOCALEDIR=\"/data/locale\" \
 -	-DSYSCONFDIR=\"/system/etc/nano\"
-
+ 
 -LOCAL_CFLAGS += -Wno-sign-compare -Wno-unused-parameter
 -
 -LOCAL_SHARED_LIBRARIES += \
@@ -1428,8 +1516,8 @@ index 0636929..deeb1e7 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -7,7 +7,7 @@ LOCAL_SRC_FILES:=\
-
-
+ 
+ 
  LOCAL_CFLAGS:= \
 -    -O2 -g \
 +    -O3 -g0 \
@@ -1444,16 +1532,16 @@ index 3cfee0c..ed35072 100644
 +++ b/Android.mk
 @@ -41,28 +41,13 @@ ifneq ($(MINIMAL_FONT_FOOTPRINT),true)
  LOCAL_PATH := $(NOTO_DIR)/cjk
-
+ 
  font_src_files := \
 -    NotoSansCJK-Regular.ttc
 +    NotoSansCJK.ttc
-
+ 
  $(foreach f, $(font_src_files), $(call build-one-font-module, $(f)))
  font_src_files :=
-
+ 
  endif # !MINIMAL_FONT_FOOTPRINT
-
+ 
 -#############################################################################
 -# Similary "build" the Noto CJK fonts for serif family.
 -# These are not included in SMALLER_FONT_FOOTPRINT builds.
@@ -1500,6 +1588,340 @@ diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
 index 9d9a347..78136ac 100644
 Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
 
+project external/openssh/
+diff --git a/Android.mk b/Android.mk
+index 2593bbc3..6b2a57e6 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -1,327 +1,2 @@
+-LOCAL_PATH:= $(call my-dir)
+-
+ ###################### libssh ######################
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    addrmatch.c \
+-    atomicio.c \
+-    authfd.c \
+-    authfile.c \
+-    bitmap.c \
+-    canohost.c \
+-    chacha.c \
+-    channels.c \
+-    cipher-aes.c \
+-    cipher-aesctr.c \
+-    cipher.c \
+-    cipher-chachapoly.c \
+-    cipher-ctr.c \
+-    cleanup.c \
+-    compat.c \
+-    crc32.c \
+-    dh.c \
+-    digest-openssl.c \
+-    dispatch.c \
+-    dns.c \
+-    ed25519.c \
+-    entropy.c \
+-    fatal.c \
+-    fe25519.c \
+-    ge25519.c \
+-    gss-genr.c \
+-    hash.c \
+-    hmac.c \
+-    hostfile.c \
+-    kex.c \
+-    kexc25519.c \
+-    kexdh.c \
+-    kexecdh.c \
+-    kexgen.c \
+-    kexgex.c \
+-    kexgexc.c \
+-    kexsntrup4591761x25519.c \
+-    krl.c \
+-    log.c \
+-    mac.c \
+-    match.c \
+-    misc.c \
+-    moduli.c \
+-    monitor_fdpass.c \
+-    msg.c \
+-    nchan.c \
+-    openbsd-compat/bcrypt_pbkdf.c \
+-    openbsd-compat/bindresvport.c \
+-    openbsd-compat/blowfish.c \
+-    openbsd-compat/bsd-closefrom.c \
+-    openbsd-compat/bsd-getpeereid.c \
+-    openbsd-compat/bsd-misc.c \
+-    openbsd-compat/bsd-openpty.c \
+-    openbsd-compat/bsd-signal.c \
+-    openbsd-compat/bsd-statvfs.c \
+-    openbsd-compat/explicit_bzero.c \
+-    openbsd-compat/freezero.c \
+-    openbsd-compat/fmt_scaled.c \
+-    openbsd-compat/getopt_long.c \
+-    openbsd-compat/glob.c \
+-    openbsd-compat/boringssl-api-compat.c \
+-    openbsd-compat/openssl-compat.c \
+-    openbsd-compat/port-linux.c \
+-    openbsd-compat/port-net.c \
+-    openbsd-compat/pwcache.c \
+-    openbsd-compat/readpassphrase.c \
+-    openbsd-compat/reallocarray.c \
+-    openbsd-compat/recallocarray.c \
+-    openbsd-compat/rresvport.c \
+-    openbsd-compat/setproctitle.c \
+-    openbsd-compat/strmode.c \
+-    openbsd-compat/strtonum.c \
+-    openbsd-compat/timingsafe_bcmp.c \
+-    openbsd-compat/vis.c \
+-    packet.c \
+-    platform-misc.c \
+-    platform-pledge.c \
+-    platform-tracing.c \
+-    poly1305.c \
+-    readpass.c \
+-    rijndael.c \
+-    sc25519.c \
+-    smult_curve25519_ref.c \
+-    sshbuf.c \
+-    sshbuf-getput-basic.c \
+-    sshbuf-getput-crypto.c \
+-    sshbuf-misc.c \
+-    ssh-dss.c \
+-    ssh-ecdsa.c \
+-    ssh-ed25519.c \
+-    ssherr.c \
+-    sshkey.c \
+-    sshkey-xmss.c \
+-    ssh-rsa.c \
+-    ssh-xmss.c \
+-    sntrup4591761.c \
+-    ttymodes.c \
+-    uidswap.c \
+-    umac128.c \
+-    umac.c \
+-    utf8.c \
+-    uuencode.c \
+-    verify.c \
+-    xmalloc.c \
+-    xmss_commons.c \
+-    xmss_fast.c \
+-    xmss_hash_address.c \
+-    xmss_hash.c \
+-    xmss_wots.c
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
+-
+-LOCAL_MODULE := libssh
+-
+-LOCAL_CFLAGS += \
+-    -O3 \
+-    -Wno-macro-redefined \
+-    -Wno-pointer-sign \
+-    -Wno-sign-compare \
+-    -Wno-unused-parameter
+-
+-LOCAL_CFLAGS += -DGCE_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
+-ifneq ($(filter gce_x86 calypso, $(TARGET_DEVICE)),)
+-LOCAL_CFLAGS += -DANDROID_GCE -DSSHDIR=\"/var/run/ssh\"
+-endif
+-
+-ifneq (,$(SSHDIR))
+-LOCAL_CFLAGS += -DSSHDIR=\"$(SSHDIR)\"
+-endif
+-
+-include $(BUILD_SHARED_LIBRARY)
+-
+-###################### ssh ######################
+-
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    clientloop.c \
+-    readconf.c \
+-    mux.c \
+-    ssh.c \
+-    sshconnect2.c \
+-    sshconnect.c \
+-    sshtty.c \
+-    uidswap.c
+-
+-LOCAL_MODULE := ssh
+-
+-LOCAL_CFLAGS += \
+-    -Wno-macro-redefined \
+-    -Wno-pointer-sign \
+-    -Wno-sign-compare \
+-    -Wno-unused-parameter
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
+-
+-include $(BUILD_EXECUTABLE)
+-
+-###################### sftp ######################
+-
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    sftp.c sftp-client.c sftp-common.c sftp-glob.c progressmeter.c
+-
+-LOCAL_MODULE := sftp
+-
+-LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
+-
+-include $(BUILD_EXECUTABLE)
+-
+-###################### scp ######################
+-
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    scp.c progressmeter.c
+-
+-LOCAL_MODULE := scp
+-
+-LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
+-
+-include $(BUILD_EXECUTABLE)
+-
+-###################### sshd ######################
+-
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    audit-bsm.c \
+-    audit-linux.c \
+-    audit.c \
+-    auth-bsdauth.c \
+-    auth-krb5.c \
+-    auth-options.c \
+-    auth-pam.c \
+-    auth-rhosts.c \
+-    auth-shadow.c \
+-    auth-sia.c \
+-    auth.c \
+-    auth2-chall.c \
+-    auth2-gss.c \
+-    auth2-hostbased.c \
+-    auth2-kbdint.c \
+-    auth2-none.c \
+-    auth2-passwd.c \
+-    auth2-pubkey.c \
+-    auth2.c \
+-    groupaccess.c \
+-    gss-serv-krb5.c \
+-    gss-serv.c \
+-    kexgexs.c \
+-    loginrec.c \
+-    md5crypt.c \
+-    monitor.c \
+-    monitor_wrap.c \
+-    platform.c \
+-    sandbox-null.c \
+-    sandbox-rlimit.c \
+-    sandbox-systrace.c \
+-    servconf.c \
+-    serverloop.c \
+-    session.c \
+-    sftp-common.c \
+-    sftp-server.c \
+-    sshd.c \
+-    sshlogin.c \
+-    sshpty.c
+-
+-LOCAL_MODULE := sshd
+-
+-LOCAL_CFLAGS += \
+-    -Wno-implicit-function-declaration \
+-    -Wno-macro-redefined \
+-    -Wno-pointer-sign \
+-    -Wno-unused-parameter \
+-    -Wno-unused-variable
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz libcutils
+-
+-include $(BUILD_EXECUTABLE)
+-
+-###################### ssh-keygen ######################
+-
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE_TAGS := optional
+-
+-LOCAL_SRC_FILES := \
+-    ssh-keygen.c
+-
+-LOCAL_MODULE := ssh-keygen
+-
+-LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
+-
+-LOCAL_C_INCLUDES := \
+-    external/zlib \
+-    external/openssl/include \
+-    external/openssh/openbsd-compat
+-
+-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
+-
+-include $(BUILD_EXECUTABLE)
+-
+-###################### sshd_config ######################
+-
+-include $(CLEAR_VARS)
+-LOCAL_MODULE_TAGS := optional
+-LOCAL_MODULE := sshd_config
+-LOCAL_MODULE_CLASS := ETC
+-LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/ssh
+-LOCAL_SRC_FILES := sshd_config.android
+-include $(BUILD_PREBUILT)
+-
+-###################### start-ssh ######################
+ 
+-include $(CLEAR_VARS)
+-LOCAL_MODULE_TAGS := optional
+-LOCAL_MODULE := start-ssh
+-LOCAL_MODULE_CLASS := EXECUTABLES
+-LOCAL_SRC_FILES := start-ssh
+-include $(BUILD_PREBUILT)
+
 project external/pdfium/
 diff --git a/Android.bp b/Android.bp
 index d11b36e..ef7fd76 100644
@@ -1510,7 +1932,7 @@ index d11b36e..ef7fd76 100644
          "-Wno-sign-compare",
          "-Wno-missing-field-initializers",
 -        "-Werror",
-
+ 
          "-DOPJ_STATIC",
          "-DPNG_PREFIX",
 
@@ -1530,7 +1952,7 @@ index 93919262..f04cbcf6 100644
      "-Wno-sign-promo",
 @@ -3810,37 +3810,8 @@ cc_binary_host {
  }
-
+ 
  // GN target: //:traced
 -cc_binary {
 -  name: "traced",
@@ -1548,7 +1970,7 @@ index 93919262..f04cbcf6 100644
 -    "perfetto_defaults",
 -  ],
 -}
-
+ 
  // GN target: //:traced_probes
 -cc_binary {
 -  name: "traced_probes",
@@ -1563,7 +1985,7 @@ index 93919262..f04cbcf6 100644
 -    "perfetto_defaults",
 -  ],
 -}
-
+ 
  // These targets are appended to the autogenerated Android.bp by tools/gen_android_bp.
  cc_library_static {
 @@ -3896,4 +3867,4 @@ cc_library_static {
@@ -1582,7 +2004,7 @@ index ae86afd..caa4971 100644
 @@ -32,7 +32,7 @@ UNITTEST_OBJECTS = $(addprefix $(OBJDIR)/, $(UNITTEST_SOURCES:.cc=.o))
  LIBPUFFIN = libpuffin.so
  UNITTESTS = puffin_unittests
-
+ 
 -CXXFLAGS ?= -O3 -ggdb
 +CXXFLAGS ?= -O3 -g0
  CXXFLAGS += -Wall -fPIC -std=c++11
@@ -1631,13 +2053,13 @@ index d4d598264a..7a012ecb83 100755
 +++ b/src/jumper/build_stages.py
 @@ -28,7 +28,7 @@ generated_win = sys.argv[7] if len(sys.argv) > 7 else generated_win
  clang = [ccache, clang, '-x', 'c++']
-
-
+ 
+ 
 -cflags = ['-std=c++11', '-Os', '-DJUMPER_IS_OFFLINE',
 +cflags = ['-std=c++11', '-O3', '-DJUMPER_IS_OFFLINE',
            '-momit-leaf-frame-pointer', '-ffp-contract=fast',
            '-fno-exceptions', '-fno-rtti', '-fno-unwind-tables']
-
+ 
 
 project external/skqp/
 diff --git a/src/jumper/build_stages.py b/src/jumper/build_stages.py
@@ -1646,13 +2068,13 @@ index d4d5982..7a012ec 100755
 +++ b/src/jumper/build_stages.py
 @@ -28,7 +28,7 @@ generated_win = sys.argv[7] if len(sys.argv) > 7 else generated_win
  clang = [ccache, clang, '-x', 'c++']
-
-
+ 
+ 
 -cflags = ['-std=c++11', '-Os', '-DJUMPER_IS_OFFLINE',
 +cflags = ['-std=c++11', '-O3', '-DJUMPER_IS_OFFLINE',
            '-momit-leaf-frame-pointer', '-ffp-contract=fast',
            '-fno-exceptions', '-fno-rtti', '-fno-unwind-tables']
-
+ 
 
 project external/speex/
 diff --git a/Android.bp b/Android.bp
@@ -1666,7 +2088,7 @@ index 4fd0d46..e877924 100644
 -        "-Werror",
          "-Wno-sign-compare",
      ],
-
+ 
 
 project external/sqlite/
 diff --git a/android/Android.bp b/android/Android.bp
@@ -1682,16 +2104,17 @@ index 9173a03..b17b34b 100644
          "-Wno-unused-variable",
      ],
 diff --git a/dist/Android.bp b/dist/Android.bp
-index 2211d1f..a789d7b 100644
+index 2211d1f..6d334e6 100644
 --- a/dist/Android.bp
 +++ b/dist/Android.bp
-@@ -38,7 +38,6 @@ cc_defaults {
+@@ -38,7 +38,7 @@ cc_defaults {
          "-DSQLITE_SECURE_DELETE",
          "-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE",
          "-Wno-unused-parameter",
 -        "-Werror",
++        "-Wno-unused-function"
      ],
-
+ 
      target: {
 
 project external/swiftshader/
@@ -1700,7 +2123,7 @@ index 7af9f6af2..f138cdd62 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -63,8 +63,7 @@ config("swiftshader_config") {
-
+ 
      if (is_debug) {
        cflags += [
 -        "-g",
@@ -1716,7 +2139,7 @@ index 7af9f6af2..f138cdd62 100644
 -        "-Os",
 +        "-O3",
        ]
-
+ 
        defines += [
 diff --git a/src/OpenGL/libEGL/Android.mk b/src/OpenGL/libEGL/Android.mk
 index 60abaca67..c683acb8e 100644
@@ -1729,7 +2152,7 @@ index 60abaca67..c683acb8e 100644
 -LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
 +LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
  include $(BUILD_SHARED_LIBRARY)
-
+ 
  include $(CLEAR_VARS)
 diff --git a/src/OpenGL/libGLES_CM/Android.mk b/src/OpenGL/libGLES_CM/Android.mk
 index e34ba4285..7af124641 100644
@@ -1742,7 +2165,7 @@ index e34ba4285..7af124641 100644
 -LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
 +LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
  include $(BUILD_SHARED_LIBRARY)
-
+ 
  include $(CLEAR_VARS)
 diff --git a/src/OpenGL/libGLESv2/Android.mk b/src/OpenGL/libGLESv2/Android.mk
 index 56d077f05..df2cfc790 100644
@@ -1763,7 +2186,7 @@ index 56d077f05..df2cfc790 100644
 -LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
 +LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
  include $(BUILD_SHARED_LIBRARY)
-
+ 
  include $(CLEAR_VARS)
 
 project external/tensorflow/
@@ -1772,7 +2195,7 @@ index b354c03b6e..c994f10004 100644
 --- a/tensorflow/contrib/pi_examples/camera/Makefile
 +++ b/tensorflow/contrib/pi_examples/camera/Makefile
 @@ -29,7 +29,7 @@ EXECUTABLE_NAME := $(BINDIR)/camera
-
+ 
  # Settings for the target compiler.
  CXX := gcc
 -OPTFLAGS := -O0
@@ -1785,7 +2208,7 @@ index 9d054a3133..968bf49a6e 100644
 --- a/tensorflow/contrib/pi_examples/label_image/Makefile
 +++ b/tensorflow/contrib/pi_examples/label_image/Makefile
 @@ -29,7 +29,7 @@ EXECUTABLE_NAME := $(BINDIR)/label_image
-
+ 
  # Settings for the target compiler.
  CXX := gcc
 -OPTFLAGS := -O0
@@ -1800,7 +2223,7 @@ index db73370b..d9f93b08 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -222,7 +222,7 @@ common_SRC_FILES := \
-
+ 
  common_CFLAGS := \
      -std=gnu11 \
 -    -Os \
@@ -1816,7 +2239,7 @@ index 080b563..69a8f99 100644
 +++ b/Android.bp
 @@ -53,7 +53,7 @@ cc_library {
      },
-
+ 
      cflags: [
 -        "-O2",
 +        "-O3",
@@ -1830,13 +2253,13 @@ index 4782f8f..b750ef9 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -13,7 +13,7 @@ LOCAL_SRC_FILES := src/rar.cpp src/strlist.cpp src/strfn.cpp src/pathfn.cpp src/
-
+ 
  LOCAL_C_INCLUDES := src
-
+ 
 -LOCAL_CFLAGS := -O2 -Wall -DUNRAR -D__BIONIC__ \
 +LOCAL_CFLAGS := -O3 -Wall -DUNRAR -D__BIONIC__ \
                  -D_LARGEFILE_SOURCE -DNOVOLUME -DRAR_NOCRYPT
-
+ 
  LOCAL_CFLAGS += \
 
 project external/v8/
@@ -1845,28 +2268,28 @@ index 2abab1a9..29066ee1 100644
 --- a/Android.d8.mk
 +++ b/Android.d8.mk
 @@ -36,14 +36,13 @@ LOCAL_SHARED_LIBRARIES := liblog libicuuc libicui18n
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += \
 -	-O0
 +LOCAL_CFLAGS += -O3
-
+ 
  LOCAL_C_INCLUDES := \
  	$(LOCAL_PATH)/include
-
+ 
  # Bug: http://b/31101212  WAR LLVM bug until next Clang update
 -LOCAL_CFLAGS_mips += -O2
 +LOCAL_CFLAGS_mips += -O3
-
+ 
  LOCAL_MODULE_TARGET_ARCH_WARN := $(V8_SUPPORTED_ARCH)
-
+ 
 diff --git a/Android.v8common.mk b/Android.v8common.mk
 index 11ada3e8..57b36a40 100644
 --- a/Android.v8common.mk
 +++ b/Android.v8common.mk
 @@ -4,7 +4,6 @@ LOCAL_CPP_EXTENSION := cc
-
+ 
  LOCAL_CFLAGS += \
  	-Wall \
 -	-Werror \
@@ -1879,7 +2302,7 @@ index 11ada3e8..57b36a40 100644
  	-std=gnu++0x \
 -	-Os
 +	-O3
-
+ 
  LOCAL_CFLAGS_arm += -DV8_TARGET_ARCH_ARM
  LOCAL_CFLAGS_arm64 += -DV8_TARGET_ARCH_ARM64
 diff --git a/gypfiles/standalone.gypi b/gypfiles/standalone.gypi
@@ -2131,14 +2554,14 @@ index 5f63861f..c058ccfb 100644
 @@ -114,8 +114,8 @@ cc_defaults {
          "-DVIXL_DEBUG",
          "-UNDEBUG",
-
+ 
 -        "-O2",
 -        "-ggdb3",
 +        "-O3",
 +        "-g0",
      ],
  }
-
+ 
 
 project external/wayland/
 diff --git a/Android.bp b/Android.bp
@@ -2201,13 +2624,13 @@ index 04923d2..952be10 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -7,7 +7,7 @@ LOCAL_SRC_FILES := src/zip.c src/zipfile.c src/zipup.c src/fileio.c src/util.c s
-
+ 
  LOCAL_C_INCLUDES := src src/unix
-
+ 
 -LOCAL_CFLAGS := -O2 -Wall -DUNIX -D__BIONIC__ -DNO_LARGE_FILE_SUPPORT \
 +LOCAL_CFLAGS := -O3 -Wall -DUNIX -D__BIONIC__ -DNO_LARGE_FILE_SUPPORT \
                  -DHAVE_DIRENT_H -DHAVE_TERMIOS_H
-
+ 
  LOCAL_CFLAGS += \
 
 project external/zlib/
@@ -2231,7 +2654,7 @@ index 9fc9f57..8b0c0f4 100644
 +++ b/Android.bp
 @@ -3,9 +3,8 @@ cc_library {
      host_supported: true,
-
+ 
      cflags: [
 -        "-O2",
 +        "-O3",
@@ -2249,12 +2672,12 @@ index 7be0c49f1..6175707ae 100644
 @@ -27,8 +27,8 @@ LOCAL_SRC_FILES:= \
      dsp/DPBase.cpp \
      dsp/DPFrequency.cpp
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 -LOCAL_CFLAGS += -Wall -Werror
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
 +LOCAL_CFLAGS += -Wall
-
+ 
  LOCAL_SHARED_LIBRARIES := \
      libcutils \
 diff --git a/media/libeffects/loudness/Android.mk b/media/libeffects/loudness/Android.mk
@@ -2264,12 +2687,12 @@ index 712cbd5f0..ea5cc11c5 100644
 @@ -8,8 +8,8 @@ LOCAL_SRC_FILES:= \
      EffectLoudnessEnhancer.cpp \
      dsp/core/dynamic_range_compression.cpp
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 -LOCAL_CFLAGS += -Wall -Werror
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
 +LOCAL_CFLAGS += -Wall
-
+ 
  LOCAL_SHARED_LIBRARIES := \
      libcutils \
 diff --git a/media/libeffects/visualizer/Android.mk b/media/libeffects/visualizer/Android.mk
@@ -2279,12 +2702,12 @@ index 70409defd..697070c0d 100644
 @@ -7,8 +7,8 @@ LOCAL_VENDOR_MODULE := true
  LOCAL_SRC_FILES:= \
  	EffectVisualizer.cpp
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 -LOCAL_CFLAGS += -Wall -Werror
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
 +LOCAL_CFLAGS += -Wall
-
+ 
  LOCAL_SHARED_LIBRARIES := \
  	libcutils \
 
@@ -2302,14 +2725,14 @@ index d7b6d69ade7..7faea85b98e 100644
 +        "-g0",
 +        "-O3"
      ],
-
+ 
      local_include_dirs: [
 diff --git a/cmds/incidentd/Android.mk b/cmds/incidentd/Android.mk
 index db864aed6bd..6a16639ac1f 100644
 --- a/cmds/incidentd/Android.mk
 +++ b/cmds/incidentd/Android.mk
 @@ -35,11 +35,11 @@ LOCAL_CFLAGS += \
-
+ 
  ifeq (debug,)
      LOCAL_CFLAGS += \
 -            -g -O0
@@ -2321,13 +2744,13 @@ index db864aed6bd..6a16639ac1f 100644
 +            -O3
  endif
  LOCAL_C_INCLUDES += $(LOCAL_PATH)/src
-
+ 
 diff --git a/cmds/statsd/Android.mk b/cmds/statsd/Android.mk
 index 091268e15ad..0af897ca48c 100644
 --- a/cmds/statsd/Android.mk
 +++ b/cmds/statsd/Android.mk
 @@ -123,11 +123,11 @@ LOCAL_CFLAGS += \
-
+ 
  ifeq (debug,)
      LOCAL_CFLAGS += \
 -            -g -O0
@@ -2339,7 +2762,7 @@ index 091268e15ad..0af897ca48c 100644
 +            -O3
  endif
  LOCAL_PROTOC_OPTIMIZE_TYPE := lite
-
+ 
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
 index 34d26f0da90..08f95ec1fdf 100644
 --- a/core/res/AndroidManifest.xml
@@ -2347,7 +2770,7 @@ index 34d26f0da90..08f95ec1fdf 100644
 @@ -2357,6 +2357,13 @@
          android:description="@string/permdesc_getPackageSize"
          android:protectionLevel="normal" />
-
+ 
 +    <!-- @hide Allows an application to change the package signature as
 +	 seen by applications -->
 +    <permission android:name="android.permission.FAKE_PACKAGE_SIGNATURE"
@@ -2359,24 +2782,15 @@ index 34d26f0da90..08f95ec1fdf 100644
           {@link android.content.pm.PackageManager#addPackageToPreferred}
           for details. -->
 diff --git a/core/res/res/values-zh-rCN/strings.xml b/core/res/res/values-zh-rCN/strings.xml
-index bc5e1a56807..c2f9f16b82d 100644
+index bc5e1a56807..f0e930f4857 100644
 --- a/core/res/res/values-zh-rCN/strings.xml
 +++ b/core/res/res/values-zh-rCN/strings.xml
-@@ -284,7 +284,7 @@
-     <string name="permgrouprequest_sms" msgid="7168124215838204719">"允许&lt;b&gt;<xliff:g id="APP_NAME">%1$s</xliff:g>&lt;/b&gt;发送和查看短信吗？"</string>
-     <string name="permgrouplab_storage" msgid="1971118770546336966">"存储空间"</string>
-     <string name="permgroupdesc_storage" msgid="637758554581589203">"访问您设备上的照片、媒体内容和文件"</string>
--    <string name="permgrouprequest_storage" msgid="7885942926944299560">"允许“<xliff:g id="APP_NAME">%1$s</xliff:g>”&lt;b&gt;&lt;/b&gt;访问您设备上的照片、媒体内容和文件吗？"</string>
-+    <string name="permgrouprequest_storage" msgid="7885942926944299560">"允许&lt;b&gt;<xliff:g id="APP_NAME">%1$s</xliff:g>&lt;/b&gt;访问您设备上的照片、媒体内容和文件吗？"</string>
-     <string name="permgrouplab_microphone" msgid="171539900250043464">"麦克风"</string>
-     <string name="permgroupdesc_microphone" msgid="4988812113943554584">"录制音频"</string>
-     <string name="permgrouprequest_microphone" msgid="9167492350681916038">"允许&lt;b&gt;<xliff:g id="APP_NAME">%1$s</xliff:g>&lt;/b&gt;录音吗？"</string>
 @@ -1886,4 +1886,6 @@
      <string name="notification_appops_microphone_active" msgid="4335305527588191730">"麦克风"</string>
      <string name="notification_appops_overlay_active" msgid="633813008357934729">"显示在屏幕上其他应用的上层"</string>
      <string name="car_loading_profile" msgid="3545132581795684027">"正在加载"</string>
 +    <string name="permlab_fakePackageSignature">模拟软件包签名</string>
-+    <string name="permdesc_fakePackageSignature">允许应用伪装成为其他应用。</string>
++    <string name="permdesc_fakePackageSignature">允许应用伪装成为其他应用</string>
  </resources>
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
 index f19b0c386f0..a080fa226d6 100644
@@ -2389,16 +2803,16 @@ index f19b0c386f0..a080fa226d6 100644
 +        <!-- The (faked) microg fused location provider -->
 +        <item>com.google.android.gms</item>
      </string-array>
-
+ 
      <!-- This string array can be overriden to enable test location providers initially. -->
 diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
 index f6600462ea7..9c52929608f 100644
 --- a/core/res/res/values/strings.xml
 +++ b/core/res/res/values/strings.xml
 @@ -785,6 +785,10 @@
-
+ 
      <!--  Permissions -->
-
+ 
 +    <string name="permlab_fakePackageSignature">Spoof package signature</string>
 +    <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 +    <string name="permdesc_fakePackageSignature">Allows the app to pretend to be a different app.</string>
@@ -2537,14 +2951,14 @@ index 11f0deabbcd..cd81ffffdb0 100644
 --- a/media/native/midi/Android.bp
 +++ b/media/native/midi/Android.bp
 @@ -27,8 +27,7 @@ cc_library_shared {
-
+ 
      cflags: [
          "-Wall",
 -        "-Werror",
 -        "-O0",
 +        "-O3",
      ],
-
+ 
      shared_libs: [
 diff --git a/packages/CtsShim/Android.mk b/packages/CtsShim/Android.mk
 index 12972f14514..e8e634c947b 100644
@@ -2553,13 +2967,13 @@ index 12972f14514..e8e634c947b 100644
 @@ -14,51 +14,11 @@
  # limitations under the License.
  #
-
+ 
 -LOCAL_PATH := $(call my-dir)
 +# LOCAL_PATH := $(call my-dir)
-
+ 
  ###########################################################
  # Variant: Privileged app
-
+ 
 -include $(CLEAR_VARS)
 -
 -LOCAL_MODULE := CtsShimPrivPrebuilt
@@ -2583,7 +2997,7 @@ index 12972f14514..e8e634c947b 100644
 -
  ###########################################################
  # Variant: System app
-
+ 
 -include $(CLEAR_VARS)
 -
 -LOCAL_MODULE := CtsShimPrebuilt
@@ -2621,12 +3035,12 @@ index 43ed810b567..720bb932471 100644
 +//  srcs: ["src/**/*.java", "src/**/*.kt"],
 +/*
      resource_dirs: ["res"],
-
+ 
      name: "EasterEgg",
 @@ -27,7 +26,11 @@ android_app {
-
+ 
  	sdk_version: "current",
-
+ 
 +    dex_preopt: {
 +        enabled: true,
 +    },
@@ -2744,19 +3158,19 @@ index 7edf729608a..83fd95ea5a3 100644
 @@ -4003,8 +4003,9 @@ public class PackageManagerService extends IPackageManager.Stub
              final Set<String> permissions = ArrayUtils.isEmpty(p.requestedPermissions)
                      ? Collections.<String>emptySet() : permissionsState.getPermissions(userId);
-
+ 
 -            PackageInfo packageInfo = PackageParser.generatePackageInfo(p, gids, flags,
 -                    ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId);
 +            PackageInfo packageInfo = mayFakeSignature(p, PackageParser.generatePackageInfo(p, gids, flags,
 +                ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId),
 +                permissions);
-
+ 
              if (packageInfo == null) {
                  return null;
 @@ -4040,6 +4041,24 @@ public class PackageManagerService extends IPackageManager.Stub
          }
      }
-
+ 
 +    private PackageInfo mayFakeSignature(PackageParser.Package p, PackageInfo pi,
 +            Set<String> permissions) {
 +        try {
@@ -2802,13 +3216,13 @@ index bc42a44..b2ca815 100644
 --- a/tools/bcc_compat/Main.cpp
 +++ b/tools/bcc_compat/Main.cpp
 @@ -73,7 +73,7 @@ OptPIC("fPIC", llvm::cl::desc("Generate fully relocatable, position independent"
-
+ 
  llvm::cl::opt<char>
  OptOptLevel("O", llvm::cl::desc("Optimization level. [-O0, -O1, -O2, or -O3] "
 -                                "(default: -O2)"),
 +                                "(default: -O3)"),
              llvm::cl::Prefix, llvm::cl::ZeroOrMore, llvm::cl::init('2'));
-
+ 
  llvm::cl::opt<bool>
 
 project frameworks/compile/slang/
@@ -2823,7 +3237,7 @@ index 8a394fa..dd5b9ac 100644
 -                "-O0",
 +                "-O3",
                  "-D__ENABLE_INTERNAL_OPTIONS",
-
+ 
                  "-UTARGET_BUILD_VARIANT",
 
 project frameworks/hardware/interfaces/
@@ -2842,7 +3256,7 @@ index 0597cf3..f0b7ad0 100644
 +        "-g0",
      ]
  }
-
+ 
 diff --git a/sensorservice/1.0/vts/functional/Android.bp b/sensorservice/1.0/vts/functional/Android.bp
 index 44d8046..5fe5076 100644
 --- a/sensorservice/1.0/vts/functional/Android.bp
@@ -2875,10 +3289,10 @@ index ceed7cc0..2a691d3d 100644
 
 project frameworks/native/
 diff --git a/libs/vr/libbufferhubqueue/benchmarks/Android.bp b/libs/vr/libbufferhubqueue/benchmarks/Android.bp
-index 8ae7a0b8a..c894cb7c7 100644
+index 8ae7a0b8a..e7a0255e0 100644
 --- a/libs/vr/libbufferhubqueue/benchmarks/Android.bp
 +++ b/libs/vr/libbufferhubqueue/benchmarks/Android.bp
-@@ -18,7 +18,7 @@ cc_benchmark {
+@@ -18,9 +18,8 @@ cc_benchmark {
      cflags: [
          "-DLOG_TAG=\"buffer_transport_benchmark\"",
          "-DTRACE=0",
@@ -2887,6 +3301,8 @@ index 8ae7a0b8a..c894cb7c7 100644
          "-Wall",
 -        "-Werror",
      ],
+     name: "buffer_transport_benchmark",
+     tags: ["optional"],
 diff --git a/libs/vr/libpdx/Android.bp b/libs/vr/libpdx/Android.bp
 index 1a9d7274a..891cbd356 100644
 --- a/libs/vr/libpdx/Android.bp
@@ -2935,26 +3351,26 @@ index 9eab5a21..028389c0 100644
  LOCAL_MODULE_TAGS := tests
 -LOCAL_CFLAGS := -Wall -Werror
 +LOCAL_CFLAGS := -Wall -O3
-
+ 
  LOCAL_MODULE_CLASS := NATIVE_TESTS
-
+ 
 @@ -138,7 +138,7 @@ LOCAL_CFLAGS += $(TOOL_CFLAGS) \
    -Wno-error=non-virtual-dtor
-
+ 
  ifeq (true, $(FORCE_RS2SPIRV_DEBUG_BUILD))
 -  LOCAL_CFLAGS += -O0 -DRS2SPIRV_DEBUG=1
 +  LOCAL_CFLAGS += -O3
  endif
-
+ 
  LOCAL_SHARED_LIBRARIES := libLLVM_android libbcinfo libSPIRV libspirit
 @@ -182,7 +182,7 @@ LOCAL_CFLAGS += $(TOOL_CFLAGS) \
    -Wno-error=non-virtual-dtor \
-
+ 
  ifeq (true, $(FORCE_RS2SPIRV_DEBUG_BUILD))
 -  LOCAL_CFLAGS += -O0 -DRS2SPIRV_DEBUG=1
 +  LOCAL_CFLAGS += -O3
  endif
-
+ 
  include $(LLVM_GEN_INTRINSICS_MK)
 
 project hardware/intel/img/psb_video/
@@ -2963,12 +3379,12 @@ index bec3f5c..f166367 100644
 --- a/debian/rules
 +++ b/debian/rules
 @@ -12,12 +12,12 @@
-
-
-
+ 
+ 
+ 
 -CFLAGS = -Wall -g
 +CFLAGS = -Wall -g0
-
+ 
  ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 -	CFLAGS += -O0
 +	CFLAGS += -O3
@@ -2976,7 +3392,7 @@ index bec3f5c..f166367 100644
 -	CFLAGS += -O2
 +	CFLAGS += -O3
  endif
-
+ 
  # shared library versions, option 1
 
 project hardware/interfaces/
@@ -2991,7 +3407,7 @@ index 5cb85b49..b62af067 100644
 -        "-Werror",
      ],
  }
-
+ 
 @@ -34,8 +33,8 @@ cc_defaults {
          "libutils",
      ],
@@ -3001,14 +3417,14 @@ index 5cb85b49..b62af067 100644
 +        "-O3",
 +        "-g0",
      ],
-
+ 
  }
 diff --git a/automotive/audiocontrol/1.0/default/Android.bp b/automotive/audiocontrol/1.0/default/Android.bp
 index 0e074dd8..89c5d7ec 100644
 --- a/automotive/audiocontrol/1.0/default/Android.bp
 +++ b/automotive/audiocontrol/1.0/default/Android.bp
 @@ -33,7 +33,7 @@ cc_binary {
-
+ 
      cflags: [
          "-DLOG_TAG=\"AudCntrlDrv\"",
 -        "-O0",
@@ -3023,7 +3439,7 @@ index 7286478a..0c879cd1 100644
 +++ b/automotive/evs/1.0/default/Android.bp
 @@ -25,7 +25,7 @@ cc_binary {
      ],
-
+ 
      cflags: [
 -        "-O0",
 -        "-g",
@@ -3037,7 +3453,7 @@ index 6ac24589..36616f07 100644
 +++ b/automotive/evs/1.0/vts/functional/Android.bp
 @@ -39,7 +39,7 @@ cc_test {
      static_libs: ["VtsHalHidlTargetTestBase"],
-
+ 
      cflags: [
 -        "-O0",
 -        "-g",
@@ -3124,7 +3540,7 @@ index 0c504db7f..150dded9c 100644
 +++ b/post_proc/Android.mk
 @@ -1,7 +1,7 @@
  LOCAL_PATH:= $(call my-dir)
-
+ 
  qcom_post_proc_common_cflags := \
 -    -O2 -fvisibility=hidden \
 +    -O3 -fvisibility=hidden \
@@ -3138,10 +3554,10 @@ index bf22fbcb7..4cb79295a 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_SHARED_LIBRARIES := \
  	libcutils \
 
@@ -3152,7 +3568,7 @@ index 7412658a0..a12dfa4df 100644
 +++ b/post_proc/Android.mk
 @@ -2,7 +2,7 @@
  LOCAL_PATH:= $(call my-dir)
-
+ 
  qcom_post_proc_common_cflags := \
 -    -O2 -fvisibility=hidden \
 +    -O3 -fvisibility=hidden \
@@ -3166,10 +3582,10 @@ index ba9e5b5fd..d31fc2745 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_SHARED_LIBRARIES := \
  	libcutils \
 
@@ -3193,7 +3609,7 @@ index 0738c9889..034220420 100644
 +++ b/post_proc/Android.mk
 @@ -2,7 +2,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_EXTN_POST_PROC)),true)
  LOCAL_PATH:= $(call my-dir)
-
+ 
  qcom_post_proc_common_cflags := \
 -    -O2 -fvisibility=hidden \
 +    -O3 -fvisibility=hidden \
@@ -3207,10 +3623,10 @@ index e81c67881..1a505f4dc 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_CFLAGS += \
      -Wall \
 
@@ -3235,11 +3651,11 @@ index d36e8b972..855ede5b4 100644
 @@ -15,7 +15,7 @@ LOCAL_SRC_FILES:= \
  	reverb.c \
  	effect_api.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
  LOCAL_CFLAGS+= -Wno-error
-
+ 
  LOCAL_SHARED_LIBRARIES := \
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
 index 899b31f49..22fe6a90f 100644
@@ -3248,11 +3664,11 @@ index 899b31f49..22fe6a90f 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
  LOCAL_CFLAGS+= -Wno-error
-
+ 
  LOCAL_HEADER_LIBRARIES := \
 
 project hardware/qcom/audio-caf/msm8994/
@@ -3263,7 +3679,7 @@ index 7561751cc..4ba452cd8 100644
 @@ -7,7 +7,7 @@ include $(CLEAR_VARS)
  #                 Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libOmxAacEnc-def := -g -O3
 +libOmxAacEnc-def := -g0 -O3
  libOmxAacEnc-def += -DQC_MODIFIED
@@ -3276,12 +3692,12 @@ index e9da876d6..93c01edf9 100644
 @@ -20,7 +20,7 @@ CPPFLAGS += -DFEATURE_LINUX
  CPPFLAGS += -DFEATURE_NATIVELINUX
  CPPFLAGS += -DFEATURE_DSM_DUP_ITEMS
-
+ 
 -CPPFLAGS += -g
 +CPPFLAGS += -g0
  CPPFALGS += -D_DEBUG
  CPPFLAGS += -Iinc
-
+ 
 diff --git a/mm-audio/aenc-aac/qdsp6/Makefile.am b/mm-audio/aenc-aac/qdsp6/Makefile.am
 index 12800a950..1b2ce608b 100644
 --- a/mm-audio/aenc-aac/qdsp6/Makefile.am
@@ -3292,7 +3708,7 @@ index 12800a950..1b2ce608b 100644
  AM_CFLAGS += -Wno-trigraphs
 -AM_CFLAGS += -g -O3
 +AM_CFLAGS += -g0 -O3
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -DIMAGE_APPS_PROC
 diff --git a/mm-audio/aenc-amrnb/qdsp6/Android.mk b/mm-audio/aenc-amrnb/qdsp6/Android.mk
@@ -3302,7 +3718,7 @@ index 68dfde922..1e0381b44 100644
 @@ -7,7 +7,7 @@ include $(CLEAR_VARS)
  #                 Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libOmxAmrEnc-def := -g -O3
 +libOmxAmrEnc-def := -g0 -O3
  libOmxAmrEnc-def += -DQC_MODIFIED
@@ -3315,7 +3731,7 @@ index 28785757b..d721a8b3f 100644
 @@ -7,7 +7,7 @@ include $(CLEAR_VARS)
  #                 Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libOmxEvrcEnc-def := -g -O3
 +libOmxEvrcEnc-def := -g0 -O3
  libOmxEvrcEnc-def += -DQC_MODIFIED
@@ -3328,7 +3744,7 @@ index b8039d970..4f40294b1 100644
 @@ -7,7 +7,7 @@ include $(CLEAR_VARS)
  #                 Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libOmxQcelp13Enc-def := -g -O3
 +libOmxQcelp13Enc-def := -g0 -O3
  libOmxQcelp13Enc-def += -DQC_MODIFIED
@@ -3341,20 +3757,20 @@ index 4ea329520..8ceeac764 100644
 @@ -21,7 +21,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_HW_ACCELERATED_EFFECTS)),true)
      LOCAL_SRC_FILES += hw_accelerator.c
  endif
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
  LOCAL_CFLAGS += -Wno-sign-compare -Wno-unused-variable -Wno-unused-label -Wno-format
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
 @@ -62,7 +62,7 @@ LOCAL_SHARED_LIBRARIES := \
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += -O2 -fvisibility=hidden
 +LOCAL_CFLAGS += -O3 -fvisibility=hidden
  LOCAL_CFLAGS += -Wno-sign-compare -Wno-unused-variable -Wno-unused-label -Wno-format
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
 index 3484643a3..35c92c2a8 100644
@@ -3363,11 +3779,11 @@ index 3484643a3..35c92c2a8 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
  LOCAL_CFLAGS += -Wno-unused-variable
-
+ 
  LOCAL_SHARED_LIBRARIES := \
 
 project hardware/qcom/audio-caf/msm8996/
@@ -3387,12 +3803,12 @@ index 1b7ed7c52..8039ca81b 100644
 @@ -19,7 +19,7 @@ AM_CPPFLAGS += -DFEATURE_DSM_DUP_ITEMS
  AM_CPPFLAGS += -I ${WORKSPACE}/hardware/qcom/media/mm-core/inc/
  AM_CPPFLAGS += -I $(PKG_CONFIG_SYSROOT_DIR)/usr/include/audio-kernel
-
+ 
 -AM_CPPFLAGS += -g
 +AM_CPPFLAGS += -g0
  AM_CPPFLAGS += -DNDEBUG
  AM_CPPFLAGS += -Iinc
-
+ 
 diff --git a/post_proc/Android.mk b/post_proc/Android.mk
 index fdb9d9505..bcc36fc10 100644
 --- a/post_proc/Android.mk
@@ -3400,28 +3816,28 @@ index fdb9d9505..bcc36fc10 100644
 @@ -42,7 +42,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_INSTANCE_ID)), true)
      LOCAL_CFLAGS += -DINSTANCE_ID_ENABLED
  endif
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  ifneq ($(strip $(AUDIO_FEATURE_DISABLED_DTS_EAGLE)),true)
      LOCAL_CFLAGS += -DDTS_EAGLE
 @@ -115,7 +115,7 @@ LOCAL_SHARED_LIBRARIES := \
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += -O2 -fvisibility=hidden
 +LOCAL_CFLAGS += -O3 -fvisibility=hidden
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
  LOCAL_CFLAGS += -DHW_ACC_HPX
 @@ -151,7 +151,7 @@ LOCAL_CFLAGS += -Wno-format
  LOCAL_SRC_FILES:= \
          volume_listener.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_HEADER_LIBRARIES := libhardware_headers \
                            libsystem_headers \
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
@@ -3431,12 +3847,12 @@ index de6bc878a..94313df54 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-gnu-designator -Wno-unused-value -Wno-typedef-redefinition
-
+ 
 
 project hardware/qcom/audio-caf/msm8998/
 diff --git a/mm-audio/aenc-amrnb/qdsp6/Makefile.am b/mm-audio/aenc-amrnb/qdsp6/Makefile.am
@@ -3455,12 +3871,12 @@ index 1b7ed7c52..8039ca81b 100644
 @@ -19,7 +19,7 @@ AM_CPPFLAGS += -DFEATURE_DSM_DUP_ITEMS
  AM_CPPFLAGS += -I ${WORKSPACE}/hardware/qcom/media/mm-core/inc/
  AM_CPPFLAGS += -I $(PKG_CONFIG_SYSROOT_DIR)/usr/include/audio-kernel
-
+ 
 -AM_CPPFLAGS += -g
 +AM_CPPFLAGS += -g0
  AM_CPPFLAGS += -DNDEBUG
  AM_CPPFLAGS += -Iinc
-
+ 
 diff --git a/post_proc/Android.mk b/post_proc/Android.mk
 index fdb9d9505..bcc36fc10 100644
 --- a/post_proc/Android.mk
@@ -3468,28 +3884,28 @@ index fdb9d9505..bcc36fc10 100644
 @@ -42,7 +42,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_INSTANCE_ID)), true)
      LOCAL_CFLAGS += -DINSTANCE_ID_ENABLED
  endif
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  ifneq ($(strip $(AUDIO_FEATURE_DISABLED_DTS_EAGLE)),true)
      LOCAL_CFLAGS += -DDTS_EAGLE
 @@ -115,7 +115,7 @@ LOCAL_SHARED_LIBRARIES := \
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += -O2 -fvisibility=hidden
 +LOCAL_CFLAGS += -O3 -fvisibility=hidden
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
  LOCAL_CFLAGS += -DHW_ACC_HPX
 @@ -151,7 +151,7 @@ LOCAL_CFLAGS += -Wno-format
  LOCAL_SRC_FILES:= \
          volume_listener.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_HEADER_LIBRARIES := libhardware_headers \
                            libsystem_headers \
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
@@ -3499,12 +3915,12 @@ index de6bc878a..94313df54 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-gnu-designator -Wno-unused-value -Wno-typedef-redefinition
-
+ 
 
 project hardware/qcom/audio-caf/sdm845/
 diff --git a/mm-audio/aenc-amrnb/qdsp6/Makefile.am b/mm-audio/aenc-amrnb/qdsp6/Makefile.am
@@ -3523,12 +3939,12 @@ index 1b7ed7c52..8039ca81b 100644
 @@ -19,7 +19,7 @@ AM_CPPFLAGS += -DFEATURE_DSM_DUP_ITEMS
  AM_CPPFLAGS += -I ${WORKSPACE}/hardware/qcom/media/mm-core/inc/
  AM_CPPFLAGS += -I $(PKG_CONFIG_SYSROOT_DIR)/usr/include/audio-kernel
-
+ 
 -AM_CPPFLAGS += -g
 +AM_CPPFLAGS += -g0
  AM_CPPFLAGS += -DNDEBUG
  AM_CPPFLAGS += -Iinc
-
+ 
 diff --git a/post_proc/Android.mk b/post_proc/Android.mk
 index e2981fa47..88c55681d 100644
 --- a/post_proc/Android.mk
@@ -3536,28 +3952,28 @@ index e2981fa47..88c55681d 100644
 @@ -42,7 +42,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_INSTANCE_ID)), true)
      LOCAL_CFLAGS += -DINSTANCE_ID_ENABLED
  endif
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  ifneq ($(strip $(AUDIO_FEATURE_DISABLED_DTS_EAGLE)),true)
      LOCAL_CFLAGS += -DDTS_EAGLE
 @@ -115,7 +115,7 @@ LOCAL_SHARED_LIBRARIES := \
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += -O2 -fvisibility=hidden
 +LOCAL_CFLAGS += -O3 -fvisibility=hidden
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
  LOCAL_CFLAGS += -DHW_ACC_HPX
 @@ -151,7 +151,7 @@ LOCAL_CFLAGS += -Wno-format
  LOCAL_SRC_FILES:= \
          volume_listener.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_HEADER_LIBRARIES := libhardware_headers \
                            libsystem_headers \
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
@@ -3567,12 +3983,12 @@ index e90f57db4..9bd8b630e 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-gnu-designator -Wno-unused-value -Wno-typedef-redefinition
-
+ 
 
 project hardware/qcom/audio-caf/sm8150/
 diff --git a/mm-audio/aenc-amrnb/qdsp6/Makefile.am b/mm-audio/aenc-amrnb/qdsp6/Makefile.am
@@ -3591,12 +4007,12 @@ index 1b7ed7c52..8039ca81b 100644
 @@ -19,7 +19,7 @@ AM_CPPFLAGS += -DFEATURE_DSM_DUP_ITEMS
  AM_CPPFLAGS += -I ${WORKSPACE}/hardware/qcom/media/mm-core/inc/
  AM_CPPFLAGS += -I $(PKG_CONFIG_SYSROOT_DIR)/usr/include/audio-kernel
-
+ 
 -AM_CPPFLAGS += -g
 +AM_CPPFLAGS += -g0
  AM_CPPFLAGS += -DNDEBUG
  AM_CPPFLAGS += -Iinc
-
+ 
 diff --git a/post_proc/Android.mk b/post_proc/Android.mk
 index b24b2e859..19e910d31 100644
 --- a/post_proc/Android.mk
@@ -3604,28 +4020,28 @@ index b24b2e859..19e910d31 100644
 @@ -48,7 +48,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_GCOV)),true)
      LOCAL_STATIC_LIBRARIES += libprofile_rt
  endif
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  ifneq ($(strip $(AUDIO_FEATURE_DISABLED_DTS_EAGLE)),true)
      LOCAL_CFLAGS += -DDTS_EAGLE
 @@ -121,7 +121,7 @@ LOCAL_SHARED_LIBRARIES := \
-
+ 
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS += -O2 -fvisibility=hidden
 +LOCAL_CFLAGS += -O3 -fvisibility=hidden
-
+ 
  ifeq ($(strip $(AUDIO_FEATURE_ENABLED_DTS_EAGLE)), true)
  LOCAL_CFLAGS += -DHW_ACC_HPX
 @@ -157,7 +157,7 @@ LOCAL_CFLAGS += -Wno-format
  LOCAL_SRC_FILES:= \
          volume_listener.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_HEADER_LIBRARIES := libhardware_headers \
                            libsystem_headers \
 diff --git a/visualizer/Android.mk b/visualizer/Android.mk
@@ -3635,12 +4051,12 @@ index 42cd62ef3..ce2db55b5 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter -Wno-gnu-designator -Wno-unused-value -Wno-typedef-redefinition
-
+ 
 
 project hardware/qcom/audio/default/
 diff --git a/hal/Android.mk b/hal/Android.mk
@@ -3648,13 +4064,13 @@ index 88dbbe5af..19c7cc71f 100644
 --- a/hal/Android.mk
 +++ b/hal/Android.mk
 @@ -233,8 +233,6 @@ LOCAL_MODULE_OWNER := qcom
-
+ 
  LOCAL_PROPRIETARY_MODULE := true
-
+ 
 -LOCAL_CFLAGS += -Werror
 -
  include $(BUILD_SHARED_LIBRARY)
-
+ 
  endif
 diff --git a/legacy/libalsa-intf/Makefile.am b/legacy/libalsa-intf/Makefile.am
 index a05d07324..1db422cac 100644
@@ -3675,7 +4091,7 @@ index b19e8ad09..50fb7f166 100644
 +++ b/post_proc/Android.mk
 @@ -3,7 +3,7 @@ ifneq ($(filter msm8974 msm8226 msm8084 msm8992 msm8994 msm8996 msm8909 msm8998
  LOCAL_PATH:= $(call my-dir)
-
+ 
  qcom_post_proc_common_cflags := \
 -    -O2 -fvisibility=hidden \
 +    -O3 -fvisibility=hidden \
@@ -3689,10 +4105,10 @@ index 13a45c734..d6f076c9b 100644
 @@ -19,7 +19,7 @@ include $(CLEAR_VARS)
  LOCAL_SRC_FILES:= \
  	offload_visualizer.c
-
+ 
 -LOCAL_CFLAGS+= -O2 -fvisibility=hidden
 +LOCAL_CFLAGS+= -O3 -fvisibility=hidden
-
+ 
  LOCAL_SHARED_LIBRARIES := \
  	libcutils \
 
@@ -3704,11 +4120,11 @@ index fd72b8a..ccbca3f 100644
 @@ -7,8 +7,7 @@ LOCAL_PATH := $(call my-dir)
  include $(CLEAR_VARS)
  LOCAL_MODULE_TAGS := optional
-
+ 
 -LOCAL_CFLAGS := -Werror \
 -                   -g -O0
 +LOCAL_CFLAGS := -g0 -O3
-
+ 
  LOCAL_C_INCLUDES := frameworks/native/include/media/openmax \
                      $(LOCAL_PATH)/../qexif
 
@@ -3793,6 +4209,400 @@ index e5935f0..67abdd5 100644
           -fno-inline \
           -fno-short-enums \
           -fpic \
+diff --git a/msm8994/etc/gps.conf b/msm8994/etc/gps.conf
+index a1d5d2c..db1caa5 100644
+--- a/msm8994/etc/gps.conf
++++ b/msm8994/etc/gps.conf
+@@ -1,117 +1,272 @@
+-#Uncommenting these urls would only enable
+-#the power up auto injection and force injection(test case).
+-#XTRA_SERVER_1=http://xtrapath1.izatcloud.net/xtra2.bin
+-#XTRA_SERVER_2=http://xtrapath2.izatcloud.net/xtra2.bin
+-#XTRA_SERVER_3=http://xtrapath3.izatcloud.net/xtra2.bin
+-
+-#Version check for XTRA
+-#DISABLE = 0
+-#AUTO    = 1
+-#XTRA2   = 2
+-#XTRA3   = 3
+-XTRA_VERSION_CHECK=0
+-
+-# Error Estimate
+-# _SET = 1
+-# _CLEAR = 0
+-ERR_ESTIMATE=0
+-
+-#Test
+-NTP_SERVER=time.gpsonextra.net
+-#Asia
+-# NTP_SERVER=asia.pool.ntp.org
+-#Europe
+-# NTP_SERVER=europe.pool.ntp.org
+-#North America
+-# NTP_SERVER=north-america.pool.ntp.org
+-
+-# DEBUG LEVELS: 0 - none, 1 - Error, 2 - Warning, 3 - Info
+-#               4 - Debug, 5 - Verbose
+-# If DEBUG_LEVEL is commented, Android's logging levels will be used
+-DEBUG_LEVEL = 3
+-
+-# Intermediate position report, 1=enable, 0=disable
+-INTERMEDIATE_POS=0
+-
+-# Below bit mask configures how GPS functionalities
+-# should be locked when user turns off GPS on Settings
+-# Set bit 0x1 if MO GPS functionalities are to be locked
+-# Set bit 0x2 if NI GPS functionalities are to be locked
+-# default - non is locked for backward compatibility
+-#GPS_LOCK = 0
+-
+-# supl version 1.0
+-SUPL_VER=0x10000
+-
+-# Emergency SUPL, 1=enable, 0=disable
+-SUPL_ES=1
+-
+-#Choose PDN for Emergency SUPL
+-#1 - Use emergency PDN
+-#0 - Use regular SUPL PDN for Emergency SUPL
+-USE_EMERGENCY_PDN_FOR_EMERGENCY_SUPL=1
+-
+-#SUPL_MODE is a bit mask set in config.xml per carrier by default.
+-#If it is uncommented here, this value will over write the value from
+-#config.xml.
+-#MSA=0X2
+-#MSB=0X1
+-#SUPL_MODE=
+-
+-# GPS Capabilities bit mask
+-# SCHEDULING = 0x01
+-# MSB = 0x02
+-# MSA = 0x04
+-# ON_DEMAND_TIME = 0x10
+-# GEOFENCE = 0x20
+-# default = ON_DEMAND_TIME | MSA | MSB | SCHEDULING | GEOFENCE
+-CAPABILITIES=0x37
+-
+-# Accuracy threshold for intermediate positions
+-# less accurate positions are ignored, 0 for passing all positions
+-# ACCURACY_THRES=5000
+-
+-################################
+-##### AGPS server settings #####
+-################################
+-
+-# FOR SUPL SUPPORT, set the following
+-# SUPL_HOST=supl.host.com or IP
+-# SUPL_PORT=1234
+-
+-# FOR C2K PDE SUPPORT, set the following
+-# C2K_HOST=c2k.pde.com or IP
+-# C2K_PORT=1234
+-
+-# Bitmask of slots that are available
+-# for write/install to, where 1s indicate writable,
+-# and the default value is 0 where no slots
+-# are writable. For example, AGPS_CERT_WRITABLE_MASK
+-# of b1000001010 makes 3 slots available
+-# and the remaining 7 slots unwritable.
+-#AGPS_CERT_WRITABLE_MASK=0
+-
+-####################################
+-#  LTE Positioning Profile Settings
+-####################################
+-# 0: Enable RRLP on LTE(Default)
+-# 1: Enable LPP_User_Plane on LTE
+-# 2: Enable LPP_Control_Plane
+-# 3: Enable both LPP_User_Plane and LPP_Control_Plane
+-LPP_PROFILE = 0
+-
+-################################
+-# EXTRA SETTINGS
+-################################
+-# NMEA provider (1=Modem Processor, 0=Application Processor)
+-NMEA_PROVIDER=0
+-# Mark if it is a SGLTE target (1=SGLTE, 0=nonSGLTE)
+-SGLTE_TARGET=0
+-
+-##################################################
+-# Select Positioning Protocol on A-GLONASS system
+-##################################################
+-# 0x1: RRC CPlane
+-# 0x2: RRLP UPlane
+-# 0x4: LLP Uplane
+-A_GLONASS_POS_PROTOCOL_SELECT = 0
++##################################################
++# GPS almanac settings
++##################################################
++# Whether to use the predefined XTRA servers
++# below (XTRA_SERVER_), or to query them from the
++# modem.
++#
++# Values: 0 - use predefined, 1 - query modem
++XTRA_SERVER_QUERY = 0
++
++# The predefined XTRA servers to be used if modem
++# querying (XTRA_SERVER_QUERY) is off.
++#
++# Values: URL
++XTRA_SERVER_1 = https://xtrapath1.izatcloud.net/xtra3grc.bin
++XTRA_SERVER_2 = https://xtrapath2.izatcloud.net/xtra3grc.bin
++XTRA_SERVER_3 = https://xtrapath3.izatcloud.net/xtra3grc.bin
++XTRA_SERVER_4 = https://ssl.gpsonextra.net/xtra3grc.bin
++XTRA_SERVER_5 = https://ssl.izatcloud.net/xtra3grc.bin
++
++# Whether or not to test for XTRA support.
++#
++# Values: 0 - don't test, 1 - test
++XTRA_TEST_ENABLED = 1
++
++# The version of the XTRA data used. XTRA v3
++# supports digital signing and is advised.
++#
++# Values: 0 - disable XTRA, 1 - automatic check,
++#         2 - XTRA v2, 3 - XTRA v3
++XTRA_VERSION_CHECK = 3
++
++# Path to the CA certificates used to validate
++# the XTRA data.
++#
++# Values: path
++XTRA_CA_PATH = /system/etc/security/cacerts
++
++##################################################
++# Error estimatation
++##################################################
++# Whether or not to use error estimation.
++#
++# Values: 0 - don't use, 1 - use
++ERR_ESTIMATE = 0
++
++##################################################
++# NTP server
++##################################################
++# The NTP servers used for time synchronisation.
++#
++# Values: URL
++NTP_SERVER = rhel.pool.ntp.org
++NTP_SERVER_1 = ntp.neusoft.edu.cn
++NTP_SERVER_2 = ntp.neu6.edu.cn
++NTP_SERVER_3 = ntp.synet.edu.cn
++
++##################################################
++# Debugging
++##################################################
++# The Android logging level of the GPS service. If
++# commented out, then Android's default logging
++# level will be used.
++#
++# Values: 0 - none, 1 - error, 2 - warning, 3 - info
++#         4 - debug, 5 - verbose
++DEBUG_LEVEL = 1
++
++##################################################
++# Intermediate position reporting
++##################################################
++# Whether or not to report intermediate positions.
++#
++# Values: 0 - don't report, 1 - report
++INTERMEDIATE_POS = 1
++
++# Accuracy threshold for intermediate positions.
++# Set to 0 to pass all positions.
++#
++# Values: unknown
++ACCURACY_THRES = 1
++
++##################################################
++#
++##################################################
++# Functionalities to switch off when GPS is disabled.
++# Default is to lock nothing for backward
++# compatibility.
++#
++# Bitmask: 0x1 - lock MO GPS, 0x2 - lock NI GPS
++GPS_LOCK = 0
++
++# Provider for NMEA.
++#
++# Values: 0 - application, 1 - modem
++NMEA_PROVIDER = 1
++
++# Whether the device supports being a SGLTE
++# target.
++#
++# Values: 0 - not supported, 1 - supported
++SGLTE_TARGET = 1
++
++##################################################
++# GPS supplement settings
++##################################################
++# The version of SUPL to be used.
++#
++# Values: bitmask
++SUPL_VER = 0x30000
++
++# Whether to report the reference SUPL location as
++# the current position.
++#
++# Values: 0 - don't report, 1 - report
++REPORT_POSITION_USE_SUPL_REFLOC = 1
++
++# Whether to use SUPL in an emergency situations
++# (eg. calling emergency services).
++#
++# Values: 0 - disable, 1 - enable
++SUPL_ES = 1
++
++# The PDN to ve used for emergency SUPL.
++#
++# Values: 0 - emergency PDN, 1 - regular SUPL PDN
++USE_EMERGENCY_PDN_FOR_EMERGENCY_SUPL = 1
++
++# Carrier-set GPS mode for SUPL.
++# If commented, will be taken from config.xml.
++#
++# Bitmask: 0x2 - MSA, 0x2 - MSB
++SUPL_MODE = 0x2
++
++# The SUPL server used.
++#
++# Values: URL, IP
++SUPL_HOST = supl.google.com
++
++# The port to connect to the SUPL server.
++#
++# Values: port
++SUPL_PORT = 7275
++
++##################################################
++# GPS capabilities
++##################################################
++# GPS features which are supported.
++#
++# Bitmask: 0x01 - scheduling, 0x02 - MSB,
++#          0x04 - MSA, 0x10 - on-demand time,
++#          0x20 - geofencing
++CAPABILITIES = 0x37
++
++# Whether to use WiFi positioning.
++#
++# Values: 0 - disable, 1 - enable
++ENABLE_WIPER = 1
++
++##################################################
++# C2K server settings
++##################################################
++# The C2K PDE server used.
++#
++# Values: URL, IP
++C2K_HOST =
++
++# The port to connect to the C2K PDE server.
++#
++# Values: port
++C2K_PORT =
++
++##################################################
++# A-GPS settings
++##################################################
++# Slots writable to install A-GPS infomation to.
++#
++# Values: bitmask
++AGPS_CERT_WRITABLE_MASK = 0
++
++# Whether to use A-GPS configuration injection.
++#
++# Values: 0 - disable, 1 - enable
++AGPS_CONFIG_INJECT = 1
++
++##################################################
++# LTE positioning profile
++##################################################
++# LTE positioning mode.
++#
++# Values: 0 - RRLP, 1 - LPP_User_Plane,
++#         2 - LPP_Control_Plane,
++#         3 - LPP_Control_Plane and LPP_User_Plane
++LPP_PROFILE = 3
++
++##################################################
++# A-GLONASS protocol
++##################################################
++# The A-GLONASS positioning protocol used.
++#
++# Bitmask: 0x1 - RRC CPlane, 0x2 - RRLP UPlane,
++#          0x4 - LLP Uplane
++A_GLONASS_POS_PROTOCOL_SELECT = 0x4
++
++##################################################
++# LPPe settings
++##################################################
++# The LPPe control plane method.
++#
++# Bitmask: 0x1 - DBH, 0x2 - WLAN AP measurements,
++#          0x4 - SRN AP measurement,
++#          0x8 - Sensor barometer measurement
++LPPE_CP_TECHNOLOGY = 0x10
++
++# The LPPe user plane method.
++#
++# Bitmask: 0x1 - DBH, 0x2 - WLAN AP measurements,
++#          0x4 - SRN AP measurement,
++#          0x8 - Sensor barometer measurement
++LPPE_UP_TECHNOLOGY = 0x10
++
++##################################################
++# AP settings
++##################################################
++# The AP coarse timestamp uncertainty until the
++# GNSS receiver is able to acquire better timing
++# information.
++#
++# Values: unknown
++AP_TIMESTAMP_UNCERTAINTY = 10
++
++# The quality of the APPS processor clock. Used to
++# calculate AP timestamp uncertainty.
++#
++# Values: PPM
++AP_CLOCK_PPM = 100
++
++##################################################
++# QDR engine availability
++##################################################
++# Whether to use the QDR configuration.
++# Recommended for automobile use cases. If used,
++# the DR_AP_Service needs to be enabled.
++#
++# Values: 0 - disable, 1 - enable
++EXTERNAL_DR_ENABLED = 0
++
++##################################################
++# Pulse settings
++##################################################
++# Whether to use the Linux PPS driver to make use
++# of events generated by DR_SYNC pulse.
++#
++# Values: 0 - disable, 1 - enable
++DR_SYNC_ENABLED = 0
++
++# The path to the Linux PPS device.
++#
++# Values: path
++PPS_DEVICENAME = /dev/pps0
++
++# The path time threshold to validate any missing
++# PPS pulses.
++#
++# Values: ms
++MISSING_PULSE_TIME_DELTA = 900
++
++# Whether to use time uncertainty propagation
++# logic in the case of missing PPS pulse.
++#
++# Values: 0 - don't use, 1 - use
++PROPAGATION_TIME_UNCERTAINTY = 1
 diff --git a/msm8994/utils/Makefile.am b/msm8994/utils/Makefile.am
 index e5935f0..67abdd5 100644
 --- a/msm8994/utils/Makefile.am
@@ -3841,7 +4651,7 @@ index e2727f5d2..a918b76a7 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
@@ -3869,7 +4679,7 @@ index 49c543680..0653c25fa 100644
 @@ -9,7 +9,7 @@ LOCAL_PATH:= $(ROOT_DIR)
  # 				Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libmm-venc-def := -g -O3 -Dlrintf=_ffix_r
 +libmm-venc-def := -g0 -O3 -Dlrintf=_ffix_r
  libmm-venc-def += -D__align=__alignx
@@ -3882,7 +4692,7 @@ index 14594d4c3..be13e6048 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
@@ -3897,7 +4707,7 @@ index 9a55a75f8..f157a5ddc 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
@@ -3917,7 +4727,7 @@ index 011e155b7..3c8f69085 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -U_ENABLE_QC_MSG_LOG_
@@ -3935,14 +4745,14 @@ index c5a88fd82..09e83a71a 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 
 project hardware/qcom/media-caf/msm8916/
 diff --git a/mm-core/Android.mk b/mm-core/Android.mk
@@ -3952,7 +4762,7 @@ index 5234239d1..a4cd159d9 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
@@ -3969,14 +4779,14 @@ index f306052a7..919b97054 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 
 project hardware/qcom/media-caf/msm8974/
 diff --git a/mm-core/Android.mk b/mm-core/Android.mk
@@ -3986,14 +4796,14 @@ index f98f3cd4e..3af366000 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 
 project hardware/qcom/media-caf/msm8994/
 diff --git a/mm-core/Android.mk b/mm-core/Android.mk
@@ -4003,14 +4813,14 @@ index c8ad43f4b..015d02989 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
 index 6f783c429..bf248f963 100644
 --- a/mm-video-v4l2/vidc/common/Android.mk
@@ -4018,7 +4828,7 @@ index 6f783c429..bf248f963 100644
 @@ -7,13 +7,12 @@ LOCAL_PATH:= $(ROOT_DIR)
  # 				Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libmm-vidc-def := -g -O3 -Dlrintf=_ffix_r
 +libmm-vidc-def := -g0 -O3 -Dlrintf=_ffix_r
  libmm-vidc-def += -D__align=__alignx
@@ -4028,7 +4838,7 @@ index 6f783c429..bf248f963 100644
  libmm-vidc-def += -D_ANDROID_
 -libmm-vidc-def += -Werror
  libmm-vidc-def += -D_ANDROID_ICS_
-
+ 
  # ---------------------------------------------------------------------------------
 diff --git a/mm-video-v4l2/vidc/vdec/Android.mk b/mm-video-v4l2/vidc/vdec/Android.mk
 index aedca2059..4cfdcc4f1 100644
@@ -4050,7 +4860,7 @@ index aedca2059..4cfdcc4f1 100644
 -LOCAL_CFLAGS                    := $(libmm-vdec-def) -Werror
 +LOCAL_CFLAGS                    := $(libmm-vdec-def)
  LOCAL_C_INCLUDES                += $(libmm-vdec-inc)
-
+ 
  LOCAL_HEADER_LIBRARIES := generated_kernel_headers
 diff --git a/mm-video-v4l2/vidc/venc/Android.mk b/mm-video-v4l2/vidc/venc/Android.mk
 index ff43abdcd..6c3654f99 100644
@@ -4059,7 +4869,7 @@ index ff43abdcd..6c3654f99 100644
 @@ -5,7 +5,7 @@ include $(CLEAR_VARS)
  # 				Common definitons
  # ---------------------------------------------------------------------------------
-
+ 
 -libmm-venc-def := -g -O3 -Dlrintf=_ffix_r
 +libmm-venc-def := -g0 -O3 -Dlrintf=_ffix_r
  libmm-venc-def += -D__align=__alignx
@@ -4072,7 +4882,7 @@ index ff43abdcd..6c3654f99 100644
 -libmm-venc-def += -Werror
  libmm-venc-def += -D_ANDROID_ICS_
  libmm-venc-def += -D_MSM8974_
-
+ 
 
 project hardware/qcom/media-caf/msm8996/
 diff --git a/mm-core/Android.mk b/mm-core/Android.mk
@@ -4082,14 +4892,14 @@ index e4922cb04..a774803a0 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-core/Makefile.am b/mm-core/Makefile.am
 index 011e155b7..3c8f69085 100644
 --- a/mm-core/Makefile.am
@@ -4102,7 +4912,7 @@ index 011e155b7..3c8f69085 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -U_ENABLE_QC_MSG_LOG_
@@ -4120,14 +4930,14 @@ index b9231096b..633d8ba5e 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-core/Makefile.am b/mm-core/Makefile.am
 index 011e155b7..3c8f69085 100644
 --- a/mm-core/Makefile.am
@@ -4140,7 +4950,7 @@ index 011e155b7..3c8f69085 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -U_ENABLE_QC_MSG_LOG_
@@ -4158,14 +4968,14 @@ index 25364bde9..be7fdf645 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-core/Makefile.am b/mm-core/Makefile.am
 index 834964759..678f03157 100644
 --- a/mm-core/Makefile.am
@@ -4178,7 +4988,7 @@ index 834964759..678f03157 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -D_ENABLE_QC_MSG_LOG_
@@ -4196,14 +5006,14 @@ index fba891194..328d0f976 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-core/Makefile.am b/mm-core/Makefile.am
 index 4b544dac8..8eb31a221 100644
 --- a/mm-core/Makefile.am
@@ -4216,7 +5026,7 @@ index 4b544dac8..8eb31a221 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -U_ENABLE_QC_MSG_LOG_
@@ -4327,14 +5137,14 @@ index 6a9c6915..f087dc67 100644
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
 +OMXCORE_CFLAGS += -O3 -fno-inline -fno-short-enums
  OMXCORE_CFLAGS += -D_ANDROID_
  OMXCORE_CFLAGS += -U_ENABLE_QC_MSG_LOG_
-
+ 
 diff --git a/mm-core/Makefile.am b/mm-core/Makefile.am
 index 9fa9b32f..74a3c2ac 100644
 --- a/mm-core/Makefile.am
@@ -4347,7 +5157,7 @@ index 9fa9b32f..74a3c2ac 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -D_ENABLE_QC_MSG_LOG_
@@ -4458,7 +5268,7 @@ index c9cb62aa..a968a1a8 100755
 @@ -3,8 +3,8 @@ ifneq ($(BUILD_TINY_ANDROID),true)
  LOCAL_PATH:= $(call my-dir)
  include $(CLEAR_VARS)
-
+ 
 -OMXCORE_CFLAGS := -g -O3 -DVERBOSE
 -OMXCORE_CFLAGS += -O0 -fno-inline -fno-short-enums
 +OMXCORE_CFLAGS := -g0 -O3 -DVERBOSE
@@ -4478,7 +5288,7 @@ index 9fa9b32f..74a3c2ac 100644
 +AM_CFLAGS += -g0 -O3
  #AM_CFLAGS += -O0 -fno-inline -fno-short-enums
  #AM_CFLAGS += -fPIC
-
+ 
  AM_CPPFLAGS = -D__packed__=
  AM_CPPFLAGS += -D_ANDROID_
  AM_CPPFLAGS += -D_ENABLE_QC_MSG_LOG_
@@ -4495,7 +5305,7 @@ index 19cdc49..67c11ff 100644
 +++ b/cld80211-lib/Makefile.am
 @@ -4,9 +4,9 @@ ACLOCAL_AMFLAGS = -I m4
  AM_CFLAGS = -Wall
-
+ 
  if DEBUG
 -AM_CFLAGS += -g
 +AM_CFLAGS += -g0
@@ -4503,7 +5313,7 @@ index 19cdc49..67c11ff 100644
 -AM_CFLAGS += -O2
 +AM_CFLAGS += -O3
  endif
-
+ 
  AM_CFLAGS += -Wno-unused-parameter -Wno-int-to-pointer-cast \
 
 project lineage-sdk/
@@ -4514,7 +5324,7 @@ index 3b9d3e6..076d6c9 100644
 @@ -14,20 +14,3 @@
  // limitations under the License.
  //
-
+ 
 -android_app {
 -    srcs: ["src/**/*.java"],
 -    resource_dirs: ["res"],
@@ -4649,6 +5459,21 @@ index 656f3847..792d6005 100644
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 +#
 
+project packages/apps/Dialer/
+diff --git a/java/com/android/dialer/callrecord/res/xml/call_record_states.xml b/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
+index 9907fe9e2..1bf2f2cca 100644
+--- a/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
++++ b/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
+@@ -615,7 +615,7 @@
+          Law 19 of 2016:
+            https://jdih.kominfo.go.id/produk_hukum/view/id/555/t/undangundang+nomor+19+tahun+2016+tanggal+25+november+2016
+     -->
+-    <country iso="id" allowed="false" />
++    <country iso="id" allowed="true" />
+ 
+     <!-- Enable recording for Ireland:
+          The Irish Constitution does not specifically state a right to privacy. Subsection (6) of
+
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
 index cfc205b89..c54a7949e 100644
@@ -4657,7 +5482,7 @@ index cfc205b89..c54a7949e 100644
 @@ -12,69 +12,3 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+ 
 -LOCAL_PATH := $(call my-dir)
 -
 -# Build the Email application itself, along with its tests and tests for the emailcommon
@@ -4733,7 +5558,7 @@ index a3a7d20b..c54a7949 100644
 @@ -12,39 +12,3 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+ 
 -LOCAL_PATH:= $(call my-dir)
 -include $(CLEAR_VARS)
 -
@@ -4779,7 +5604,7 @@ index 603f888..7fb560b 100644
 @@ -14,25 +14,3 @@
  # limitations under the License.
  #
-
+ 
 -LOCAL_PATH := $(call my-dir)
 -include $(CLEAR_VARS)
 -
@@ -4803,6 +5628,38 @@ index 603f888..7fb560b 100644
 -
 -include $(BUILD_PACKAGE)
 
+project packages/apps/Settings/
+diff --git a/src/com/android/settings/development/RootAccessPreferenceController.java b/src/com/android/settings/development/RootAccessPreferenceController.java
+index 7e40e92ba7..669067d936 100644
+--- a/src/com/android/settings/development/RootAccessPreferenceController.java
++++ b/src/com/android/settings/development/RootAccessPreferenceController.java
+@@ -54,8 +54,8 @@ public class RootAccessPreferenceController extends DeveloperOptionsPreferenceCo
+ 
+     @Override
+     public boolean isAvailable() {
+-        // User builds don't get root, and eng always gets root
+-        return Build.IS_DEBUGGABLE || "eng".equals(Build.TYPE);
++        // Not only eng or userdebug builds, user builds could also get root now
++        return true;
+     }
+ 
+     @Override
+diff --git a/src/com/android/settings/development/RootAppOpsPreferenceController.java b/src/com/android/settings/development/RootAppOpsPreferenceController.java
+index 7a6b0f1a7b..4ce15e9ac6 100644
+--- a/src/com/android/settings/development/RootAppOpsPreferenceController.java
++++ b/src/com/android/settings/development/RootAppOpsPreferenceController.java
+@@ -48,8 +48,8 @@ public class RootAppOpsPreferenceController extends DeveloperOptionsPreferenceCo
+ 
+     @Override
+     public boolean isAvailable() {
+-        // User builds don't get root, and eng always gets root
+-        return Build.IS_DEBUGGABLE || "eng".equals(Build.TYPE);
++        // Not only eng or userdebug builds, user builds could also get root now
++        return true;
+     }
+ 
+     @Override
+
 project packages/apps/Stk/
 diff --git a/Android.mk b/Android.mk
 index 135fcf9..ca8204e 100644
@@ -4810,7 +5667,7 @@ index 135fcf9..ca8204e 100644
 +++ b/Android.mk
 @@ -1,16 +1,2 @@
  # Copyright 2007-2008 The Android Open Source Project
-
+ 
 -LOCAL_PATH:= $(call my-dir)
 -include $(CLEAR_VARS)
 -
@@ -4925,7 +5782,7 @@ index f2100b5..7305ebf 100644
 @@ -12,17 +12,3 @@
  # License for the specific language governing permissions and limitations under
  # the License.
-
+ 
 -LOCAL_PATH:= $(call my-dir)
 -
 -include $(CLEAR_VARS)
@@ -5053,18 +5910,18 @@ index 7f79bc3..792d600 100644
 
 project packages/services/BuiltInPrintService/
 diff --git a/jni/Android.mk b/jni/Android.mk
-index d57c115..165a152 100644
+index 5dbe400..46a80e7 100644
 --- a/jni/Android.mk
 +++ b/jni/Android.mk
 @@ -24,7 +24,7 @@ IPP_HELPER_DIR := ipphelper
  LOCAL_SDK_VERSION := current
-
+ 
  LOCAL_CFLAGS += \
 -      -DINCLUDE_PDF=1 -Werror -Wextra -Wno-unused-parameter \
-+      -DINCLUDE_PDF=1 -Wextra -Wno-unused-parameter \
++      -DINCLUDE_PDF=1 -Wno-unused-parameter \
        -Wno-sign-compare -Wno-missing-field-initializers \
-       -Wno-implicit-function-declaration -Wno-format -Wno-missing-braces
-
+       -Wno-implicit-function-declaration -Wno-format -Wno-missing-braces \
+       -Wno-deprecated-declarations
 
 project system/bt/
 diff --git a/build/BUILD.gn b/build/BUILD.gn
@@ -5087,21 +5944,21 @@ index 23b191dee..245bcd14b 100644
 --- a/build/secondary/third_party/libldac/BUILD.gn
 +++ b/build/secondary/third_party/libldac/BUILD.gn
 @@ -30,7 +30,7 @@ shared_library("libldacBT_enc") {
-
+ 
    public_configs = [ ":libldacBT_enc_config" ]
-
+ 
 -  cflags = [ "-O2" ]
 +  cflags = [ "-O3" ]
-
+ 
    defines = [ "EXPORT_SYMBOL=" ]
  }
 @@ -42,7 +42,7 @@ shared_library("libldacBT_abr") {
-
+ 
    public_configs = [ ":libldacBT_abr_config" ]
-
+ 
 -  cflags = [ "-O2" ]
 +  cflags = [ "-O3" ]
-
+ 
    defines = [ "EXPORT_SYMBOL=" ]
  }
 
@@ -5118,11 +5975,11 @@ index 7e6f24d15..8b6c785e7 100644
 +        "-O3",
      ],
      cpp_std: "gnu++17",
-
+ 
 @@ -233,77 +233,6 @@ cc_benchmark {
      ],
  }
-
+ 
 -cc_binary {
 -    name: "crash_dump",
 -    srcs: [
@@ -5211,29 +6068,29 @@ index cefe09d5e..fb1075c54 100644
      export_include_dirs: ["include"],
      shared_libs: [
 @@ -31,7 +31,6 @@ cc_defaults {
-
+ 
      cflags: [
          "-Wall",
 -        "-Werror",
      ],
-
+ 
      static_libs: [
 @@ -78,7 +77,6 @@ cc_binary {
-
+ 
      cflags: [
          "-Wall",
 -        "-Werror",
      ],
-
+ 
      static_libs: [
 diff --git a/healthd/Android.mk b/healthd/Android.mk
 index 89a6ae07b..b158c3ae2 100644
 --- a/healthd/Android.mk
 +++ b/healthd/Android.mk
 @@ -28,7 +28,6 @@ include $(BUILD_STATIC_LIBRARY)
-
+ 
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -Werror
  ifeq ($(strip $(BOARD_CHARGER_DISABLE_INIT_BLANK)),true)
  LOCAL_CFLAGS += -DCHARGER_DISABLE_INIT_BLANK
@@ -5241,7 +6098,7 @@ index 89a6ae07b..b158c3ae2 100644
 @@ -88,7 +87,6 @@ LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_SBIN)
  LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_SBIN_UNSTRIPPED)
  LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
-
+ 
 -LOCAL_CFLAGS := -Werror
  ifeq ($(strip $(LOCAL_CHARGER_NO_UI)),true)
  LOCAL_CFLAGS += -DCHARGER_NO_UI
@@ -5307,13 +6164,13 @@ index adbacdbcd..84913cf04 100644
 --- a/libunwindstack/Android.bp
 +++ b/libunwindstack/Android.bp
 @@ -21,7 +21,6 @@ cc_defaults {
-
+ 
      cflags: [
          "-Wall",
 -        "-Werror",
          "-Wextra",
      ],
-
+ 
 @@ -79,8 +78,8 @@ cc_library {
          // Always disable optimizations for host to make it easier to debug.
          host: {
@@ -5338,23 +6195,23 @@ index adbacdbcd..84913cf04 100644
      },
 @@ -234,8 +233,8 @@ cc_test {
      ],
-
+ 
      cflags: [
 -        "-O0",
 -        "-g",
 +        "-O3",
 +        "-g0",
      ],
-
+ 
      shared_libs: [
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index 4a8a60a96..d9e4f3aca 100644
+index 4a8a60a96..28b83d0af 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
 @@ -397,11 +397,6 @@ on post-fs-data
      start vold
      installkey /data
-
+ 
 -    # Start bootcharting as soon as possible after the data partition is
 -    # mounted to collect more data.
 -    mkdir /data/bootchart 0755 shell shell
@@ -5362,7 +6219,7 @@ index 4a8a60a96..d9e4f3aca 100644
 -
      # Avoid predictable entropy pool. Carry over entropy from previous boot.
      copy /data/system/entropy.dat /dev/urandom
-
+ 
 @@ -447,7 +442,6 @@ on post-fs-data
      mkdir /data/misc/ethernet 0770 system system
      mkdir /data/misc/dhcp 0770 dhcp dhcp
@@ -5371,7 +6228,7 @@ index 4a8a60a96..d9e4f3aca 100644
      # give system access to wpa_supplicant.conf for backup and restore
      chmod 0660 /data/misc/wifi/wpa_supplicant.conf
      mkdir /data/local 0751 root root
-@@ -455,18 +449,11 @@ on post-fs-data
+@@ -455,18 +449,10 @@ on post-fs-data
      mkdir /data/misc/audioserver 0700 audioserver audioserver
      mkdir /data/misc/cameraserver 0700 cameraserver cameraserver
      mkdir /data/misc/vold 0700 root root
@@ -5379,7 +6236,7 @@ index 4a8a60a96..d9e4f3aca 100644
 -    mkdir /data/misc/update_engine 0700 root root
 -    mkdir /data/misc/update_engine_log 02750 root log
 -    mkdir /data/misc/trace 0700 root root
-     # create location to store surface and window trace files
+-    # create location to store surface and window trace files
 -    mkdir /data/misc/wmtrace 0700 system system
      # profile file layout
      mkdir /data/misc/profiles 0771 system system
@@ -5387,10 +6244,10 @@ index 4a8a60a96..d9e4f3aca 100644
      mkdir /data/misc/profiles/ref 0771 system system
 -    mkdir /data/misc/profman 0770 system shell
 -    mkdir /data/misc/gcov 0770 root root
-
+ 
      mkdir /data/vendor 0771 root root
      mkdir /data/vendor_ce 0771 root root
-@@ -476,7 +463,6 @@ on post-fs-data
+@@ -476,7 +462,6 @@ on post-fs-data
      # For security reasons, /data/local/tmp should always be empty.
      # Do not place files or directories in /data/local/tmp
      mkdir /data/local/tmp 0771 shell shell
@@ -5398,14 +6255,14 @@ index 4a8a60a96..d9e4f3aca 100644
      mkdir /data/data 0771 system system
      mkdir /data/app-private 0771 system system
      mkdir /data/app-ephemeral 0771 system system
-@@ -484,18 +470,9 @@ on post-fs-data
+@@ -484,18 +469,9 @@ on post-fs-data
      mkdir /data/app-lib 0771 system system
      mkdir /data/app 0771 system system
      mkdir /data/property 0700 root root
 -    mkdir /data/tombstones 0771 system system
 -    mkdir /data/vendor/tombstones 0771 root root
 -    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
-
+ 
      # create dalvik-cache, so as to enforce our permissions
      mkdir /data/dalvik-cache 0771 root root
 -    # create the A/B OTA directory, so as to enforce our permissions
@@ -5414,13 +6271,13 @@ index 4a8a60a96..d9e4f3aca 100644
 -    # create the OTA package directory. It will be accessed by GmsCore (cache
 -    # group), update_engine and update_verifier.
 -    mkdir /data/ota_package 0770 system cache
-
+ 
      # create resource-cache and double-check the perms
      mkdir /data/resource-cache 0771 system system
-@@ -513,19 +490,11 @@ on post-fs-data
+@@ -513,19 +489,11 @@ on post-fs-data
      # the following directory.
      mkdir /data/mediadrm 0770 mediadrm mediadrm
-
+ 
 -    mkdir /data/anr 0775 system system
 -
 -    # NFC: create data/nfc for nv storage
@@ -5431,42 +6288,21 @@ index 4a8a60a96..d9e4f3aca 100644
      # and get proper encryption policy installed
      mkdir /data/backup 0700 system system
 -    mkdir /data/ss 0700 system system
-
+ 
      mkdir /data/system 0775 system system
 -    mkdir /data/system/heapdump 0700 system system
      mkdir /data/system/users 0775 system system
-
+ 
      mkdir /data/system_de 0770 system system
-@@ -714,6 +683,9 @@ on property:vold.decrypt=trigger_shutdown_framework
+@@ -712,7 +680,7 @@ on property:vold.decrypt=trigger_shutdown_framework
+     class_reset main
+ 
  on property:sys.boot_completed=1
-     bootchart stop
-
-+    # SELinux Enforcing
+-    bootchart stop
 +    exec /system/bin/setenforce 1
-+
+ 
  # system server cannot write to /proc/sys files,
  # and chown/chmod does not work for /proc/sys/ entries.
- # So proxy writes through init.
-diff --git a/toolbox/Android.bp b/toolbox/Android.bp
-index ddd95b207..71331ca52 100644
---- a/toolbox/Android.bp
-+++ b/toolbox/Android.bp
-@@ -7,6 +7,7 @@ cc_defaults {
-         "-Wno-unused-const-variable",
-         "-include bsd-compatibility.h",
-         "-D_FILE_OFFSET_BITS=64",
-+        "-O3",
-     ],
-     local_include_dirs: ["upstream-netbsd/include/"],
- }
-@@ -31,6 +32,7 @@ cc_library_static {
-     cflags: [
-         "-Dmain=dd_main",
-         "-DNO_CONV",
-+        "-O3",
-     ],
- }
-
 diff --git a/trusty/keymaster/Makefile b/trusty/keymaster/Makefile
 index f57538189..d1af3bfbe 100644
 --- a/trusty/keymaster/Makefile
@@ -5474,7 +6310,7 @@ index f57538189..d1af3bfbe 100644
 @@ -44,7 +44,7 @@ else
  COMPILER_SPECIFIC_ARGS=-std=c++0x -fprofile-arcs
  endif
-
+ 
 -CPPFLAGS=$(INCLUDES) -g -O0 -MD
 +CPPFLAGS=$(INCLUDES) -g0 -O3 -MD
  CXXFLAGS=-Wall -Werror -Wno-unused -Winit-self -Wpointer-arith	-Wunused-parameter \
@@ -5489,11 +6325,11 @@ index 4a3cbe41..f895ac3e 100644
 @@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
  ifeq ($(TARGET_ARCH),arm64)
  include $(CLEAR_VARS)
-
+ 
 -LOCAL_CFLAGS := -O0 -march=armv8-a+crypto -Wall -Werror
 +LOCAL_CFLAGS := -O3 -march=armv8-a+crypto -Wall
  LOCAL_SRC_FILES := crypto.cpp
-
+ 
  LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
 diff --git a/ioshark/Android.mk b/ioshark/Android.mk
 index b15d64a0..6d3580da 100644
@@ -5553,7 +6389,7 @@ index a2b3399a..3617529f 100644
 --- a/memcpy-perf/Android.mk
 +++ b/memcpy-perf/Android.mk
 @@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
-
+ 
  include $(CLEAR_VARS)
  LOCAL_MODULE := memcpy-perf
 -LOCAL_CFLAGS += -g -Wall -Werror -Wno-missing-field-initializers -Wno-sign-compare -O3
@@ -5583,12 +6419,12 @@ index 256b95cf..8d5129d6 100644
          "-Wall",
          "-Wextra",
 -        "-Werror",
-
+ 
          // Try some more extreme warnings.
          "-Wpedantic",
 @@ -51,8 +50,8 @@ cc_defaults {
      name: "perfprofd_debug_defaults",
-
+ 
      cflags: [
 -        "-O0",
 -        "-g",
@@ -5603,12 +6439,12 @@ index acba92bd..166d7105 100644
 +++ b/simpleperf/runtest/Android.build.mk
 @@ -15,8 +15,7 @@
  #
-
+ 
  # -O0 is need to prevent optimizations like function inlining in runtest executables.
 -simpleperf_runtest_cppflags := -Wall -Wextra -Werror -Wunused \
 -                               -O0 \
 +simpleperf_runtest_cppflags := -Wall -Wextra -Wunused -O3
-
+ 
  include $(CLEAR_VARS)
  LOCAL_CPPFLAGS := $(simpleperf_runtest_cppflags)
 @@ -41,4 +40,4 @@ LOCAL_MODULE_STEM_32 := $(module)32
@@ -5639,7 +6475,7 @@ index 5ec7ee4..5b402ef 100644
 @@ -277,12 +277,6 @@ int access_disabled(const struct su_initiator* from) {
          return 1;
      }
-
+ 
 -    /* Only allow su on debuggable builds */
 -    if (!property_get_bool("ro.debuggable", false)) {
 -        ALOGE("Root access is disabled on non-debug builds");
@@ -5675,7 +6511,7 @@ index a3f06d9..ed246c2 100644
 +++ b/Makefile
 @@ -49,7 +49,7 @@ CFLAGS += -DKEYMASTER_CLANG_TEST_BUILD
  endif
-
+ 
  LDFLAGS += $(ARCH_FLAGS)
 -CPPFLAGS = $(INCLUDES) -g -O0 -MD -MP $(ARCH_FLAGS) -DKEYMASTER_UNIT_TEST_BUILD -DHOST_BUILD
 +CPPFLAGS = $(INCLUDES) -g0 -O3 -MD -MP $(ARCH_FLAGS) -DKEYMASTER_UNIT_TEST_BUILD -DHOST_BUILD
@@ -5695,10 +6531,10 @@ index 032a61a..279a717 100644
 -        "-Werror",
      ],
  }
-
+ 
 @@ -43,7 +42,7 @@ cc_test {
      ],
-
+ 
      cflags: [
 -        "-O0",
 -        "-g",
@@ -5709,32 +6545,24 @@ index 032a61a..279a717 100644
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
-index ff38a43a..a3fba7c8 100644
+index ff38a43a..fcd09f4a 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -10,6 +10,7 @@ POLICYVERS ?= 30
-
- MLS_SENS=1
- MLS_CATS=1024
-+SELINUX_IGNORE_NEVERALLOWS := true
-
- ifdef BOARD_SEPOLICY_REPLACE
- $(error BOARD_SEPOLICY_REPLACE is no longer supported; please remove from your BoardConfig.mk or other .mk file.)
-@@ -80,10 +81,11 @@ ifndef BOARD_SEPOLICY_VERS
- BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
+@@ -81,9 +81,12 @@ BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
  endif
-
--NEVERALLOW_ARG :=
-+NEVERALLOW_ARG := -N
+ 
+ NEVERALLOW_ARG :=
++# Hacks to keep SELinux permissive in user builds
++# SELINUX_IGNORE_NEVERALLOWS := true
++
  ifeq ($(SELINUX_IGNORE_NEVERALLOWS),true)
  ifeq ($(TARGET_BUILD_VARIANT),user)
 -$(error SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds)
-+$(warning SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds)
-+NEVERALLOW_ARG := -N
++$(warning SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds.)
  endif
  $(warning Be careful when using the SELINUX_IGNORE_NEVERALLOWS flag. \
            It does not work in user builds and using it will \
-@@ -705,10 +707,9 @@ $(built_sepolicy_neverallows)
+@@ -705,10 +708,9 @@ $(built_sepolicy_neverallows)
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -5745,8 +6573,8 @@ index ff38a43a..a3fba7c8 100644
 -		exit 1; \
  		fi
  	$(hide) mv $@.tmp $@
-
-@@ -756,10 +757,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
+ 
+@@ -756,10 +758,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -5757,28 +6585,28 @@ index ff38a43a..a3fba7c8 100644
 -		exit 1; \
  		fi
  	$(hide) mv $@.tmp $@
-
+ 
 diff --git a/prebuilts/api/28.0/private/adbd.te b/prebuilts/api/28.0/private/adbd.te
 index 3ac47443..1b44403d 100644
 --- a/prebuilts/api/28.0/private/adbd.te
 +++ b/prebuilts/api/28.0/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
-
+ 
  domain_auto_trans(adbd, shell_exec, shell)
-
+ 
 -userdebug_or_eng(`
 +
    allow adbd self:process setcurrent;
    allow adbd su:process dyntransition;
 -')
 +
-
+ 
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
 @@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
  allow adbd adb_keys_file:dir search;
  allow adbd adb_keys_file:file r_file_perms;
-
+ 
 -userdebug_or_eng(`
 +
    # Write debugging information to /data/adb
@@ -5788,7 +6616,7 @@ index 3ac47443..1b44403d 100644
    allow adbd adb_data_file:file create_file_perms;
 -')
 +
-
+ 
  # ndk-gdb invokes adb forward to forward the gdbserver socket.
  allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
@@ -5815,11 +6643,11 @@ index 16e47bbb..27a97bdb 100644
 -userdebug_or_eng(`
 +
    typeattribute su coredomain;
-
+ 
    domain_auto_trans(shell, su_exec, su)
 @@ -20,4 +20,4 @@ userdebug_or_eng(`
    permissive su;
-
+ 
    app_domain(su)
 -')
 +
@@ -5846,12 +6674,12 @@ index 239332c1..35a679b5 100644
 --- a/prebuilts/api/28.0/public/app.te
 +++ b/prebuilts/api/28.0/public/app.te
 @@ -306,7 +306,7 @@ allowxperm { appdomain -bluetooth } self:{ rawip_socket tcp_socket udp_socket }
-
+ 
  allow { appdomain -isolated_app } ion_device:chr_file rw_file_perms;
  # TODO is write really necessary ?
 -auditallow { appdomain userdebug_or_eng(`-su') } ion_device:chr_file { write append };
 +auditallow { appdomain -su' } ion_device:chr_file { write append };
-
+ 
  # TODO(b/36375899) replace with hal_client_domain for mediacodec (hal_omx)
  get_prop({ appdomain -isolated_app }, hwservicemanager_prop);
 @@ -433,9 +433,9 @@ neverallow appdomain { domain -appdomain }:process
@@ -5864,7 +6692,7 @@ index 239332c1..35a679b5 100644
 -neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
 +neverallow { appdomain -shell -su } { domain -appdomain }:process
      { dyntransition };
-
+ 
  # Write to rootfs.
 diff --git a/prebuilts/api/28.0/public/domain.te b/prebuilts/api/28.0/public/domain.te
 index 14f2f767..67264033 100644
@@ -5873,7 +6701,7 @@ index 14f2f767..67264033 100644
 @@ -32,7 +32,7 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
  # Inherit or receive open files from others.
  allow domain init:fd use;
-
+ 
 -userdebug_or_eng(`
 +
    allow domain su:fd use;
@@ -5882,7 +6710,7 @@ index 14f2f767..67264033 100644
 @@ -46,6 +46,7 @@ userdebug_or_eng(`
    # allow "gdbserver --attach" to work for su.
    allow domain su:process sigchld;
-
+ 
 +userdebug_or_eng(`
    # Allow writing coredumps to /cores/*
    allow domain coredump_file:file create_file_perms;
@@ -5904,7 +6732,7 @@ index 14f2f767..67264033 100644
 +
      get_prop({domain -coredomain -appdomain}, vendor_default_prop)
  ')
-
+ 
 @@ -315,7 +316,7 @@ neverallow {
  # Limit raw I/O to these whitelisted domains. Do not apply to debug builds.
  neverallow {
@@ -5957,7 +6785,7 @@ index 14f2f767..67264033 100644
 +    -su
    } vndservicemanager:binder *;
  ')
-
+ 
 @@ -736,7 +737,7 @@ full_treble_only(`
      -logd # Logging by writing to logd Unix domain socket is public API
      -netd # netdomain needs this
@@ -5973,17 +6801,17 @@ index 14f2f767..67264033 100644
  # su itself execute su.
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
 +neverallow { domain -shell -su -dumpstate } su_exec:file no_x_file_perms;
-
+ 
  # Do not allow the introduction of new execmod rules. Text relocations
  # and modification of executable pages are unsafe.
 @@ -1206,7 +1207,7 @@ neverallow {
-
+ 
  # Only domains spawned from zygote and runas may have the appdomain attribute.
  neverallow { domain -runas -webview_zygote -zygote } {
 -  appdomain -shell userdebug_or_eng(`-su')
 +  appdomain -shell -su
  }:process { transition dyntransition };
-
+ 
  # Minimize read access to shell- or app-writable symlinks.
 diff --git a/prebuilts/api/28.0/public/hal_configstore.te b/prebuilts/api/28.0/public/hal_configstore.te
 index c8051e14..b3761db6 100644
@@ -5997,7 +6825,7 @@ index c8051e14..b3761db6 100644
 +  -su
    -tombstoned
  }:{ unix_dgram_socket unix_stream_socket } *;
-
+ 
 diff --git a/prebuilts/api/28.0/public/installd.te b/prebuilts/api/28.0/public/installd.te
 index f34ef0c5..07801629 100644
 --- a/prebuilts/api/28.0/public/installd.te
@@ -6013,12 +6841,12 @@ index a550b258..c94e26b4 100644
 --- a/prebuilts/api/28.0/public/netd.te
 +++ b/prebuilts/api/28.0/public/netd.te
 @@ -137,7 +137,7 @@ neverallow { domain -netd } netd:bpf { map_create };
-
+ 
  # apps may not interact with netd over binder.
  neverallow appdomain netd:binder call;
 -neverallow netd { appdomain userdebug_or_eng(`-su') }:binder call;
 +neverallow netd { appdomain -su }:binder call;
-
+ 
  # persist.netd.stable_secret contains RFC 7217 secret key which should never be
  # leaked to other processes. Make sure it never leaks.
 diff --git a/prebuilts/api/28.0/public/su.te b/prebuilts/api/28.0/public/su.te
@@ -6028,7 +6856,7 @@ index 03129454..4da87619 100644
 @@ -5,7 +5,7 @@ type su, domain;
  # File types must be defined for file_contexts.
  type su_exec, exec_type, file_type;
-
+ 
 -userdebug_or_eng(`
 +
    # Domain used for su processes, as well as for adbd and adb shell
@@ -6055,7 +6883,7 @@ index dcebbefa..3af099c2 100644
 -')
 +
  ')
-
+ 
  #####################################
 @@ -494,9 +494,9 @@ define(`with_asan', ifelse(target_with_asan, `true', userdebug_or_eng(`$1'), ))
  # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
@@ -6080,29 +6908,29 @@ index 852e91ea..5a663f23 100644
 -  userdebug_or_eng(`-su')
 +  -su
  }:binder call;
-
+ 
  neverallow vold fsck_exec:file execute_no_trans;
 diff --git a/private/adbd.te b/private/adbd.te
 index 3ac47443..1b44403d 100644
 --- a/private/adbd.te
 +++ b/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
-
+ 
  domain_auto_trans(adbd, shell_exec, shell)
-
+ 
 -userdebug_or_eng(`
 +
    allow adbd self:process setcurrent;
    allow adbd su:process dyntransition;
 -')
 +
-
+ 
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
 @@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
  allow adbd adb_keys_file:dir search;
  allow adbd adb_keys_file:file r_file_perms;
-
+ 
 -userdebug_or_eng(`
 +
    # Write debugging information to /data/adb
@@ -6112,7 +6940,7 @@ index 3ac47443..1b44403d 100644
    allow adbd adb_data_file:file create_file_perms;
 -')
 +
-
+ 
  # ndk-gdb invokes adb forward to forward the gdbserver socket.
  allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
@@ -6133,6 +6961,22 @@ index 4338e400..2762e923 100644
 +  -su
    -system_app
  } runtime_event_log_tags_file:file no_rw_file_perms;
+diff --git a/private/storaged.te b/private/storaged.te
+index 931d0e26..1ce508a3 100644
+--- a/private/storaged.te
++++ b/private/storaged.te
+@@ -23,11 +23,9 @@ allow storaged system_data_file:file r_file_perms;
+ allow storaged storaged_data_file:dir rw_dir_perms;
+ allow storaged storaged_data_file:file create_file_perms;
+ 
+-userdebug_or_eng(`
+   # Read access to debugfs
+   allow storaged debugfs_mmc:dir search;
+   allow storaged debugfs_mmc:file r_file_perms;
+-')
+ 
+ # Needed to provide debug dump output via dumpsys pipes.
+ allow storaged shell:fd use;
 diff --git a/private/su.te b/private/su.te
 index 16e47bbb..27a97bdb 100644
 --- a/private/su.te
@@ -6141,11 +6985,11 @@ index 16e47bbb..27a97bdb 100644
 -userdebug_or_eng(`
 +
    typeattribute su coredomain;
-
+ 
    domain_auto_trans(shell, su_exec, su)
 @@ -20,4 +20,4 @@ userdebug_or_eng(`
    permissive su;
-
+ 
    app_domain(su)
 -')
 +
@@ -6154,12 +6998,12 @@ index 239332c1..1f2c5bfa 100644
 --- a/public/app.te
 +++ b/public/app.te
 @@ -306,7 +306,7 @@ allowxperm { appdomain -bluetooth } self:{ rawip_socket tcp_socket udp_socket }
-
+ 
  allow { appdomain -isolated_app } ion_device:chr_file rw_file_perms;
  # TODO is write really necessary ?
 -auditallow { appdomain userdebug_or_eng(`-su') } ion_device:chr_file { write append };
 +auditallow { appdomain -su } ion_device:chr_file { write append };
-
+ 
  # TODO(b/36375899) replace with hal_client_domain for mediacodec (hal_omx)
  get_prop({ appdomain -isolated_app }, hwservicemanager_prop);
 @@ -433,9 +433,9 @@ neverallow appdomain { domain -appdomain }:process
@@ -6172,7 +7016,7 @@ index 239332c1..1f2c5bfa 100644
 -neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
 +neverallow { appdomain -shell -su } { domain -appdomain }:process
      { dyntransition };
-
+ 
  # Write to rootfs.
 diff --git a/public/domain.te b/public/domain.te
 index 6618c4bc..4be23d42 100644
@@ -6181,7 +7025,7 @@ index 6618c4bc..4be23d42 100644
 @@ -32,7 +32,7 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
  # Inherit or receive open files from others.
  allow domain init:fd use;
-
+ 
 -userdebug_or_eng(`
 +
    allow domain su:fd use;
@@ -6190,7 +7034,7 @@ index 6618c4bc..4be23d42 100644
 @@ -46,6 +46,7 @@ userdebug_or_eng(`
    # allow "gdbserver --attach" to work for su.
    allow domain su:process sigchld;
-
+ 
 +userdebug_or_eng(`
    # Allow writing coredumps to /cores/*
    allow domain coredump_file:file create_file_perms;
@@ -6212,7 +7056,7 @@ index 6618c4bc..4be23d42 100644
 +
      get_prop({domain -coredomain -appdomain}, vendor_default_prop)
  ')
-
+ 
 @@ -316,7 +317,7 @@ neverallow {
  # Limit raw I/O to these whitelisted domains. Do not apply to debug builds.
  neverallow {
@@ -6232,16 +7076,16 @@ index 6618c4bc..4be23d42 100644
      -zygote
      userdebug_or_eng(`-mediaextractor')
 @@ -495,10 +496,10 @@ neverallow { domain -kernel with_asan(`-asan_extract') } { system_file vendor_fi
-
+ 
  # Don't allow mounting on top of /system files or directories
  neverallow * exec_type:dir_file_class_set mounton;
 -neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file vendor_file_type }:dir_file_class_set mounton;
 +neverallow { domain -init -recovery } { system_file vendor_file_type }:dir_file_class_set mounton;
-
+ 
  # Nothing should be writing to files in the rootfs.
 -neverallow { domain userdebug_or_eng(`-recovery') } rootfs:file { create write setattr relabelto append unlink link rename };
 +neverallow { domain -recovery } rootfs:file { create write setattr relabelto append unlink link rename };
-
+ 
  # Restrict context mounts to specific types marked with
  # the contextmount_type attribute.
 @@ -604,7 +605,7 @@ neverallow { domain -install_recovery -recovery } recovery_block_device:blk_file
@@ -6278,7 +7122,7 @@ index 6618c4bc..4be23d42 100644
 +    -su
    } vndservicemanager:binder *;
  ')
-
+ 
 @@ -737,7 +738,7 @@ full_treble_only(`
      -logd # Logging by writing to logd Unix domain socket is public API
      -netd # netdomain needs this
@@ -6294,17 +7138,17 @@ index 6618c4bc..4be23d42 100644
  # su itself execute su.
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su -sudaemon -domain -init') } su_exec:file no_x_file_perms;
 +neverallow { domain -shell -su -sudaemon -domain -init -dumpstate } su_exec:file no_x_file_perms;
-
+ 
  # Do not allow the introduction of new execmod rules. Text relocations
  # and modification of executable pages are unsafe.
 @@ -1223,7 +1224,7 @@ neverallow {
-
+ 
  # Only domains spawned from zygote and runas may have the appdomain attribute.
  neverallow { domain -runas -webview_zygote -zygote } {
 -  appdomain -shell userdebug_or_eng(`-su -sudaemon')
 +  appdomain -shell -su -sudaemon
  }:process { transition dyntransition };
-
+ 
  # Minimize read access to shell- or app-writable symlinks.
 diff --git a/public/hal_configstore.te b/public/hal_configstore.te
 index c8051e14..b3761db6 100644
@@ -6318,7 +7162,7 @@ index c8051e14..b3761db6 100644
 +  -su
    -tombstoned
  }:{ unix_dgram_socket unix_stream_socket } *;
-
+ 
 diff --git a/public/installd.te b/public/installd.te
 index f34ef0c5..07801629 100644
 --- a/public/installd.te
@@ -6334,12 +7178,12 @@ index a550b258..c94e26b4 100644
 --- a/public/netd.te
 +++ b/public/netd.te
 @@ -137,7 +137,7 @@ neverallow { domain -netd } netd:bpf { map_create };
-
+ 
  # apps may not interact with netd over binder.
  neverallow appdomain netd:binder call;
 -neverallow netd { appdomain userdebug_or_eng(`-su') }:binder call;
 +neverallow netd { appdomain -su }:binder call;
-
+ 
  # persist.netd.stable_secret contains RFC 7217 secret key which should never be
  # leaked to other processes. Make sure it never leaks.
 diff --git a/public/su.te b/public/su.te
@@ -6349,7 +7193,7 @@ index b43c1ec2..726a4b06 100644
 @@ -6,7 +6,7 @@ type su, domain;
  type su_exec, exec_type, file_type;
  type sudaemon, domain;
-
+ 
 -userdebug_or_eng(`
 +
    # Domain used for su processes, as well as for adbd and adb shell
@@ -6376,7 +7220,7 @@ index dcebbefa..3af099c2 100644
 -')
 +
  ')
-
+ 
  #####################################
 @@ -494,9 +494,9 @@ define(`with_asan', ifelse(target_with_asan, `true', userdebug_or_eng(`$1'), ))
  # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
@@ -6401,7 +7245,7 @@ index ec6ffa25..e379ebc3 100644
 -  userdebug_or_eng(`-su')
 +  -su
  }:binder call;
-
+ 
  neverallow vold fsck_exec:file execute_no_trans;
 
 project system/tools/hidl/
@@ -6421,7 +7265,7 @@ index dd51705..93ddade 100644
 -        "-Werror",
      ],
  }
-
+ 
 @@ -28,7 +27,6 @@ cc_defaults {
      name: "hidl-module-defaults",
      cflags: [
@@ -6439,7 +7283,7 @@ index 7eaf96c4..b041c809 100644
 @@ -15,49 +15,3 @@
  # limitations under the License.
  #
-
+ 
 -ifeq ($(TARGET_SCREEN_WIDTH),)
 -    $(warning TARGET_SCREEN_WIDTH is not set, using default value: 1080)
 -    TARGET_SCREEN_WIDTH := 1080
@@ -6496,7 +7340,7 @@ index 837e11ef..8b343b45 100644
      vendor/lineage/prebuilt/common/etc/init.d/00banner:system/etc/init.d/00banner \
 +    vendor/lineage/prebuilt/common/etc/init.d/01boot:system/etc/init.d/01boot \
      vendor/lineage/prebuilt/common/bin/sysinit:system/bin/sysinit
-
+ 
  ifneq ($(TARGET_BUILD_VARIANT),user)
 diff --git a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml b/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
 index 363e254b..8571df19 100644
@@ -6514,13 +7358,60 @@ index 2060de12..823e89b9 100644
 --- a/overlay/common/packages/apps/Settings/res/values/bools.xml
 +++ b/overlay/common/packages/apps/Settings/res/values/bools.xml
 @@ -16,8 +16,8 @@
-
+ 
  <resources>
      <!-- Whether to show a preference item for mobile plan -->
 -    <bool name="config_show_mobile_plan">false</bool>
 +    <bool name="config_show_mobile_plan">true</bool>
-
+ 
      <!-- Whether wallpaper attribution should be shown or not. -->
 -    <bool name="config_show_wallpaper_attribution">false</bool>
 +    <bool name="config_show_wallpaper_attribution">true</bool>
  </resources>
+diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
+deleted file mode 100644
+index edf38638..00000000
+--- a/prebuilt/common/etc/init/lineage-ssh.rc
++++ /dev/null
+@@ -1,3 +0,0 @@
+-on post-fs-data
+-    mkdir /data/ssh 0750 root shell
+-    mkdir /data/ssh/empty 0600 root shell
+diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
+index 619c6d82..31cac49f 100644
+--- a/prebuilt/common/etc/init/lineage-system.rc
++++ b/prebuilt/common/etc/init/lineage-system.rc
+@@ -22,10 +22,3 @@ service sysinit /system/bin/sysinit
+     user root
+     oneshot
+     disabled
+-
+-# bugreport is triggered by holding down volume down, volume up and power
+-service bugreport /system/bin/dumpstate -d -p -B -z \
+-        -o /data/user_de/0/com.android.shell/files/bugreports/bugreport
+-    oneshot
+-    disabled
+-    keycodes 114 115 116
+diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
+deleted file mode 100644
+index 3a9b4813..00000000
+--- a/prebuilt/common/etc/init/lineage-updates.rc
++++ /dev/null
+@@ -1,4 +0,0 @@
+-on post-fs-data
+-    # Create an additional OTA package directory that unlike /data/ota_package
+-    # will not be touched by GmsCore.
+-    mkdir /data/lineageos_updates 0770 system cache
+diff --git a/vendorsetup.sh b/vendorsetup.sh
+index 674364b0..db6a4b88 100644
+--- a/vendorsetup.sh
++++ b/vendorsetup.sh
+@@ -1,8 +1,3 @@
+-for combo in $(curl -s https://raw.githubusercontent.com/LineageOS/hudson/master/lineage-build-targets | sed -e 's/#.*$//' | grep lineage-16.0 | awk '{printf "lineage_%s-%s\n", $1, $2}')
+-do
+-    add_lunch_combo $combo
+-done
+-
+ add_lunch_combo lineage_arm-userdebug
+ add_lunch_combo lineage_arm64-userdebug
+ add_lunch_combo lineage_x86-userdebug
