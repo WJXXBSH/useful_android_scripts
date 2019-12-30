@@ -203,7 +203,7 @@ index 5fbe042ea..fc8a8aada 100644
      static_libs: ["libhost"],
  }
 diff --git a/tools/fs_config/Android.bp b/tools/fs_config/Android.bp
-index 797cfe228..5dfc129dc 100644
+index 797cfe228..1c8c3dae3 100644
 --- a/tools/fs_config/Android.bp
 +++ b/tools/fs_config/Android.bp
 @@ -19,7 +19,6 @@ cc_binary_host {
@@ -214,11 +214,14 @@ index 797cfe228..5dfc129dc 100644
  }
  
  // -----------------------------------------------------------------------------
-@@ -30,8 +29,6 @@ test_c_flags = [
+@@ -28,10 +27,9 @@ cc_binary_host {
+ 
+ test_c_flags = [
      "-fstack-protector-all",
-     "-g",
+-    "-g",
++    "-g0",
      "-Wall",
--    "-Wextra",
+     "-Wextra",
 -    "-Werror",
      "-fno-builtin",
      "-DANDROID_FILESYSTEM_CONFIG=\"android_filesystem_config_test_data.h\"",
@@ -339,16 +342,6 @@ index b948b61..d62a3e0 100644
      permissive backuptool;
 -')
 +
-diff --git a/common/private/init.te b/common/private/init.te
-index 9eca0e5..58b5322 100644
---- a/common/private/init.te
-+++ b/common/private/init.te
-@@ -1,3 +1,5 @@
-+permissive init;
-+
- allow init sysfs_dm:dir relabelfrom;
- allow init sysfs_dm:file relabelfrom;
- 
 diff --git a/common/private/recovery.te b/common/private/recovery.te
 index 9a9d7cd..fb877e1 100644
 --- a/common/private/recovery.te
@@ -443,9 +436,52 @@ index 9a09004..9fb0284 100644
  dontaudit sysinit system_file:dir r_dir_perms;
 +
 
+project device/xiaomi/libra/
+diff --git a/rootdir/etc/fstab.qcom b/rootdir/etc/fstab.qcom
+index 849497f..d9cc729 100644
+--- a/rootdir/etc/fstab.qcom
++++ b/rootdir/etc/fstab.qcom
+@@ -5,7 +5,6 @@
+ # <src> <mnt_point> <type> <mnt_flags and options> <fs_mgr_flags>
+ # NOTE: /system partition is now early-mounted and the fstab entry is specified in device tree: /proc/device-tree/firmware/android/fstab/system
+ 
+-/dev/block/zram0 none swap defaults zramsize=1073741824,max_comp_streams=6
+ /dev/block/bootdevice/by-name/boot /boot emmc defaults defaults
+ /dev/block/bootdevice/by-name/recovery /recovery emmc defaults defaults
+ /dev/block/bootdevice/by-name/system /system ext4 ro,barrier=1 wait,recoveryonly
+diff --git a/rootdir/etc/init.qcom.rc b/rootdir/etc/init.qcom.rc
+index 500cf52..af6af3b 100644
+--- a/rootdir/etc/init.qcom.rc
++++ b/rootdir/etc/init.qcom.rc
+@@ -33,10 +33,6 @@ on early-init
+     chmod 0755 /sys/kernel/debug
+     chown system system /sys/kernel/debug
+ 
+-    # Setup ZRAM
+-    write /sys/block/zram0/comp_algorithm zstd
+-    write /proc/sys/vm/page-cluster 0
+-
+ on init
+     # Set permissions for persist partition
+     mkdir /persist 0771 system system
+diff --git a/rootdir/etc/init.target.rc b/rootdir/etc/init.target.rc
+index 85cba82..be73e96 100644
+--- a/rootdir/etc/init.target.rc
++++ b/rootdir/etc/init.target.rc
+@@ -104,9 +104,6 @@ on boot
+     chmod 0664 /dev/cpuset/top-app/boost/tasks
+ 
+ on property:sys.boot_completed=1
+-    # Enable ZRAM on boot_complete
+-    swapon_all /vendor/etc/fstab.qcom
+-
+     # Set DEADLINE I/O scheduler && Increase read ahead cache
+     setprop sys.io.scheduler "deadline"
+     write /sys/block/mmcblk0/queue/scheduler "deadline"
+
 project external/ant-wireless/ant_native/
 diff --git a/Android.mk b/Android.mk
-index 3ed9138..569b00c 100644
+index 3ed9138..dce76c1 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -82,7 +82,7 @@ LOCAL_C_INCLUDES:= \
@@ -453,7 +489,7 @@ index 3ed9138..569b00c 100644
  LOCAL_C_INCLUDES += frameworks/base/core/jni/include
  
 -LOCAL_CFLAGS:= -g -c -W -Wall -O2
-+LOCAL_CFLAGS:= -g0 -c -W -Wall -O3
++LOCAL_CFLAGS:= -g0 -c -O3
  
  LOCAL_SRC_FILES:= \
  	app/ant_app.c
@@ -1588,340 +1624,6 @@ diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
 index 9d9a347..78136ac 100644
 Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
 
-project external/openssh/
-diff --git a/Android.mk b/Android.mk
-index 2593bbc3..6b2a57e6 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -1,327 +1,2 @@
--LOCAL_PATH:= $(call my-dir)
--
- ###################### libssh ######################
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    addrmatch.c \
--    atomicio.c \
--    authfd.c \
--    authfile.c \
--    bitmap.c \
--    canohost.c \
--    chacha.c \
--    channels.c \
--    cipher-aes.c \
--    cipher-aesctr.c \
--    cipher.c \
--    cipher-chachapoly.c \
--    cipher-ctr.c \
--    cleanup.c \
--    compat.c \
--    crc32.c \
--    dh.c \
--    digest-openssl.c \
--    dispatch.c \
--    dns.c \
--    ed25519.c \
--    entropy.c \
--    fatal.c \
--    fe25519.c \
--    ge25519.c \
--    gss-genr.c \
--    hash.c \
--    hmac.c \
--    hostfile.c \
--    kex.c \
--    kexc25519.c \
--    kexdh.c \
--    kexecdh.c \
--    kexgen.c \
--    kexgex.c \
--    kexgexc.c \
--    kexsntrup4591761x25519.c \
--    krl.c \
--    log.c \
--    mac.c \
--    match.c \
--    misc.c \
--    moduli.c \
--    monitor_fdpass.c \
--    msg.c \
--    nchan.c \
--    openbsd-compat/bcrypt_pbkdf.c \
--    openbsd-compat/bindresvport.c \
--    openbsd-compat/blowfish.c \
--    openbsd-compat/bsd-closefrom.c \
--    openbsd-compat/bsd-getpeereid.c \
--    openbsd-compat/bsd-misc.c \
--    openbsd-compat/bsd-openpty.c \
--    openbsd-compat/bsd-signal.c \
--    openbsd-compat/bsd-statvfs.c \
--    openbsd-compat/explicit_bzero.c \
--    openbsd-compat/freezero.c \
--    openbsd-compat/fmt_scaled.c \
--    openbsd-compat/getopt_long.c \
--    openbsd-compat/glob.c \
--    openbsd-compat/boringssl-api-compat.c \
--    openbsd-compat/openssl-compat.c \
--    openbsd-compat/port-linux.c \
--    openbsd-compat/port-net.c \
--    openbsd-compat/pwcache.c \
--    openbsd-compat/readpassphrase.c \
--    openbsd-compat/reallocarray.c \
--    openbsd-compat/recallocarray.c \
--    openbsd-compat/rresvport.c \
--    openbsd-compat/setproctitle.c \
--    openbsd-compat/strmode.c \
--    openbsd-compat/strtonum.c \
--    openbsd-compat/timingsafe_bcmp.c \
--    openbsd-compat/vis.c \
--    packet.c \
--    platform-misc.c \
--    platform-pledge.c \
--    platform-tracing.c \
--    poly1305.c \
--    readpass.c \
--    rijndael.c \
--    sc25519.c \
--    smult_curve25519_ref.c \
--    sshbuf.c \
--    sshbuf-getput-basic.c \
--    sshbuf-getput-crypto.c \
--    sshbuf-misc.c \
--    ssh-dss.c \
--    ssh-ecdsa.c \
--    ssh-ed25519.c \
--    ssherr.c \
--    sshkey.c \
--    sshkey-xmss.c \
--    ssh-rsa.c \
--    ssh-xmss.c \
--    sntrup4591761.c \
--    ttymodes.c \
--    uidswap.c \
--    umac128.c \
--    umac.c \
--    utf8.c \
--    uuencode.c \
--    verify.c \
--    xmalloc.c \
--    xmss_commons.c \
--    xmss_fast.c \
--    xmss_hash_address.c \
--    xmss_hash.c \
--    xmss_wots.c
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
--
--LOCAL_MODULE := libssh
--
--LOCAL_CFLAGS += \
--    -O3 \
--    -Wno-macro-redefined \
--    -Wno-pointer-sign \
--    -Wno-sign-compare \
--    -Wno-unused-parameter
--
--LOCAL_CFLAGS += -DGCE_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
--ifneq ($(filter gce_x86 calypso, $(TARGET_DEVICE)),)
--LOCAL_CFLAGS += -DANDROID_GCE -DSSHDIR=\"/var/run/ssh\"
--endif
--
--ifneq (,$(SSHDIR))
--LOCAL_CFLAGS += -DSSHDIR=\"$(SSHDIR)\"
--endif
--
--include $(BUILD_SHARED_LIBRARY)
--
--###################### ssh ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    clientloop.c \
--    readconf.c \
--    mux.c \
--    ssh.c \
--    sshconnect2.c \
--    sshconnect.c \
--    sshtty.c \
--    uidswap.c
--
--LOCAL_MODULE := ssh
--
--LOCAL_CFLAGS += \
--    -Wno-macro-redefined \
--    -Wno-pointer-sign \
--    -Wno-sign-compare \
--    -Wno-unused-parameter
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sftp ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    sftp.c sftp-client.c sftp-common.c sftp-glob.c progressmeter.c
--
--LOCAL_MODULE := sftp
--
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### scp ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    scp.c progressmeter.c
--
--LOCAL_MODULE := scp
--
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sshd ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    audit-bsm.c \
--    audit-linux.c \
--    audit.c \
--    auth-bsdauth.c \
--    auth-krb5.c \
--    auth-options.c \
--    auth-pam.c \
--    auth-rhosts.c \
--    auth-shadow.c \
--    auth-sia.c \
--    auth.c \
--    auth2-chall.c \
--    auth2-gss.c \
--    auth2-hostbased.c \
--    auth2-kbdint.c \
--    auth2-none.c \
--    auth2-passwd.c \
--    auth2-pubkey.c \
--    auth2.c \
--    groupaccess.c \
--    gss-serv-krb5.c \
--    gss-serv.c \
--    kexgexs.c \
--    loginrec.c \
--    md5crypt.c \
--    monitor.c \
--    monitor_wrap.c \
--    platform.c \
--    sandbox-null.c \
--    sandbox-rlimit.c \
--    sandbox-systrace.c \
--    servconf.c \
--    serverloop.c \
--    session.c \
--    sftp-common.c \
--    sftp-server.c \
--    sshd.c \
--    sshlogin.c \
--    sshpty.c
--
--LOCAL_MODULE := sshd
--
--LOCAL_CFLAGS += \
--    -Wno-implicit-function-declaration \
--    -Wno-macro-redefined \
--    -Wno-pointer-sign \
--    -Wno-unused-parameter \
--    -Wno-unused-variable
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz libcutils
--
--include $(BUILD_EXECUTABLE)
--
--###################### ssh-keygen ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    ssh-keygen.c
--
--LOCAL_MODULE := ssh-keygen
--
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-macro-redefined
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sshd_config ######################
--
--include $(CLEAR_VARS)
--LOCAL_MODULE_TAGS := optional
--LOCAL_MODULE := sshd_config
--LOCAL_MODULE_CLASS := ETC
--LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/ssh
--LOCAL_SRC_FILES := sshd_config.android
--include $(BUILD_PREBUILT)
--
--###################### start-ssh ######################
- 
--include $(CLEAR_VARS)
--LOCAL_MODULE_TAGS := optional
--LOCAL_MODULE := start-ssh
--LOCAL_MODULE_CLASS := EXECUTABLES
--LOCAL_SRC_FILES := start-ssh
--include $(BUILD_PREBUILT)
-
 project external/pdfium/
 diff --git a/Android.bp b/Android.bp
 index d11b36e..ef7fd76 100644
@@ -3018,39 +2720,30 @@ index 12972f14514..e8e634c947b 100644
 -
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 diff --git a/packages/EasterEgg/Android.bp b/packages/EasterEgg/Android.bp
-index 43ed810b567..720bb932471 100644
+index 43ed810b567..514611c681b 100644
 --- a/packages/EasterEgg/Android.bp
 +++ b/packages/EasterEgg/Android.bp
-@@ -13,12 +13,11 @@
- // See the License for the specific language governing permissions and
+@@ -14,20 +14,3 @@
  // limitations under the License.
  //
--
+ 
 -android_app {
-+//android_app {
-     // the build system in pi-dev can't quite handle R.java in kt
-     // so we will have a mix of java and kotlin files
+-    // the build system in pi-dev can't quite handle R.java in kt
+-    // so we will have a mix of java and kotlin files
 -    srcs: ["src/**/*.java", "src/**/*.kt"],
 -
-+//  srcs: ["src/**/*.java", "src/**/*.kt"],
-+/*
-     resource_dirs: ["res"],
- 
-     name: "EasterEgg",
-@@ -27,7 +26,11 @@ android_app {
- 
- 	sdk_version: "current",
- 
-+    dex_preopt: {
-+        enabled: true,
-+    },
-+
-     optimize: {
+-    resource_dirs: ["res"],
+-
+-    name: "EasterEgg",
+-
+-    certificate: "platform",
+-
+-	sdk_version: "current",
+-
+-    optimize: {
 -        enabled: false,
-+        enabled: true,
-     }
+-    }
 -}
-+}*/
 diff --git a/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk
 index 74c43b40616..792d6005489 100644
 --- a/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk
@@ -4209,400 +3902,6 @@ index e5935f0..67abdd5 100644
           -fno-inline \
           -fno-short-enums \
           -fpic \
-diff --git a/msm8994/etc/gps.conf b/msm8994/etc/gps.conf
-index a1d5d2c..db1caa5 100644
---- a/msm8994/etc/gps.conf
-+++ b/msm8994/etc/gps.conf
-@@ -1,117 +1,272 @@
--#Uncommenting these urls would only enable
--#the power up auto injection and force injection(test case).
--#XTRA_SERVER_1=http://xtrapath1.izatcloud.net/xtra2.bin
--#XTRA_SERVER_2=http://xtrapath2.izatcloud.net/xtra2.bin
--#XTRA_SERVER_3=http://xtrapath3.izatcloud.net/xtra2.bin
--
--#Version check for XTRA
--#DISABLE = 0
--#AUTO    = 1
--#XTRA2   = 2
--#XTRA3   = 3
--XTRA_VERSION_CHECK=0
--
--# Error Estimate
--# _SET = 1
--# _CLEAR = 0
--ERR_ESTIMATE=0
--
--#Test
--NTP_SERVER=time.gpsonextra.net
--#Asia
--# NTP_SERVER=asia.pool.ntp.org
--#Europe
--# NTP_SERVER=europe.pool.ntp.org
--#North America
--# NTP_SERVER=north-america.pool.ntp.org
--
--# DEBUG LEVELS: 0 - none, 1 - Error, 2 - Warning, 3 - Info
--#               4 - Debug, 5 - Verbose
--# If DEBUG_LEVEL is commented, Android's logging levels will be used
--DEBUG_LEVEL = 3
--
--# Intermediate position report, 1=enable, 0=disable
--INTERMEDIATE_POS=0
--
--# Below bit mask configures how GPS functionalities
--# should be locked when user turns off GPS on Settings
--# Set bit 0x1 if MO GPS functionalities are to be locked
--# Set bit 0x2 if NI GPS functionalities are to be locked
--# default - non is locked for backward compatibility
--#GPS_LOCK = 0
--
--# supl version 1.0
--SUPL_VER=0x10000
--
--# Emergency SUPL, 1=enable, 0=disable
--SUPL_ES=1
--
--#Choose PDN for Emergency SUPL
--#1 - Use emergency PDN
--#0 - Use regular SUPL PDN for Emergency SUPL
--USE_EMERGENCY_PDN_FOR_EMERGENCY_SUPL=1
--
--#SUPL_MODE is a bit mask set in config.xml per carrier by default.
--#If it is uncommented here, this value will over write the value from
--#config.xml.
--#MSA=0X2
--#MSB=0X1
--#SUPL_MODE=
--
--# GPS Capabilities bit mask
--# SCHEDULING = 0x01
--# MSB = 0x02
--# MSA = 0x04
--# ON_DEMAND_TIME = 0x10
--# GEOFENCE = 0x20
--# default = ON_DEMAND_TIME | MSA | MSB | SCHEDULING | GEOFENCE
--CAPABILITIES=0x37
--
--# Accuracy threshold for intermediate positions
--# less accurate positions are ignored, 0 for passing all positions
--# ACCURACY_THRES=5000
--
--################################
--##### AGPS server settings #####
--################################
--
--# FOR SUPL SUPPORT, set the following
--# SUPL_HOST=supl.host.com or IP
--# SUPL_PORT=1234
--
--# FOR C2K PDE SUPPORT, set the following
--# C2K_HOST=c2k.pde.com or IP
--# C2K_PORT=1234
--
--# Bitmask of slots that are available
--# for write/install to, where 1s indicate writable,
--# and the default value is 0 where no slots
--# are writable. For example, AGPS_CERT_WRITABLE_MASK
--# of b1000001010 makes 3 slots available
--# and the remaining 7 slots unwritable.
--#AGPS_CERT_WRITABLE_MASK=0
--
--####################################
--#  LTE Positioning Profile Settings
--####################################
--# 0: Enable RRLP on LTE(Default)
--# 1: Enable LPP_User_Plane on LTE
--# 2: Enable LPP_Control_Plane
--# 3: Enable both LPP_User_Plane and LPP_Control_Plane
--LPP_PROFILE = 0
--
--################################
--# EXTRA SETTINGS
--################################
--# NMEA provider (1=Modem Processor, 0=Application Processor)
--NMEA_PROVIDER=0
--# Mark if it is a SGLTE target (1=SGLTE, 0=nonSGLTE)
--SGLTE_TARGET=0
--
--##################################################
--# Select Positioning Protocol on A-GLONASS system
--##################################################
--# 0x1: RRC CPlane
--# 0x2: RRLP UPlane
--# 0x4: LLP Uplane
--A_GLONASS_POS_PROTOCOL_SELECT = 0
-+##################################################
-+# GPS almanac settings
-+##################################################
-+# Whether to use the predefined XTRA servers
-+# below (XTRA_SERVER_), or to query them from the
-+# modem.
-+#
-+# Values: 0 - use predefined, 1 - query modem
-+XTRA_SERVER_QUERY = 0
-+
-+# The predefined XTRA servers to be used if modem
-+# querying (XTRA_SERVER_QUERY) is off.
-+#
-+# Values: URL
-+XTRA_SERVER_1 = https://xtrapath1.izatcloud.net/xtra3grc.bin
-+XTRA_SERVER_2 = https://xtrapath2.izatcloud.net/xtra3grc.bin
-+XTRA_SERVER_3 = https://xtrapath3.izatcloud.net/xtra3grc.bin
-+XTRA_SERVER_4 = https://ssl.gpsonextra.net/xtra3grc.bin
-+XTRA_SERVER_5 = https://ssl.izatcloud.net/xtra3grc.bin
-+
-+# Whether or not to test for XTRA support.
-+#
-+# Values: 0 - don't test, 1 - test
-+XTRA_TEST_ENABLED = 1
-+
-+# The version of the XTRA data used. XTRA v3
-+# supports digital signing and is advised.
-+#
-+# Values: 0 - disable XTRA, 1 - automatic check,
-+#         2 - XTRA v2, 3 - XTRA v3
-+XTRA_VERSION_CHECK = 3
-+
-+# Path to the CA certificates used to validate
-+# the XTRA data.
-+#
-+# Values: path
-+XTRA_CA_PATH = /system/etc/security/cacerts
-+
-+##################################################
-+# Error estimatation
-+##################################################
-+# Whether or not to use error estimation.
-+#
-+# Values: 0 - don't use, 1 - use
-+ERR_ESTIMATE = 0
-+
-+##################################################
-+# NTP server
-+##################################################
-+# The NTP servers used for time synchronisation.
-+#
-+# Values: URL
-+NTP_SERVER = rhel.pool.ntp.org
-+NTP_SERVER_1 = ntp.neusoft.edu.cn
-+NTP_SERVER_2 = ntp.neu6.edu.cn
-+NTP_SERVER_3 = ntp.synet.edu.cn
-+
-+##################################################
-+# Debugging
-+##################################################
-+# The Android logging level of the GPS service. If
-+# commented out, then Android's default logging
-+# level will be used.
-+#
-+# Values: 0 - none, 1 - error, 2 - warning, 3 - info
-+#         4 - debug, 5 - verbose
-+DEBUG_LEVEL = 1
-+
-+##################################################
-+# Intermediate position reporting
-+##################################################
-+# Whether or not to report intermediate positions.
-+#
-+# Values: 0 - don't report, 1 - report
-+INTERMEDIATE_POS = 1
-+
-+# Accuracy threshold for intermediate positions.
-+# Set to 0 to pass all positions.
-+#
-+# Values: unknown
-+ACCURACY_THRES = 1
-+
-+##################################################
-+#
-+##################################################
-+# Functionalities to switch off when GPS is disabled.
-+# Default is to lock nothing for backward
-+# compatibility.
-+#
-+# Bitmask: 0x1 - lock MO GPS, 0x2 - lock NI GPS
-+GPS_LOCK = 0
-+
-+# Provider for NMEA.
-+#
-+# Values: 0 - application, 1 - modem
-+NMEA_PROVIDER = 1
-+
-+# Whether the device supports being a SGLTE
-+# target.
-+#
-+# Values: 0 - not supported, 1 - supported
-+SGLTE_TARGET = 1
-+
-+##################################################
-+# GPS supplement settings
-+##################################################
-+# The version of SUPL to be used.
-+#
-+# Values: bitmask
-+SUPL_VER = 0x30000
-+
-+# Whether to report the reference SUPL location as
-+# the current position.
-+#
-+# Values: 0 - don't report, 1 - report
-+REPORT_POSITION_USE_SUPL_REFLOC = 1
-+
-+# Whether to use SUPL in an emergency situations
-+# (eg. calling emergency services).
-+#
-+# Values: 0 - disable, 1 - enable
-+SUPL_ES = 1
-+
-+# The PDN to ve used for emergency SUPL.
-+#
-+# Values: 0 - emergency PDN, 1 - regular SUPL PDN
-+USE_EMERGENCY_PDN_FOR_EMERGENCY_SUPL = 1
-+
-+# Carrier-set GPS mode for SUPL.
-+# If commented, will be taken from config.xml.
-+#
-+# Bitmask: 0x2 - MSA, 0x2 - MSB
-+SUPL_MODE = 0x2
-+
-+# The SUPL server used.
-+#
-+# Values: URL, IP
-+SUPL_HOST = supl.google.com
-+
-+# The port to connect to the SUPL server.
-+#
-+# Values: port
-+SUPL_PORT = 7275
-+
-+##################################################
-+# GPS capabilities
-+##################################################
-+# GPS features which are supported.
-+#
-+# Bitmask: 0x01 - scheduling, 0x02 - MSB,
-+#          0x04 - MSA, 0x10 - on-demand time,
-+#          0x20 - geofencing
-+CAPABILITIES = 0x37
-+
-+# Whether to use WiFi positioning.
-+#
-+# Values: 0 - disable, 1 - enable
-+ENABLE_WIPER = 1
-+
-+##################################################
-+# C2K server settings
-+##################################################
-+# The C2K PDE server used.
-+#
-+# Values: URL, IP
-+C2K_HOST =
-+
-+# The port to connect to the C2K PDE server.
-+#
-+# Values: port
-+C2K_PORT =
-+
-+##################################################
-+# A-GPS settings
-+##################################################
-+# Slots writable to install A-GPS infomation to.
-+#
-+# Values: bitmask
-+AGPS_CERT_WRITABLE_MASK = 0
-+
-+# Whether to use A-GPS configuration injection.
-+#
-+# Values: 0 - disable, 1 - enable
-+AGPS_CONFIG_INJECT = 1
-+
-+##################################################
-+# LTE positioning profile
-+##################################################
-+# LTE positioning mode.
-+#
-+# Values: 0 - RRLP, 1 - LPP_User_Plane,
-+#         2 - LPP_Control_Plane,
-+#         3 - LPP_Control_Plane and LPP_User_Plane
-+LPP_PROFILE = 3
-+
-+##################################################
-+# A-GLONASS protocol
-+##################################################
-+# The A-GLONASS positioning protocol used.
-+#
-+# Bitmask: 0x1 - RRC CPlane, 0x2 - RRLP UPlane,
-+#          0x4 - LLP Uplane
-+A_GLONASS_POS_PROTOCOL_SELECT = 0x4
-+
-+##################################################
-+# LPPe settings
-+##################################################
-+# The LPPe control plane method.
-+#
-+# Bitmask: 0x1 - DBH, 0x2 - WLAN AP measurements,
-+#          0x4 - SRN AP measurement,
-+#          0x8 - Sensor barometer measurement
-+LPPE_CP_TECHNOLOGY = 0x10
-+
-+# The LPPe user plane method.
-+#
-+# Bitmask: 0x1 - DBH, 0x2 - WLAN AP measurements,
-+#          0x4 - SRN AP measurement,
-+#          0x8 - Sensor barometer measurement
-+LPPE_UP_TECHNOLOGY = 0x10
-+
-+##################################################
-+# AP settings
-+##################################################
-+# The AP coarse timestamp uncertainty until the
-+# GNSS receiver is able to acquire better timing
-+# information.
-+#
-+# Values: unknown
-+AP_TIMESTAMP_UNCERTAINTY = 10
-+
-+# The quality of the APPS processor clock. Used to
-+# calculate AP timestamp uncertainty.
-+#
-+# Values: PPM
-+AP_CLOCK_PPM = 100
-+
-+##################################################
-+# QDR engine availability
-+##################################################
-+# Whether to use the QDR configuration.
-+# Recommended for automobile use cases. If used,
-+# the DR_AP_Service needs to be enabled.
-+#
-+# Values: 0 - disable, 1 - enable
-+EXTERNAL_DR_ENABLED = 0
-+
-+##################################################
-+# Pulse settings
-+##################################################
-+# Whether to use the Linux PPS driver to make use
-+# of events generated by DR_SYNC pulse.
-+#
-+# Values: 0 - disable, 1 - enable
-+DR_SYNC_ENABLED = 0
-+
-+# The path to the Linux PPS device.
-+#
-+# Values: path
-+PPS_DEVICENAME = /dev/pps0
-+
-+# The path time threshold to validate any missing
-+# PPS pulses.
-+#
-+# Values: ms
-+MISSING_PULSE_TIME_DELTA = 900
-+
-+# Whether to use time uncertainty propagation
-+# logic in the case of missing PPS pulse.
-+#
-+# Values: 0 - don't use, 1 - use
-+PROPAGATION_TIME_UNCERTAINTY = 1
 diff --git a/msm8994/utils/Makefile.am b/msm8994/utils/Makefile.am
 index e5935f0..67abdd5 100644
 --- a/msm8994/utils/Makefile.am
@@ -5459,20 +4758,20 @@ index 656f3847..792d6005 100644
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 +#
 
-project packages/apps/Dialer/
-diff --git a/java/com/android/dialer/callrecord/res/xml/call_record_states.xml b/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
-index 9907fe9e2..1bf2f2cca 100644
---- a/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
-+++ b/java/com/android/dialer/callrecord/res/xml/call_record_states.xml
-@@ -615,7 +615,7 @@
-          Law 19 of 2016:
-            https://jdih.kominfo.go.id/produk_hukum/view/id/555/t/undangundang+nomor+19+tahun+2016+tanggal+25+november+2016
-     -->
--    <country iso="id" allowed="false" />
-+    <country iso="id" allowed="true" />
+project packages/apps/Eleven/
+diff --git a/Android.mk b/Android.mk
+index ef58cac..cef2115 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -33,7 +33,7 @@ LOCAL_JNI_SHARED_LIBRARIES := librsjni
  
-     <!-- Enable recording for Ireland:
-          The Irish Constitution does not specifically state a right to privacy. Subsection (6) of
+ LOCAL_PROGUARD_FLAGS := -include $(LOCAL_PATH)/proguard.cfg
+ ifeq ($(TARGET_BUILD_VARIANT),user)
+-    LOCAL_PROGUARD_ENABLED := obfuscation
++    LOCAL_PROGUARD_ENABLED := optimization
+ else
+     LOCAL_PROGUARD_ENABLED := disabled
+ endif
 
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
@@ -5910,7 +5209,7 @@ index 7f79bc3..792d600 100644
 
 project packages/services/BuiltInPrintService/
 diff --git a/jni/Android.mk b/jni/Android.mk
-index 5dbe400..46a80e7 100644
+index 5dbe400..26ffa36 100644
 --- a/jni/Android.mk
 +++ b/jni/Android.mk
 @@ -24,7 +24,7 @@ IPP_HELPER_DIR := ipphelper
@@ -5918,7 +5217,7 @@ index 5dbe400..46a80e7 100644
  
  LOCAL_CFLAGS += \
 -      -DINCLUDE_PDF=1 -Werror -Wextra -Wno-unused-parameter \
-+      -DINCLUDE_PDF=1 -Wno-unused-parameter \
++      -DINCLUDE_PDF=1 -Wextra -Wno-unused-parameter \
        -Wno-sign-compare -Wno-missing-field-initializers \
        -Wno-implicit-function-declaration -Wno-format -Wno-missing-braces \
        -Wno-deprecated-declarations
@@ -6113,15 +5412,14 @@ index 89a6ae07b..b158c3ae2 100644
  LOCAL_SRC_FILES := \
      charger.cpp \
 diff --git a/init/Android.bp b/init/Android.bp
-index 3287331e2..a024f0021 100644
+index 3287331e2..16a1ad599 100644
 --- a/init/Android.bp
 +++ b/init/Android.bp
-@@ -25,9 +25,10 @@ cc_defaults {
+@@ -25,9 +25,9 @@ cc_defaults {
          "-Wall",
          "-Wextra",
          "-Wno-unused-parameter",
 -        "-Werror",
-+        "-UALLOW_LOCAL_PROP_OVERRIDE",
          "-DALLOW_LOCAL_PROP_OVERRIDE=1",
 -        "-DALLOW_PERMISSIVE_SELINUX=0",
 +        "-UALLOW_PERMISSIVE_SELINUX",
@@ -6130,16 +5428,14 @@ index 3287331e2..a024f0021 100644
          "-DWORLD_WRITABLE_KMSG=0",
          "-DDUMP_ON_UMOUNT_FAILURE=0",
 diff --git a/init/Android.mk b/init/Android.mk
-index 2295bd719..163dc4067 100644
+index 2295bd719..f008aff55 100644
 --- a/init/Android.mk
 +++ b/init/Android.mk
-@@ -13,8 +13,8 @@ init_options += \
-     -DDUMP_ON_UMOUNT_FAILURE=1
+@@ -14,7 +14,7 @@ init_options += \
  else
  init_options += \
--    -DALLOW_LOCAL_PROP_OVERRIDE=0 \
+     -DALLOW_LOCAL_PROP_OVERRIDE=0 \
 -    -DALLOW_PERMISSIVE_SELINUX=0 \
-+    -DALLOW_LOCAL_PROP_OVERRIDE=1 \
 +    -DALLOW_PERMISSIVE_SELINUX=1 \
      -DREBOOT_BOOTLOADER_ON_PANIC=0 \
      -DWORLD_WRITABLE_KMSG=0 \
@@ -6545,15 +5841,16 @@ index 032a61a..279a717 100644
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
-index ff38a43a..fcd09f4a 100644
+index ff38a43a..de5a58af 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -81,9 +81,12 @@ BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
+@@ -80,10 +80,12 @@ ifndef BOARD_SEPOLICY_VERS
+ BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
  endif
  
- NEVERALLOW_ARG :=
+-NEVERALLOW_ARG :=
 +# Hacks to keep SELinux permissive in user builds
-+# SELINUX_IGNORE_NEVERALLOWS := true
++SELINUX_IGNORE_NEVERALLOWS := true
 +
  ifeq ($(SELINUX_IGNORE_NEVERALLOWS),true)
  ifeq ($(TARGET_BUILD_VARIANT),user)
@@ -6562,7 +5859,7 @@ index ff38a43a..fcd09f4a 100644
  endif
  $(warning Be careful when using the SELINUX_IGNORE_NEVERALLOWS flag. \
            It does not work in user builds and using it will \
-@@ -705,10 +708,9 @@ $(built_sepolicy_neverallows)
+@@ -705,10 +707,9 @@ $(built_sepolicy_neverallows)
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -6574,7 +5871,7 @@ index ff38a43a..fcd09f4a 100644
  		fi
  	$(hide) mv $@.tmp $@
  
-@@ -756,10 +758,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
+@@ -756,10 +757,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \

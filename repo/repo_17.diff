@@ -1,5 +1,21 @@
 
 project build/make/
+diff --git a/core/Makefile b/core/Makefile
+index 8fc694143..7b788f624 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -302,9 +302,9 @@ endif
+ # Both of these tags will be removed and replaced with "release-keys"
+ # when the target-files is signed in a post-build step.
+ ifeq ($(DEFAULT_SYSTEM_DEV_CERTIFICATE),build/make/target/product/security/testkey)
+-BUILD_KEYS := test-keys
++BUILD_KEYS := release-keys
+ else
+-BUILD_KEYS := dev-keys
++BUILD_KEYS := release-keys
+ endif
+ BUILD_VERSION_TAGS += $(BUILD_KEYS)
+ BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
 diff --git a/core/binary.mk b/core/binary.mk
 index 712f2df56..2fc96b536 100644
 --- a/core/binary.mk
@@ -277,7 +293,7 @@ index 82a4abfac..b2595d45e 100644
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index d79f68f90..c17d007da 100644
+index d79f68f90..308ad8d01 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -2129,7 +2129,7 @@ class BlockDifference(object):
@@ -285,7 +301,7 @@ index d79f68f90..c17d007da 100644
  
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=7',
++      brotli_cmd = ['brotli', '--quality=11',
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
@@ -315,6 +331,33 @@ index 5ef45ed40..7d882ae72 100644
      target: {
          windows: {
              enabled: true,
+
+project device/lineage/sepolicy/
+diff --git a/common/private/backuptool.te b/common/private/backuptool.te
+index b948b61..d62a3e0 100644
+--- a/common/private/backuptool.te
++++ b/common/private/backuptool.te
+@@ -6,6 +6,6 @@ neverallow {
+     -update_engine
+ } backuptool:process transition;
+ 
+-userdebug_or_eng(`
++
+     permissive backuptool;
+-')
++
+diff --git a/common/private/recovery.te b/common/private/recovery.te
+index f55499a..f339c31 100644
+--- a/common/private/recovery.te
++++ b/common/private/recovery.te
+@@ -1,5 +1,5 @@
+ recovery_only(`
+-userdebug_or_eng(`
++
+ permissive recovery;
+-')
++
+ ')
 
 project device/qcom/sepolicy-legacy/
 diff --git a/common/file.te b/common/file.te
@@ -606,351 +649,6 @@ Binary files a/other/NotoSerif-Bold.ttf and b/other/NotoSerif-Bold.ttf differ
 diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
 index 9d9a347..78136ac 100644
 Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
-
-project external/openssh/
-diff --git a/Android.mk b/Android.mk
-index 6cefcf94..8f877908 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -1,338 +1,6 @@
--LOCAL_PATH:= $(call my-dir)
--
--openssh_common_cflags := \
--    -Wall \
--    -Werror \
--    -Wno-error=implicit-function-declaration \
--    -Wno-pointer-sign \
--    -Wno-sign-compare \
--    -Wno-type-limits \
--    -Wno-unused-parameter \
--    -Wno-unused-variable \
--    -Wno-error \
--
- # Use -Wno-error to allow at least the following warnings:
- # (1) bsd-openpty.c calls to 'ptsname' declared with attribute warning:
- #     ptsname is not thread-safe; use ptsname_r instead [-Werror]
- # (2) external/boringssl/src/include/openssl/opensslfeatures.h:
- #     error: "OPENSSL_NO_BF" redefined [-Werror]
- 
--openssh_common_clang_cflags := \
--    -Wno-incompatible-pointer-types \
--    -Wno-macro-redefined \
--
--###################### libssh ######################
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    addrmatch.c \
--    atomicio.c \
--    authfd.c \
--    authfile.c \
--    bitmap.c \
--    canohost.c \
--    chacha.c \
--    channels.c \
--    cipher-aes.c \
--    cipher-aesctr.c \
--    cipher.c \
--    cipher-chachapoly.c \
--    cipher-ctr.c \
--    cleanup.c \
--    compat.c \
--    crc32.c \
--    dh.c \
--    digest-openssl.c \
--    dispatch.c \
--    dns.c \
--    ed25519.c \
--    entropy.c \
--    fatal.c \
--    fe25519.c \
--    ge25519.c \
--    gss-genr.c \
--    hash.c \
--    hmac.c \
--    hostfile.c \
--    kex.c \
--    kexc25519.c \
--    kexdh.c \
--    kexecdh.c \
--    kexgen.c \
--    kexgex.c \
--    kexgexc.c \
--    kexsntrup4591761x25519.c \
--    krl.c \
--    log.c \
--    mac.c \
--    match.c \
--    misc.c \
--    moduli.c \
--    monitor_fdpass.c \
--    msg.c \
--    nchan.c \
--    openbsd-compat/bcrypt_pbkdf.c \
--    openbsd-compat/bindresvport.c \
--    openbsd-compat/blowfish.c \
--    openbsd-compat/bsd-closefrom.c \
--    openbsd-compat/bsd-getpeereid.c \
--    openbsd-compat/bsd-misc.c \
--    openbsd-compat/bsd-openpty.c \
--    openbsd-compat/bsd-signal.c \
--    openbsd-compat/bsd-statvfs.c \
--    openbsd-compat/explicit_bzero.c \
--    openbsd-compat/freezero.c \
--    openbsd-compat/fmt_scaled.c \
--    openbsd-compat/getopt_long.c \
--    openbsd-compat/glob.c \
--    openbsd-compat/boringssl-api-compat.c \
--    openbsd-compat/openssl-compat.c \
--    openbsd-compat/port-linux.c \
--    openbsd-compat/port-net.c \
--    openbsd-compat/pwcache.c \
--    openbsd-compat/readpassphrase.c \
--    openbsd-compat/reallocarray.c \
--    openbsd-compat/recallocarray.c \
--    openbsd-compat/rresvport.c \
--    openbsd-compat/setproctitle.c \
--    openbsd-compat/strmode.c \
--    openbsd-compat/strtonum.c \
--    openbsd-compat/timingsafe_bcmp.c \
--    openbsd-compat/vis.c \
--    packet.c \
--    platform-misc.c \
--    platform-pledge.c \
--    platform-tracing.c \
--    poly1305.c \
--    readpass.c \
--    rijndael.c \
--    sc25519.c \
--    smult_curve25519_ref.c \
--    sshbuf.c \
--    sshbuf-getput-basic.c \
--    sshbuf-getput-crypto.c \
--    sshbuf-misc.c \
--    ssh-dss.c \
--    ssh-ecdsa.c \
--    ssh-ed25519.c \
--    ssherr.c \
--    sshkey.c \
--    sshkey-xmss.c \
--    ssh-rsa.c \
--    ssh-xmss.c \
--    sntrup4591761.c \
--    ttymodes.c \
--    uidswap.c \
--    umac128.c \
--    umac.c \
--    utf8.c \
--    uuencode.c \
--    verify.c \
--    xmalloc.c \
--    xmss_commons.c \
--    xmss_fast.c \
--    xmss_hash_address.c \
--    xmss_hash.c \
--    xmss_wots.c
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
--
--LOCAL_MODULE := libssh
--
--LOCAL_CFLAGS += -O3 $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_CFLAGS += -DGCE_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
--
--ifneq (,$(SSHDIR))
--LOCAL_CFLAGS += -DSSHDIR=\"$(SSHDIR)\"
--endif
--
--include $(BUILD_SHARED_LIBRARY)
--
--###################### ssh ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    clientloop.c \
--    readconf.c \
--    mux.c \
--    ssh.c \
--    sshconnect2.c \
--    sshconnect.c \
--    sshtty.c \
--    uidswap.c
--
--LOCAL_MODULE := ssh
--
--LOCAL_CFLAGS += $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sftp ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    sftp.c sftp-client.c sftp-common.c sftp-glob.c progressmeter.c
--
--LOCAL_MODULE := sftp
--
--LOCAL_CFLAGS += $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### scp ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    scp.c progressmeter.c
--
--LOCAL_MODULE := scp
--
--LOCAL_CFLAGS += $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sshd ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    audit-bsm.c \
--    audit-linux.c \
--    audit.c \
--    auth-bsdauth.c \
--    auth-krb5.c \
--    auth-options.c \
--    auth-pam.c \
--    auth-rhosts.c \
--    auth-shadow.c \
--    auth-sia.c \
--    auth.c \
--    auth2-chall.c \
--    auth2-gss.c \
--    auth2-hostbased.c \
--    auth2-kbdint.c \
--    auth2-none.c \
--    auth2-passwd.c \
--    auth2-pubkey.c \
--    auth2.c \
--    groupaccess.c \
--    gss-serv-krb5.c \
--    gss-serv.c \
--    kexgexs.c \
--    loginrec.c \
--    md5crypt.c \
--    monitor.c \
--    monitor_wrap.c \
--    platform.c \
--    sandbox-null.c \
--    sandbox-rlimit.c \
--    sandbox-systrace.c \
--    servconf.c \
--    serverloop.c \
--    session.c \
--    sftp-common.c \
--    sftp-server.c \
--    sshd.c \
--    sshlogin.c \
--    sshpty.c
--
--LOCAL_MODULE := sshd
--
--LOCAL_CFLAGS += $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz libcutils
--LOCAL_SHARED_LIBRARIES += libc.bootstrap
--
--include $(BUILD_EXECUTABLE)
--
--###################### ssh-keygen ######################
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--    ssh-keygen.c
--
--LOCAL_MODULE := ssh-keygen
--
--LOCAL_CFLAGS += $(openssh_common_cflags)
--LOCAL_CLANG_CFLAGS += $(openssh_common_clang_cflags)
--
--LOCAL_C_INCLUDES := \
--    external/zlib \
--    external/openssl/include \
--    external/openssh/openbsd-compat
--
--LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
--
--include $(BUILD_EXECUTABLE)
--
--###################### sshd_config ######################
--
--include $(CLEAR_VARS)
--LOCAL_MODULE_TAGS := optional
--LOCAL_MODULE := sshd_config
--LOCAL_MODULE_CLASS := ETC
--LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/ssh
--LOCAL_SRC_FILES := sshd_config.android
--include $(BUILD_PREBUILT)
--
--###################### start-ssh ######################
--
--include $(CLEAR_VARS)
--LOCAL_MODULE_TAGS := optional
--LOCAL_MODULE := start-ssh
--LOCAL_MODULE_CLASS := EXECUTABLES
--LOCAL_SRC_FILES := start-ssh
--include $(BUILD_PREBUILT)
 
 project external/perfetto/
 diff --git a/Android.bp b/Android.bp
@@ -1428,19 +1126,53 @@ index 12972f14514..4bd31e5781a 100644
 -
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
-index 90d1c11e6c0..f4628d76188 100644
+index 90d1c11e6c0..58662ae1e79 100644
 --- a/packages/overlays/Android.mk
 +++ b/packages/overlays/Android.mk
-@@ -24,9 +24,6 @@ LOCAL_REQUIRED_MODULES := \
- 	AccentColorSpaceOverlay \
- 	AccentColorGreenOverlay \
- 	AccentColorPurpleOverlay \
+@@ -16,43 +16,6 @@ LOCAL_PATH:= $(call my-dir)
+ include $(CLEAR_VARS)
+ 
+ LOCAL_MODULE := frameworks-base-overlays
+-LOCAL_REQUIRED_MODULES := \
+-	AccentColorBlackOverlay \
+-	AccentColorCinnamonOverlay \
+-	AccentColorOceanOverlay \
+-	AccentColorOrchidOverlay \
+-	AccentColorSpaceOverlay \
+-	AccentColorGreenOverlay \
+-	AccentColorPurpleOverlay \
 -	DisplayCutoutEmulationCornerOverlay \
 -	DisplayCutoutEmulationDoubleOverlay \
 -	DisplayCutoutEmulationTallOverlay \
- 	FontNotoSerifSourceOverlay \
- 	IconPackCircularAndroidOverlay \
- 	IconPackCircularLauncherOverlay \
+-	FontNotoSerifSourceOverlay \
+-	IconPackCircularAndroidOverlay \
+-	IconPackCircularLauncherOverlay \
+-	IconPackCircularSettingsOverlay \
+-	IconPackCircularSystemUIOverlay \
+-	IconPackCircularThemePickerOverlay \
+-	IconPackFilledAndroidOverlay \
+-	IconPackFilledLauncherOverlay \
+-	IconPackFilledSettingsOverlay \
+-	IconPackFilledSystemUIOverlay \
+-	IconPackFilledThemePickerOverlay \
+-	IconPackRoundedAndroidOverlay \
+-	IconPackRoundedLauncherOverlay \
+-	IconPackRoundedSettingsOverlay \
+-	IconPackRoundedSystemUIOverlay \
+-	IconPackRoundedThemePickerOverlay \
+-	IconShapeRoundedRectOverlay \
+-	IconShapeSquareOverlay \
+-	IconShapeSquircleOverlay \
+-	IconShapeTeardropOverlay \
+-	NavigationBarMode3ButtonOverlay \
+-	NavigationBarMode2ButtonOverlay \
+-	NavigationBarModeGesturalOverlay \
+-	NavigationBarModeGesturalOverlayNarrowBack \
+-	NavigationBarModeGesturalOverlayWideBack \
+-	NavigationBarModeGesturalOverlayExtraWideBack
+ 
+ include $(BUILD_PHONY_PACKAGE)
+ include $(CLEAR_VARS)
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
 index 5c150de4308..4e9762a5ed4 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
@@ -1713,6 +1445,21 @@ index 4b5744a7..792d6005 100644
 -# Use the following include to make our test apk.
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 +#
+
+project packages/apps/Eleven/
+diff --git a/Android.mk b/Android.mk
+index 7633ce7..4be31a5 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -30,7 +30,7 @@ LOCAL_JNI_SHARED_LIBRARIES := librsjni
+ 
+ LOCAL_PROGUARD_FLAGS := -include $(LOCAL_PATH)/proguard.cfg
+ ifeq ($(TARGET_BUILD_VARIANT),user)
+-    LOCAL_PROGUARD_ENABLED := obfuscation
++    LOCAL_PROGUARD_ENABLED := full
+ else
+     LOCAL_PROGUARD_ENABLED := disabled
+ endif
 
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
@@ -2455,6 +2202,32 @@ index 4eb98dae0..fb50aad80 100644
  LOCAL_STATIC_LIBRARIES := $(CHARGER_STATIC_LIBRARIES)
  LOCAL_SHARED_LIBRARIES := $(CHARGER_SHARED_LIBRARIES)
  LOCAL_SRC_FILES := \
+diff --git a/init/Android.bp b/init/Android.bp
+index 212ed57a9..ae382f33d 100644
+--- a/init/Android.bp
++++ b/init/Android.bp
+@@ -27,7 +27,7 @@ cc_defaults {
+         "-Wno-unused-parameter",
+         "-Werror",
+         "-DALLOW_LOCAL_PROP_OVERRIDE=0",
+-        "-DALLOW_PERMISSIVE_SELINUX=0",
++        "-DALLOW_PERMISSIVE_SELINUX=1",
+         "-DREBOOT_BOOTLOADER_ON_PANIC=0",
+         "-DWORLD_WRITABLE_KMSG=0",
+         "-DDUMP_ON_UMOUNT_FAILURE=0",
+diff --git a/init/Android.mk b/init/Android.mk
+index c4f7d34b2..8739e5698 100644
+--- a/init/Android.mk
++++ b/init/Android.mk
+@@ -16,7 +16,7 @@ init_options += \
+ else
+ init_options += \
+     -DALLOW_LOCAL_PROP_OVERRIDE=0 \
+-    -DALLOW_PERMISSIVE_SELINUX=0 \
++    -DALLOW_PERMISSIVE_SELINUX=1 \
+     -DREBOOT_BOOTLOADER_ON_PANIC=0 \
+     -DWORLD_WRITABLE_KMSG=0 \
+     -DDUMP_ON_UMOUNT_FAILURE=0
 diff --git a/rootdir/init.rc b/rootdir/init.rc
 index 7559886d9..643c2059f 100644
 --- a/rootdir/init.rc
@@ -2549,23 +2322,17 @@ index 7559886d9..643c2059f 100644
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
-index dadd7b0a..b07223bf 100644
+index dadd7b0a..1c922225 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -7,6 +7,7 @@ include $(CLEAR_VARS)
- 
- MLS_SENS=1
- MLS_CATS=1024
-+SELINUX_IGNORE_NEVERALLOWS := true
- 
- ifdef BOARD_SEPOLICY_UNION
- $(warning BOARD_SEPOLICY_UNION is no longer required - all files found in BOARD_SEPOLICY_DIRS are implicitly unioned; please remove from your BoardConfig.mk or other .mk file.)
-@@ -81,10 +82,10 @@ ifndef BOARD_SEPOLICY_VERS
+@@ -81,10 +81,12 @@ ifndef BOARD_SEPOLICY_VERS
  BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
  endif
  
 -NEVERALLOW_ARG :=
-+NEVERALLOW_ARG := -N
++# Hacks to keep SELinux permissive in user builds
++SELINUX_IGNORE_NEVERALLOWS := true
++
  ifeq ($(SELINUX_IGNORE_NEVERALLOWS),true)
  ifeq ($(TARGET_BUILD_VARIANT),user)
 -$(error SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds)
@@ -2573,7 +2340,7 @@ index dadd7b0a..b07223bf 100644
  endif
  $(warning Be careful when using the SELINUX_IGNORE_NEVERALLOWS flag. \
            It does not work in user builds and using it will \
-@@ -980,10 +981,9 @@ $(built_sepolicy_neverallows)
+@@ -980,10 +982,9 @@ $(built_sepolicy_neverallows)
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
@@ -2585,7 +2352,7 @@ index dadd7b0a..b07223bf 100644
  		fi
  	$(hide) mv $@.tmp $@
  
-@@ -1034,10 +1034,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
+@@ -1034,10 +1035,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
  		echo "==========" 1>&2; \
