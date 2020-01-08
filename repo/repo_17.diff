@@ -293,7 +293,7 @@ index 82a4abfac..b2595d45e 100644
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index d79f68f90..308ad8d01 100644
+index d79f68f90..c17d007da 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -2129,7 +2129,7 @@ class BlockDifference(object):
@@ -301,7 +301,7 @@ index d79f68f90..308ad8d01 100644
  
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=11',
++      brotli_cmd = ['brotli', '--quality=7',
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
@@ -371,6 +371,85 @@ index ce308010..12fd5d5d 100644
 +
 +# Custom policies
 +type sysfs_disk_stat, fs_type, sysfs_type;
+
+project device/xiaomi/libra/
+diff --git a/rootdir/bin/init.qcom.post_boot.sh b/rootdir/bin/init.qcom.post_boot.sh
+index 9f8bccd..cf5d480 100644
+--- a/rootdir/bin/init.qcom.post_boot.sh
++++ b/rootdir/bin/init.qcom.post_boot.sh
+@@ -171,3 +171,31 @@ rm -rf /data/system/dropbox
+ rm -rf /data/system/heapdump
+ rm -rf /data/tombstones
+ rm -rf /data/vendor/tombstones
++
++# Remove useless files
++find /data/data/com.eg.android.AlipayGphone/files/nebulaInstallApps/* -mtime +3 -exec rm -rf {} \;
++find /data/data/com.eg.android.AlipayGphone/files/tinyappdb/* -mtime +3 -exec rm -rf {} \;
++find /data/data/com.tencent.mm/MicroMsg/*/appbrand/* -mtime +3 -exec rm -rf {} \;
++find /data/data/com.tencent.mm/MicroMsg/*/avatar/* -mtime +3 -exec rm -rf {} \;
++find /data/data/com.tencent.mm/MicroMsg/appbrand/* -mtime +3 -exec rm -rf {} \;
++find /data/media/0/Android/data/com.tencent.mm/MicroMsg/*/* -mtime +3 -exec rm -rf {} \;
++find /data/media/0/tencent/MicroMsg/*/* -mtime +3 -exec rm -rf {} \;
++find /data/media/0/tencent/MicroMsg/*/*/* -mtime +3 -exec rm -rf {} \;
++find /data/media/0/tencent/MobileQQi/*/* -mtime +3 -exec rm -rf {} \;
++find /data/media/0/tencent/MobileQQi/*/*/* -mtime +3 -exec rm -rf {} \;
++rm -f /data/app/*/lib/*/libWebViewCore*uc*.so
++rm -f /data/system/uiderrors.txt
++rm -rf /cache/*.*
++rm -rf /cache/recovery/*
++rm -rf /data/backup/pending/*
++rm -rf /data/data/*/app_webview*/*/CacheStorage/*
++rm -rf /data/data/*/app_webview*/*/ScriptCache/*
++rm -rf /data/data/*/cache/*
++rm -rf /data/data/*/code_cache/*
++rm -rf /data/data/com.microsoft.office*/files/Microsoft/Office/*/*
++rm -rf /data/data/com.microsoft.office*/files/temp/*
++rm -rf /data/data/com.microsoft.office*/files/tempOffice/*
++rm -rf /data/local/tmp/*
++rm -rf /data/media/0/Pictures/.thumbnails/*
++rm -rf /data/user_de/*/*/cache/*
++rm -rf /data/user_de/*/*/code_cache/*
+diff --git a/rootdir/etc/fstab.qcom b/rootdir/etc/fstab.qcom
+index 487ee37..014c9eb 100644
+--- a/rootdir/etc/fstab.qcom
++++ b/rootdir/etc/fstab.qcom
+@@ -5,7 +5,6 @@
+ # <src> <mnt_point> <type> <mnt_flags and options> <fs_mgr_flags>
+ # NOTE: /system partition is now early-mounted and the fstab entry is specified in device tree: /proc/device-tree/firmware/android/fstab/system
+ 
+-/dev/block/zram0 none swap defaults zramsize=1073741824,max_comp_streams=6
+ /dev/block/bootdevice/by-name/boot /boot emmc defaults defaults
+ /dev/block/bootdevice/by-name/recovery /recovery emmc defaults defaults
+ /dev/block/bootdevice/by-name/system /system ext4 ro,barrier=1 wait,recoveryonly
+diff --git a/rootdir/etc/init.qcom.rc b/rootdir/etc/init.qcom.rc
+index 29997a8..c9f675b 100644
+--- a/rootdir/etc/init.qcom.rc
++++ b/rootdir/etc/init.qcom.rc
+@@ -33,10 +33,6 @@ on early-init
+     chmod 0755 /sys/kernel/debug
+     chown system system /sys/kernel/debug
+ 
+-    # Setup ZRAM
+-    write /sys/block/zram0/comp_algorithm zstd
+-    write /proc/sys/vm/page-cluster 0
+-
+ on init
+     # Create cgroup mount point for memory
+     mkdir /sys/fs/cgroup/memory/bg 0750 root system
+diff --git a/rootdir/etc/init.target.rc b/rootdir/etc/init.target.rc
+index 92d4a1b..7b00023 100644
+--- a/rootdir/etc/init.target.rc
++++ b/rootdir/etc/init.target.rc
+@@ -93,9 +93,6 @@ on boot
+     chmod 0664 /dev/cpuset/top-app/boost/tasks
+ 
+ on property:sys.boot_completed=1
+-    # Enable ZRAM on boot_complete
+-    swapon_all /vendor/etc/fstab.qcom
+-
+     # Set DEADLINE I/O scheduler && Increase read ahead cache
+     setprop sys.io.scheduler "deadline"
+     write /sys/block/mmcblk0/queue/scheduler "deadline"
 
 project external/bash/
 diff --git a/Android.mk b/Android.mk
@@ -461,6 +540,43 @@ index 1a23613..4013be2 100644
 -
 -# ========================================================
 -include $(call all-makefiles-under,$(LOCAL_PATH))
+
+project external/chromium-webview/
+diff --git a/Android.mk b/Android.mk
+index 566b02e..4632ec6 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -29,13 +29,11 @@ LOCAL_REQUIRED_MODULES := \
+         libwebviewchromium_loader \
+         libwebviewchromium_plat_support
+ 
+-LOCAL_MODULE_TARGET_ARCH := arm arm64 x86 x86_64
++LOCAL_MODULE_TARGET_ARCH := arm arm64
+ my_src_arch := $(call get-prebuilt-src-arch,$(LOCAL_MODULE_TARGET_ARCH))
+ LOCAL_SRC_FILES := prebuilt/$(my_src_arch)/webview.apk
+ 
+-LOCAL_PREBUILT_JNI_LIBS_arm := @lib/armeabi-v7a/libwebviewchromium.so
+-LOCAL_PREBUILT_JNI_LIBS_arm64 := @lib/arm64-v8a/libwebviewchromium.so
+-LOCAL_PREBUILT_JNI_LIBS_x86 := @lib/x86/libwebviewchromium.so
+-LOCAL_PREBUILT_JNI_LIBS_x86_64 := @lib/x86_64/libwebviewchromium.so
++LOCAL_PREBUILT_JNI_LIBS_arm := @lib/armeabi-v7a/libwebviewchromium.so @lib/armeabi-v7a/libcrashpad_handler_trampoline.so
++LOCAL_PREBUILT_JNI_LIBS_arm64 := @lib/arm64-v8a/libwebviewchromium.so @lib/arm64-v8a/libcrashpad_handler_trampoline.so
+ 
+ include $(BUILD_PREBUILT)
+diff --git a/prebuilt/arm/webview.apk b/prebuilt/arm/webview.apk
+index ea9779e..9b6acb0 100644
+Binary files a/prebuilt/arm/webview.apk and b/prebuilt/arm/webview.apk differ
+diff --git a/prebuilt/arm64/webview.apk b/prebuilt/arm64/webview.apk
+index eafceff..77abc0d 100644
+Binary files a/prebuilt/arm64/webview.apk and b/prebuilt/arm64/webview.apk differ
+diff --git a/prebuilt/x86/webview.apk b/prebuilt/x86/webview.apk
+deleted file mode 100644
+index 79f1081..0000000
+Binary files a/prebuilt/x86/webview.apk and /dev/null differ
+diff --git a/prebuilt/x86_64/webview.apk b/prebuilt/x86_64/webview.apk
+deleted file mode 100644
+index daac156..0000000
+Binary files a/prebuilt/x86_64/webview.apk and /dev/null differ
 
 project external/mksh/
 diff --git a/mkshrc b/mkshrc
@@ -1126,14 +1242,13 @@ index 12972f14514..4bd31e5781a 100644
 -
 -include $(call all-makefiles-under,$(LOCAL_PATH))
 diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
-index 90d1c11e6c0..58662ae1e79 100644
+index 90d1c11e6c0..31a20948a36 100644
 --- a/packages/overlays/Android.mk
 +++ b/packages/overlays/Android.mk
-@@ -16,43 +16,6 @@ LOCAL_PATH:= $(call my-dir)
- include $(CLEAR_VARS)
+@@ -17,36 +17,6 @@ include $(CLEAR_VARS)
  
  LOCAL_MODULE := frameworks-base-overlays
--LOCAL_REQUIRED_MODULES := \
+ LOCAL_REQUIRED_MODULES := \
 -	AccentColorBlackOverlay \
 -	AccentColorCinnamonOverlay \
 -	AccentColorOceanOverlay \
@@ -1164,15 +1279,9 @@ index 90d1c11e6c0..58662ae1e79 100644
 -	IconShapeSquareOverlay \
 -	IconShapeSquircleOverlay \
 -	IconShapeTeardropOverlay \
--	NavigationBarMode3ButtonOverlay \
--	NavigationBarMode2ButtonOverlay \
--	NavigationBarModeGesturalOverlay \
--	NavigationBarModeGesturalOverlayNarrowBack \
--	NavigationBarModeGesturalOverlayWideBack \
--	NavigationBarModeGesturalOverlayExtraWideBack
- 
- include $(BUILD_PHONY_PACKAGE)
- include $(CLEAR_VARS)
+ 	NavigationBarMode3ButtonOverlay \
+ 	NavigationBarMode2ButtonOverlay \
+ 	NavigationBarModeGesturalOverlay \
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
 index 5c150de4308..4e9762a5ed4 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
@@ -1214,95 +1323,6 @@ index 5c150de4308..4e9762a5ed4 100644
      @Override
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
-
-project hardware/qcom-caf/msm8994/audio/
-diff --git a/hal/Android.mk b/hal/Android.mk
-index 7eca4aaf7..5818b498f 100644
---- a/hal/Android.mk
-+++ b/hal/Android.mk
-@@ -264,7 +264,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_AUXPCM_BT)),true)
-     LOCAL_CFLAGS += -DAUXPCM_BT_ENABLED
- endif
- 
--LOCAL_CFLAGS += -Wall -Werror
-+LOCAL_CFLAGS += -Wall -Wno-error=implicit-function-declaration
- 
- LOCAL_COPY_HEADERS_TO   := mm-audio
- LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
-diff --git a/hal/audio_hw.c b/hal/audio_hw.c
-index 260f156b9..3dc11ea60 100644
---- a/hal/audio_hw.c
-+++ b/hal/audio_hw.c
-@@ -2381,12 +2381,14 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
-             ALOGD("copl(%p):send new gapless metadata", out);
-             compress_set_gapless_metadata(out->compr, &out->gapless_mdata);
-             out->send_new_metadata = 0;
-+#if defined(SNDRV_COMPRESS_SET_NEXT_TRACK_PARAM)
-             if (out->send_next_track_params && out->is_compr_metadata_avail) {
-                 ALOGD("copl(%p):send next track params in gapless", out);
-                 compress_set_next_track_param(out->compr, &(out->compr_config.codec->options));
-                 out->send_next_track_params = false;
-                 out->is_compr_metadata_avail = false;
-             }
-+#endif
-         }
- 
-         ret = compress_write(out->compr, buffer, bytes);
-
-project hardware/qcom-caf/msm8994/display/
-diff --git a/libhwcomposer/Android.mk b/libhwcomposer/Android.mk
-index 3dc471459..47d7c4a4b 100644
---- a/libhwcomposer/Android.mk
-+++ b/libhwcomposer/Android.mk
-@@ -19,7 +19,8 @@ LOCAL_SHARED_LIBRARIES += libhwui
- endif #TARGET_USES_QCOM_BSP
- 
- LOCAL_CFLAGS                  := $(common_flags) -DLOG_TAG=\"qdhwcomposer\" -Wno-absolute-value \
--                                 -Wno-float-conversion -Wno-unused-parameter
-+                                 -Wno-float-conversion -Wno-unused-parameter \
-+                                 -Wno-error=implicit-fallthrough
- #Enable Dynamic FPS if PHASE_OFFSET is not set
- ifeq ($(VSYNC_EVENT_PHASE_OFFSET_NS),)
-     LOCAL_CFLAGS += -DDYNAMIC_FPS
-
-project hardware/qcom-caf/msm8994/media/
-diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
-index 6f783c429..c14bdcffe 100644
---- a/mm-video-v4l2/vidc/common/Android.mk
-+++ b/mm-video-v4l2/vidc/common/Android.mk
-@@ -13,7 +13,6 @@ libmm-vidc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
- libmm-vidc-def += -DT_ARM
- libmm-vidc-def += -Dinline=__inline
- libmm-vidc-def += -D_ANDROID_
--libmm-vidc-def += -Werror
- libmm-vidc-def += -D_ANDROID_ICS_
- 
- # ---------------------------------------------------------------------------------
-diff --git a/mm-video-v4l2/vidc/vdec/Android.mk b/mm-video-v4l2/vidc/vdec/Android.mk
-index aedca2059..de931ab52 100644
---- a/mm-video-v4l2/vidc/vdec/Android.mk
-+++ b/mm-video-v4l2/vidc/vdec/Android.mk
-@@ -97,7 +97,7 @@ include $(CLEAR_VARS)
- LOCAL_MODULE                    := libOmxVdec
- LOCAL_MODULE_TAGS               := optional
- LOCAL_VENDOR_MODULE             := true
--LOCAL_CFLAGS                    := $(libmm-vdec-def) -Werror
-+LOCAL_CFLAGS                    := $(libmm-vdec-def)
- LOCAL_C_INCLUDES                += $(libmm-vdec-inc)
- 
- LOCAL_HEADER_LIBRARIES := generated_kernel_headers
-diff --git a/mm-video-v4l2/vidc/venc/Android.mk b/mm-video-v4l2/vidc/venc/Android.mk
-index ff43abdcd..f1b15dfc3 100644
---- a/mm-video-v4l2/vidc/venc/Android.mk
-+++ b/mm-video-v4l2/vidc/venc/Android.mk
-@@ -17,7 +17,6 @@ libmm-venc-def += -DENABLE_DEBUG_ERROR
- libmm-venc-def += -UINPUT_BUFFER_LOG
- libmm-venc-def += -UOUTPUT_BUFFER_LOG
- libmm-venc-def += -USINGLE_ENCODER_INSTANCE
--libmm-venc-def += -Werror
- libmm-venc-def += -D_ANDROID_ICS_
- libmm-venc-def += -D_MSM8974_
- 
 
 project packages/apps/AudioFX/
 diff --git a/Android.mk b/Android.mk
@@ -1693,6 +1713,20 @@ index b74fe64..792d600 100644
 -	$(hide) mkdir -p $(dir $@)
 -	$(hide) touch $@
 +#
+
+project packages/modules/ModuleMetadata/
+diff --git a/Android.bp b/Android.bp
+index e8084b3..527622f 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -24,6 +24,6 @@ android_app {
+     },
+ 
+     dex_preopt: {
+-        enabled: false,
++        enabled: true,
+     },
+ }
 
 project packages/providers/BookmarkProvider/
 diff --git a/Android.bp b/Android.bp
