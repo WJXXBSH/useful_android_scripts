@@ -11,12 +11,12 @@
 
 list_files() {
 cat <<EOF
-app/Inputmethod/Inputmethod.apk
-app/Inputmethod/lib/arm64/liben_data_bundle.so
-app/Inputmethod/lib/arm64/libgnustl_shared.so
-app/Inputmethod/lib/arm64/libhmm_gesture_hwr_zh.so
-app/Inputmethod/lib/arm64/libhwrword.so
-app/Inputmethod/lib/arm64/libpinyin_data_bundle.so
+product/app/Inputmethod/Inputmethod.apk
+product/app/Inputmethod/lib/arm64/liben_data_bundle.so
+product/app/Inputmethod/lib/arm64/libgnustl_shared.so
+product/app/Inputmethod/lib/arm64/libhmm_gesture_hwr_zh.so
+product/app/Inputmethod/lib/arm64/libhwrword.so
+product/app/Inputmethod/lib/arm64/libpinyin_data_bundle.so
 EOF
 }
 
@@ -46,14 +46,3 @@ case "$1" in
     # Stub
   ;;
 esac
-
-# Restore Permission
-chmod 755 /system/app/Inputmethod/
-chmod 755 /system/app/Inputmethod/lib/
-chmod 755 /system/app/Inputmethod/lib/arm64/
-
-# Prepare for dex2oat
-mkdir /system/app/Inputmethod/oat/
-mkdir /system/app/Inputmethod/oat/arm64/
-chmod 755 /system/app/Inputmethod/oat/
-chmod 755 /system/app/Inputmethod/oat/arm64/

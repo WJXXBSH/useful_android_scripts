@@ -1,4 +1,3 @@
-
 project build/make/
 diff --git a/core/Makefile b/core/Makefile
 index 404bb5413..92b010ec4 100644
@@ -16,6 +15,7 @@ index 404bb5413..92b010ec4 100644
  endif
  BUILD_VERSION_TAGS += $(BUILD_KEYS)
  BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
+
 diff --git a/core/binary.mk b/core/binary.mk
 index d2c8c1eaf..bd0ce2985 100644
 --- a/core/binary.mk
@@ -28,9 +28,9 @@ index d2c8c1eaf..bd0ce2985 100644
 +        my_cflags += --coverage -O3 -g0
          my_ldflags += --coverage
      endif
- 
+
 @@ -797,7 +797,7 @@ endif
- 
+
  # Turn on all warnings and warnings as errors for RS compiles.
  # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
 -renderscript_flags := -Wall -Werror
@@ -40,7 +40,7 @@ index d2c8c1eaf..bd0ce2985 100644
  renderscript_flags += -m$(my_32_64_bit_suffix)
 @@ -1664,7 +1664,7 @@ my_cflags += -Wno-attributes
  endif
- 
+
  ifeq ($(my_fdo_build), true)
 -  my_cflags := $(patsubst -Os,-O2,$(my_cflags))
 +  my_cflags := $(patsubst -O3,-g0,$(my_cflags))
@@ -60,6 +60,7 @@ index d2c8c1eaf..bd0ce2985 100644
            else
              $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
              my_cflags := -Wall $(my_cflags)
+
 diff --git a/core/host_test_internal.mk b/core/host_test_internal.mk
 index 42e01e1e4..e8955fa6c 100644
 --- a/core/host_test_internal.mk
@@ -67,25 +68,27 @@ index 42e01e1e4..e8955fa6c 100644
 @@ -7,7 +7,7 @@ ifeq ($(LOCAL_GTEST),true)
    LOCAL_CFLAGS_linux += -DGTEST_OS_LINUX
    LOCAL_CFLAGS_darwin += -DGTEST_OS_MAC
- 
+
 -  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O0 -g
 +  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O3 -g0
- 
+
    LOCAL_STATIC_LIBRARIES += libgtest_main_host libgtest_host
  endif
+
 diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
 index 191b3be6a..34f3b9ea8 100644
 --- a/core/java_renderscript.mk
 +++ b/core/java_renderscript.mk
 @@ -46,7 +46,7 @@ endif
- 
+
  # Turn on all warnings and warnings as errors for RS compiles.
  # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
 -renderscript_flags := -Wall -Werror
 +renderscript_flags := -Wall
  renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
- 
+
  # prepend the RenderScript system include path
+
 diff --git a/core/main.mk b/core/main.mk
 index 97ec295f8..363c1e302 100644
 --- a/core/main.mk
@@ -107,11 +110,11 @@ index 97ec295f8..363c1e302 100644
 +  ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.image-dex2oat-filter=speed
  endif
  endif
- 
+
 @@ -359,10 +357,6 @@ BUILD_WITHOUT_PV := true
- 
+
  ADDITIONAL_BUILD_PROPERTIES += net.bt.name=Android
- 
+
 -# Sets the location that the runtime dumps stack traces to when signalled
 -# with SIGQUIT. Stack trace dumping is turned on for all android builds.
 -ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.stack-trace-dir=/data/anr
@@ -119,6 +122,7 @@ index 97ec295f8..363c1e302 100644
  # ------------------------------------------------------------
  # Include vendor specific additions to build properties
  -include vendor/lineage/build/core/main.mk
+
 diff --git a/target/product/core_minimal.mk b/target/product/core_minimal.mk
 index b8e04e0ca..79f5ae37e 100644
 --- a/target/product/core_minimal.mk
@@ -126,7 +130,7 @@ index b8e04e0ca..79f5ae37e 100644
 @@ -168,16 +168,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
  PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
      frameworks/base/dirty-image-objects-phone:system/etc/dirty-image-objects)
- 
+
 -# On userdebug builds, collect more tombstones by default.
 -ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
 -PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
@@ -139,7 +143,7 @@ index b8e04e0ca..79f5ae37e 100644
 -
  $(call inherit-product, $(SRC_TARGET_DIR)/product/runtime_libart.mk)
  $(call inherit-product, $(SRC_TARGET_DIR)/product/base.mk)
- 
+
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
 index bda45244d..1b386cd27 100644
 --- a/target/product/runtime_libart.mk
@@ -159,7 +163,7 @@ index bda45244d..1b386cd27 100644
 +        pm.dexopt.first-boot=speed \
 +        pm.dexopt.boot=speed
  endif
- 
+
  # The install filter is speed-profile in order to enable the use of
  # profiles from the dex metadata files. Note that if a profile is not provided
  # or if it is empty speed-profile is equivalent to (quicken + empty app image).
@@ -173,23 +177,25 @@ index bda45244d..1b386cd27 100644
 +    pm.dexopt.ab-ota=speed \
 +    pm.dexopt.inactive=speed \
      pm.dexopt.shared=speed
- 
+
 -# Enable minidebuginfo generation unless overridden.
 -PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
 -    dalvik.vm.dex2oat-minidebuginfo=true
+
 diff --git a/tools/acp/Android.bp b/tools/acp/Android.bp
 index 64f5a1013..8b84418b3 100644
 --- a/tools/acp/Android.bp
 +++ b/tools/acp/Android.bp
 @@ -5,7 +5,7 @@
  cc_binary_host {
- 
+
      srcs: ["acp.c"],
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
- 
+
      static_libs: ["libhost"],
      name: "acp",
+
 diff --git a/tools/atree/Android.bp b/tools/atree/Android.bp
 index 5fbe042ea..fc8a8aada 100644
 --- a/tools/atree/Android.bp
@@ -202,6 +208,7 @@ index 5fbe042ea..fc8a8aada 100644
 +    cflags: ["-Wall"],
      static_libs: ["libhost"],
  }
+
 diff --git a/tools/fs_config/Android.bp b/tools/fs_config/Android.bp
 index 797cfe228..1c8c3dae3 100644
 --- a/tools/fs_config/Android.bp
@@ -212,10 +219,10 @@ index 797cfe228..1c8c3dae3 100644
      ],
 -    cflags: ["-Werror"],
  }
- 
+
  // -----------------------------------------------------------------------------
 @@ -28,10 +27,9 @@ cc_binary_host {
- 
+
  test_c_flags = [
      "-fstack-protector-all",
 -    "-g",
@@ -226,6 +233,7 @@ index 797cfe228..1c8c3dae3 100644
      "-fno-builtin",
      "-DANDROID_FILESYSTEM_CONFIG=\"android_filesystem_config_test_data.h\"",
  ]
+
 diff --git a/tools/fs_config/Android.mk b/tools/fs_config/Android.mk
 index f6c8132b4..19b357315 100644
 --- a/tools/fs_config/Android.mk
@@ -236,9 +244,10 @@ index f6c8132b4..19b357315 100644
  LOCAL_SHARED_LIBRARIES := libcutils
 -LOCAL_CFLAGS := -Werror -Wno-error=\#warnings
 +LOCAL_CFLAGS := -Wall
- 
+
  ifneq ($(TARGET_FS_CONFIG_GEN),)
  system_android_filesystem_config := system/core/include/private/android_filesystem_config.h
+
 diff --git a/tools/fs_get_stats/Android.bp b/tools/fs_get_stats/Android.bp
 index 67742b836..f710d506e 100644
 --- a/tools/fs_get_stats/Android.bp
@@ -252,18 +261,19 @@ index 67742b836..f710d506e 100644
      shared_libs: [
          "libcutils",
          "liblog",
+
 diff --git a/tools/libhost/Android.bp b/tools/libhost/Android.bp
 index 4c9100f15..82268553b 100644
 --- a/tools/libhost/Android.bp
 +++ b/tools/libhost/Android.bp
 @@ -3,7 +3,6 @@ cc_library_host_static {
      srcs: ["CopyFile.c"],
- 
+
      cflags: [
 -        "-Werror",
          "-Wall",
      ],
- 
+
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
 index 898db6861..14be89ac2 100644
 --- a/tools/makeparallel/Android.bp
@@ -275,6 +285,7 @@ index 898db6861..14be89ac2 100644
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
  }
+
 diff --git a/tools/makeparallel/Makefile b/tools/makeparallel/Makefile
 index 82a4abfac..b2595d45e 100644
 --- a/tools/makeparallel/Makefile
@@ -282,25 +293,27 @@ index 82a4abfac..b2595d45e 100644
 @@ -27,7 +27,7 @@ MAKEPARALLEL_BIN_PATH ?= .
  MAKEPARALLEL_CXX_SRCS := \
  	makeparallel.cpp
- 
+
 -MAKEPARALLEL_CXXFLAGS := -Wall -Werror -MMD -MP
 +MAKEPARALLEL_CXXFLAGS := -Wall -MMD -MP
- 
+
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
+
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
 index f7ab11cd8..355bce2d2 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -1751,7 +1751,7 @@ class BlockDifference(object):
      #   decompression_time: 15s  | 25s                | 25s
- 
+
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
 +      brotli_cmd = ['brotli', '--quality=11',
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
+
 diff --git a/tools/zipalign/Android.bp b/tools/zipalign/Android.bp
 index 8e6196d29..9e65a5cf9 100644
 --- a/tools/zipalign/Android.bp
@@ -308,19 +321,20 @@ index 8e6196d29..9e65a5cf9 100644
 @@ -13,7 +13,7 @@ cc_binary_host {
          "ZipFile.cpp",
      ],
- 
+
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
- 
+
      // NOTE: Do not add any shared_libs dependencies because they will break the
      // static_sdk_tools target.
+
 diff --git a/tools/ziptime/Android.bp b/tools/ziptime/Android.bp
 index 5ef45ed40..7d882ae72 100644
 --- a/tools/ziptime/Android.bp
 +++ b/tools/ziptime/Android.bp
 @@ -27,7 +27,7 @@ cc_binary_host {
      ],
- 
+
      name: "ziptime",
 -    cflags: ["-Wall", "-Werror"],
 +    cflags: ["-Wall"],
@@ -336,19 +350,20 @@ index b948b61..d62a3e0 100644
 @@ -6,6 +6,6 @@ neverallow {
      -update_engine
  } backuptool:process transition;
- 
+
 -userdebug_or_eng(`
 +
      permissive backuptool;
 -')
 +
+
 diff --git a/common/private/recovery.te b/common/private/recovery.te
 index 9a9d7cd..fb877e1 100644
 --- a/common/private/recovery.te
 +++ b/common/private/recovery.te
 @@ -4,10 +4,10 @@ r_dir_file(recovery, adb_keys_file)
  set_prop(recovery, shell_prop)
- 
+
  # Manage fstab and /adb_keys
 -userdebug_or_eng(`
 +
@@ -357,23 +372,23 @@ index 9a9d7cd..fb877e1 100644
 -')
 +
  allow recovery rootfs:dir create_dir_perms;
- 
+
  # Sideload cache
 @@ -31,9 +31,9 @@ allow recovery self:process setexec;
  domain_trans(recovery, otapreopt_chroot_exec, backuptool)
- 
+
  # Some addons require this for A/B installation compatibility
 -userdebug_or_eng(`
 +
  allow recovery system_file:dir mounton;
 -')
 +
- 
+
  # Volume manager
  allow recovery block_device:dir create_dir_perms;
 @@ -51,7 +51,7 @@ allow recovery sysfs_batteryinfo:dir search;
  r_dir_file(recovery, unencrypted_data_file)
- 
+
  # setenforce
 -userdebug_or_eng(`
 +
@@ -381,18 +396,19 @@ index 9a9d7cd..fb877e1 100644
 -')
 +
  ')
+
 diff --git a/common/private/su.te b/common/private/su.te
 index ed573a7..5e99f30 100644
 --- a/common/private/su.te
 +++ b/common/private/su.te
 @@ -2,7 +2,7 @@ type superuser_device, file_type, mlstrustedobject;
- 
+
  ## Perms for the daemon
- 
+
 -userdebug_or_eng(`
 +
    domain_trans(init, su_exec, sudaemon)
- 
+
    typeattribute sudaemon domain, coredomain, mlstrustedsubject;
 @@ -44,11 +44,11 @@ userdebug_or_eng(`
    dontaudit sudaemon domain:binder *;
@@ -400,9 +416,9 @@ index ed573a7..5e99f30 100644
    dontaudit sudaemon appops_service:service_manager *;
 -')
 +
- 
+
  ## Perms for the app
- 
+
 -userdebug_or_eng(`
 +
    # Translate user apps to the shell domain when using su
@@ -410,13 +426,14 @@ index ed573a7..5e99f30 100644
    # PR_SET_NO_NEW_PRIVS blocks this :(
 @@ -67,6 +67,6 @@ userdebug_or_eng(`
    allow system_app superuser_device:dir { create rw_dir_perms setattr unlink };
- 
+
    allow kernel sudaemon:fd { use };
 -')
- 
+
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su -untrusted_app_all -init -sudaemon') } su_exec:file no_x_file_perms;
 +
 +neverallow { domain -dumpstate -shell -su -untrusted_app_all -init -sudaemon } su_exec:file no_x_file_perms;
+
 diff --git a/common/private/sysinit.te b/common/private/sysinit.te
 index 9a09004..9fb0284 100644
 --- a/common/private/sysinit.te
@@ -424,1099 +441,31 @@ index 9a09004..9fb0284 100644
 @@ -5,11 +5,10 @@ type sysinit_exec, exec_type, file_type;
  init_daemon_domain(sysinit)
  neverallow { domain -init } sysinit:process transition;
- 
+
 -userdebug_or_eng(`
 -    permissive sysinit;
 -')
 +permissive sysinit;
- 
+
  dontaudit sysinit shell_exec:file rx_file_perms;
  dontaudit sysinit toolbox_exec:file rx_file_perms;
  dontaudit sysinit system_file:file rx_file_perms;
  dontaudit sysinit system_file:dir r_dir_perms;
 +
 
-project external/ant-wireless/ant_native/
-diff --git a/Android.mk b/Android.mk
-index 3ed9138..dce76c1 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -82,7 +82,7 @@ LOCAL_C_INCLUDES:= \
- 
- LOCAL_C_INCLUDES += frameworks/base/core/jni/include
- 
--LOCAL_CFLAGS:= -g -c -W -Wall -O2
-+LOCAL_CFLAGS:= -g0 -c -O3
- 
- LOCAL_SRC_FILES:= \
- 	app/ant_app.c
-diff --git a/src/bluez_hci/Android.mk b/src/bluez_hci/Android.mk
-index 8487cd5..903d880 100644
---- a/src/bluez_hci/Android.mk
-+++ b/src/bluez_hci/Android.mk
-@@ -16,7 +16,7 @@
- 
- include $(CLEAR_VARS)
- 
--LOCAL_CFLAGS := -g -c -W -Wall -O2
-+LOCAL_CFLAGS := -g0 -c -W -Wall -O3
- 
- # Check which chip is used so correct values in messages
- ifeq ($(BOARD_ANT_WIRELESS_DEVICE),"wl12xx")
-diff --git a/src/bt-vendor_vfs/Android.mk b/src/bt-vendor_vfs/Android.mk
-index 733c7bc..75ab073 100644
---- a/src/bt-vendor_vfs/Android.mk
-+++ b/src/bt-vendor_vfs/Android.mk
-@@ -16,7 +16,7 @@
- 
- include $(CLEAR_VARS)
- 
--LOCAL_CFLAGS := -g -c -W -Wall -O2
-+LOCAL_CFLAGS := -g0 -c -W -Wall -O3
- 
- # needed to pull in the header file for libbt-vendor.so
- BDROID_DIR:= system/bt
-diff --git a/src/qcomm-hidl/Android.mk b/src/qcomm-hidl/Android.mk
-index a349bbe..9424485 100644
---- a/src/qcomm-hidl/Android.mk
-+++ b/src/qcomm-hidl/Android.mk
-@@ -17,7 +17,7 @@
- ifneq ($(QCPATH),)
- include $(CLEAR_VARS)
- 
--LOCAL_CFLAGS := -g -c -W -Wall -O2
-+LOCAL_CFLAGS := -g0 -c -W -Wall -O3
- LOCAL_CFLAGS += -Wno-unused-variable
- LOCAL_CFLAGS += -Wno-unused-parameter
- LOCAL_CFLAGS += -Wno-unused-label
-diff --git a/src/vfs/Android.mk b/src/vfs/Android.mk
-index 28ae431..6e9482b 100644
---- a/src/vfs/Android.mk
-+++ b/src/vfs/Android.mk
-@@ -16,7 +16,7 @@
- 
- include $(CLEAR_VARS)
- 
--LOCAL_CFLAGS := -g -c -W -Wall -O2
-+LOCAL_CFLAGS := -g0 -c -W -Wall -O3
- 
- LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/src/common/inc \
-
-project external/avb/
-diff --git a/Android.bp b/Android.bp
-index 4675965..3f36867 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -20,7 +20,6 @@ cc_defaults {
-         "-D_FILE_OFFSET_BITS=64",
-         "-D_POSIX_C_SOURCE=199309L",
-         "-Wa,--noexecstack",
--        "-Werror",
-         "-Wall",
-         "-Wextra",
-         "-Wformat=2",
-@@ -30,7 +29,7 @@ cc_defaults {
-         "-Wno-format",
-         "-ffunction-sections",
-         "-fstack-protector-strong",
--        "-g",
-+        "-g0",
-         "-DAVB_ENABLE_DEBUG",
-         "-DAVB_COMPILATION",
-     ],
-
 project external/bash/
 diff --git a/Android.mk b/Android.mk
-index e0880f6..c28acb1 100644
+deleted file mode 100644
+index e0880f6..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,82 +1,4 @@
--LOCAL_PATH:= $(call my-dir)
--
- # ========================================================
- # bash
- # ========================================================
--include $(CLEAR_VARS)
--
--LOCAL_SRC_FILES:= \
--	shell.c eval.c y.tab.c general.c make_cmd.c print_cmd.c \
--	dispose_cmd.c execute_cmd.c variables.c copy_cmd.c error.c \
--	expr.c flags.c jobs.c subst.c hashcmd.c hashlib.c mailcheck.c \
--	trap.c input.c unwind_prot.c pathexp.c sig.c test.c version.c \
--	alias.c array.c arrayfunc.c assoc.c braces.c bracecomp.c \
--	bashhist.c bashline.c list.c stringlib.c locale.c findcmd.c \
--	redir.c pcomplete.c pcomplib.c syntax.c xmalloc.c
--LOCAL_C_INCLUDES += \
--	$(LOCAL_PATH) \
--	$(LOCAL_PATH)/include \
--	$(LOCAL_PATH)/lib
--LOCAL_CFLAGS += \
--	-DHAVE_CONFIG_H \
--	-DPROGRAM=\"bash\" \
--	-DPACKAGE=\"bash\" \
--	-DCONF_HOSTTYPE=\"arm\" \
--	-DCONF_OSTYPE=\"android-eabi\" \
--	-DCONF_MACHTYPE=\"arm-android-eabi\" \
--	-DCONF_VENDOR=\"unknown\" \
--	-DLOCALEDIR=\"/data/locale\" \
--	-DSHELL
--LOCAL_SHARED_LIBRARIES += \
--	libncurses
--LOCAL_STATIC_LIBRARIES += \
--	libbuiltins \
--	libglob \
--	libsh \
--	libtilde \
--	libhistory \
--	libreadline
--LOCAL_CFLAGS += \
--	-Wno-char-subscripts \
--	-Wno-format \
--	-Wno-implicit-function-declaration \
--	-Wno-incompatible-pointer-types \
--	-Wno-incompatible-pointer-types-discards-qualifiers \
--	-Wno-missing-field-initializers \
--	-Wno-non-literal-null-conversion \
--	-Wno-parentheses \
--	-Wno-sign-compare \
--	-Wno-sometimes-uninitialized \
--	-Wno-switch \
--	-Wno-unused-function \
--	-Wno-unused-label \
--	-Wno-unused-parameter \
--	-Wno-unused-variable \
--	-Wno-user-defined-warnings
--
--LOCAL_MODULE := bash
--LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
--
--LOCAL_MODULE_TAGS := eng
--
--include $(BUILD_EXECUTABLE)
--
--# ========================================================
--# bash configs
--# ========================================================
--etc_files := $(wildcard $(LOCAL_PATH)/etc/*)
--
--BASH_ETC := $(TARGET_OUT)/etc/$(LOCAL_MODULE)/
--BASH_CONFIGS := $(addprefix $(LOCAL_PATH)/etc/,$(notdir $(etc_files)))
--$(BASH_CONFIGS): $(LOCAL_INSTALLED_MODULE)
--	@echo "Install: $@ -> $(BASH_ETC)"
--	@mkdir -p $(BASH_ETC)
--	$(hide) cp $@ $(BASH_ETC)
- 
--ALL_DEFAULT_INSTALLED_MODULES += $(BASH_CONFIGS)
--
--ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
--    $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(BASH_CONFIGS)
--
--# ========================================================
--include $(call all-makefiles-under,$(LOCAL_PATH))
-
-project external/blktrace/
-diff --git a/Android.mk b/Android.mk
-index 1bdc793..f5de51e 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -7,7 +7,7 @@ LOCAL_PATH := $(call my-dir)
- include $(CLEAR_VARS)
- LOCAL_SRC_FILES := blkparse.c blkparse_fmt.c rbtree.c act_mask.c strverscmp.c
- LOCAL_C_INCLUDES := external/blktrace/
--LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-+LOCAL_CFLAGS := -O3 -g0 -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
- LOCAL_MODULE := blkparse
- LOCAL_MODULE_TAGS :=
- LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-@@ -16,7 +16,7 @@ include $(BUILD_EXECUTABLE)
- include $(CLEAR_VARS)
- LOCAL_SRC_FILES := blktrace.c act_mask.c
- LOCAL_C_INCLUDES := external/blktrace/
--LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_ANDROID_
-+LOCAL_CFLAGS := -O3 -g0 -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_ANDROID_
- LOCAL_MODULE := blktrace
- LOCAL_MODULE_TAGS :=
- LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-@@ -25,7 +25,7 @@ include $(BUILD_EXECUTABLE)
- include $(CLEAR_VARS)
- LOCAL_SRC_FILES := verify_blkparse.c
- LOCAL_C_INCLUDES := external/blktrace/
--LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-+LOCAL_CFLAGS := -O3 -g0 -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
- LOCAL_MODULE := verify_blkparse
- LOCAL_MODULE_TAGS :=
- LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-@@ -34,7 +34,7 @@ include $(BUILD_EXECUTABLE)
- include $(CLEAR_VARS)
- LOCAL_SRC_FILES := blkrawverify.c
- LOCAL_C_INCLUDES := external/blktrace/
--LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-+LOCAL_CFLAGS := -O3 -g0 -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
- LOCAL_MODULE := blkrawverify
- LOCAL_MODULE_TAGS :=
- LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-@@ -43,7 +43,7 @@ include $(BUILD_EXECUTABLE)
- #include $(CLEAR_VARS)
- #LOCAL_SRC_FILES := blkiomon.c
- #LOCAL_C_INCLUDES := external/blktrace/
--#LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-+#LOCAL_CFLAGS := -O3 -g0 -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
- #LOCAL_MODULE := blkiomon
- #LOCAL_MODULE_TAGS :=
- #LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-
-project external/boringssl/
-diff --git a/Android.bp b/Android.bp
-index fc45c43..0ed620a 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -16,13 +16,11 @@ cc_defaults {
-         "-DBORINGSSL_IMPLEMENTATION",
-         "-DOPENSSL_SMALL",
-         "-D_XOPEN_SOURCE=700",
--        "-Werror",
-         "-Wno-unused-parameter",
-     ],
- 
-     cppflags: [
-         "-Wall",
--        "-Werror",
-     ],
- 
-     conlyflags: ["-std=c99"],
-
-project external/brotli/
-diff --git a/Android.bp b/Android.bp
-index 531a784..3ae0b98 100755
---- a/Android.bp
-+++ b/Android.bp
-@@ -2,8 +2,7 @@ cc_library {
-     name: "libbrotli",
-     host_supported: true,
-     cflags: [
--        "-Werror",
--        "-O2",
-+        "-O3",
-     ],
-     export_include_dirs: ["c/include"],
-     srcs: [
-@@ -22,7 +21,6 @@ cc_library {
- cc_binary {
-     name: "brotli",
-     host_supported: true,
--    cflags: ["-Werror"],
-     srcs: ["c/tools/brotli.c"],
-     target: {
-         linux_bionic: {
-
-project external/bzip2/
-diff --git a/Android.bp b/Android.bp
-index 730883d..061bbc0 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -25,7 +25,6 @@ cc_library {
-     cflags: [
-         "-O3",
-         "-DUSE_MMAP",
--        "-Werror",
-         "-Wno-unused-parameter",
-     ],
-     export_include_dirs: ["."],
-@@ -48,7 +47,6 @@ cc_binary {
-     shared_libs: ["libbz"],
-     stl: "none",
-     cflags: [
--        "-Werror",
-         "-Wno-unused-parameter",
-     ],
-     symlinks: [
-
-project external/clang/
-diff --git a/lib/Driver/Tools.cpp b/lib/Driver/Tools.cpp
-index f1a9f41d53..76b0ba7bed 100644
---- a/lib/Driver/Tools.cpp
-+++ b/lib/Driver/Tools.cpp
-@@ -11251,7 +11251,7 @@ void NVPTX::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
-   } else {
-     // If no -O was passed, pass -O0 to ptxas -- no opt flag should correspond
-     // to no optimizations, but ptxas's default is -O3.
--    CmdArgs.push_back("-O0");
-+    CmdArgs.push_back("-O3");
-   }
- 
-   CmdArgs.push_back("--gpu-name");
-
-project external/cn-cbor/
-diff --git a/cmake/Coveralls.cmake b/cmake/Coveralls.cmake
-index d60adba..a3143ef 100644
---- a/cmake/Coveralls.cmake
-+++ b/cmake/Coveralls.cmake
-@@ -114,6 +114,6 @@ macro(coveralls_turn_on_coverage)
- 		message(FATAL_ERROR "Coveralls: Code coverage results with an optimised (non-Debug) build may be misleading! Add -DCMAKE_BUILD_TYPE=Debug")
- 	endif()
- 
--	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
--	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g0 -O3 -fprofile-arcs -ftest-coverage")
-+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g0 -O3 -fprofile-arcs -ftest-coverage")
- endmacro()
-
-project external/curl/
-diff --git a/Android.bp b/Android.bp
-index ae5a0cc..9d42466 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -22,7 +22,6 @@ cc_defaults {
-         // "Android $(PLATFORM_VERSION) $(TARGET_ARCH_VARIANT)"
-         // but Soong doesn't have access to those config variables yet.
-         "-DOS=\"Android\"",
--        "-Werror",
-         // Bug: http://b/29823425 Disable -Wvarargs for Clang update to r271374
-         "-Wno-varargs",
-     ],
-
-project external/fec/
-diff --git a/Android.bp b/Android.bp
-index a7d74e3..1f35730 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -10,7 +10,6 @@ cc_library_static {
-     ],
-     cflags: [
-         "-Wall",
--        "-Werror",
-         "-O3"
-     ],
-     export_include_dirs: ["."],
-
-project external/fio/
-diff --git a/Android.bp b/Android.bp
-index 7aacaf41..e2daa40b 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -31,7 +31,6 @@ cc_defaults {
-         "-D_FILE_OFFSET_BITS=64",
-         "-O3",
-         "-Wall",
--        "-Werror",
-         "-Wdeclaration-after-statement",
-         "-Wwrite-strings",
-         "-ffast-math",
-
-project external/flac/
-diff --git a/libFLAC/Android.bp b/libFLAC/Android.bp
-index d1b51f1..42c7640 100644
---- a/libFLAC/Android.bp
-+++ b/libFLAC/Android.bp
-@@ -40,7 +40,7 @@ cc_library_static {
-         "-O3",
-         "-funroll-loops",
-         "-finline-functions",
--        "-Werror",
-+        "-Wno-unused-const-variable",
-         "-Wno-unused-parameter",
-     ],
- 
-
-project external/freetype/
-diff --git a/Android.bp b/Android.bp
-index 4b6a34e11..deb0e0bb5 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -43,7 +43,6 @@ cc_library_shared {
-     cflags: [
-         "-W",
-         "-Wall",
--        "-Werror",
- 
-         "-fPIC",
-         "-DPIC",
-@@ -51,7 +50,7 @@ cc_library_shared {
-         "-DDARWIN_NO_CARBON",
-         "-DFT2_BUILD_LIBRARY",
- 
--        "-O2",
-+        "-O3",
- 
-         // Upstream ignores unused parameter warning
-         "-Wno-unused-parameter",
-diff --git a/builds/compiler/gcc-dev.mk b/builds/compiler/gcc-dev.mk
-index 48d284898..619124f22 100644
---- a/builds/compiler/gcc-dev.mk
-+++ b/builds/compiler/gcc-dev.mk
-@@ -68,7 +68,7 @@ ifndef CFLAGS
-     strict_prototypes := -Wstrict-prototypes
-   endif
- 
--  CFLAGS := -c -g -O0 \
-+  CFLAGS := -c -g0 -O3 \
-             -Wall \
-             -W \
-             -Wundef \
-
-project external/fsck_msdos/
-diff --git a/Android.mk b/Android.mk
-index 9c48cb1..e449b91 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -2,8 +2,8 @@ LOCAL_PATH := $(call my-dir)
- 
- common_src_files := boot.c check.c dir.c fat.c main.c
- common_includes := external/fsck_msdos
--common_cflags := -O2 -g \
--    -Wall -Werror \
-+common_cflags := -O3 -g0 \
-+    -Wall \
-     -D_BSD_SOURCE \
-     -D_LARGEFILE_SOURCE \
-     -D_FILE_OFFSET_BITS=64 \
-
-project external/giflib/
-diff --git a/Android.bp b/Android.bp
-index 35705d9..9bfb163 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -14,7 +14,6 @@ cc_library_static {
-     ],
- 
-     cflags: [
--        "-Werror",
-         "-Wno-format",
-         "-Wno-sign-compare",
-         "-Wno-unused-parameter",
-
-project external/gptfdisk/
-diff --git a/Android.mk b/Android.mk
-index db47ce3..d3b2872 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -24,7 +24,7 @@ LOCAL_CPP_EXTENSION := .cc
- 
- LOCAL_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib
- LOCAL_SRC_FILES := $(sgdisk_src_files)
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack -Werror
-+LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack
- 
- LOCAL_SHARED_LIBRARIES := libext2_uuid
- 
-@@ -38,7 +38,7 @@ ifeq ($(HOST_OS),darwin)
- LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -Doff64_t=off_t
- endif
- LOCAL_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack -Werror
-+LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack
- LOCAL_CFLAGS += -Dmain=sgdisk_main
- LOCAL_SRC_FILES := $(sgdisk_src_files)
- LOCAL_MODULE := libsgdisk_static
-@@ -55,7 +55,7 @@ endif
- 
- LOCAL_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib
- LOCAL_SRC_FILES := $(sgdisk_src_files)
--LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack -Werror
-+LOCAL_CFLAGS += -Wno-unused-parameter -Wno-pragma-pack
- 
- LOCAL_SHARED_LIBRARIES := libext2_uuid
- 
-
-project external/javasqlite/
-diff --git a/Android.bp b/Android.bp
-index bf66d5b..4997812 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -3,7 +3,6 @@ cc_library_shared {
-     name: "libsqlite_jni",
-     host_supported: true,
-     cflags: [
--        "-Werror",
-         "-Wno-error=sign-compare",
-         "-Wno-unused-parameter",
-     ],
-
-project external/jemalloc/
-diff --git a/Android.bp b/Android.bp
-index 0dd1e94..f59a653 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -19,7 +19,6 @@ common_cflags = [
-     "-O3",
-     "-funroll-loops",
-     "-fvisibility=hidden",
--    "-Werror",
-     "-Wno-unused-parameter",
-     "-Wno-type-limits",
- ]
-
-project external/json-c/
-diff --git a/Android.mk b/Android.mk
-index 854b8a3..58c6752 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -2,7 +2,7 @@ LIBJSON_ROOT := $(call my-dir)
- include $(CLEAR_VARS)
- LOCAL_MODULE := libjson
- LOCAL_PATH := $(LIBJSON_ROOT)
--LOCAL_CFLAGS := -Werror -Wno-error=unused-parameter
-+LOCAL_CFLAGS := -Wno-error=unused-parameter
- LOCAL_COPY_HEADERS_TO := libjson/inc
- LOCAL_COPY_HEADERS := bits.h \
- 		config.h \
-
-project external/jsoncpp/
-diff --git a/Android.bp b/Android.bp
-index 4f16430..2b1cbc9 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -16,7 +16,6 @@ cc_defaults {
-     cflags: [
-         "-DJSON_USE_EXCEPTION=0",
-         "-Wall",
--        "-Werror",
-     ],
- 
-     target: {
-
-project external/libavc/
-diff --git a/Android.bp b/Android.bp
-index 4abfa16..081adc4 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -7,7 +7,6 @@ cc_library_static {
-         "-fPIC",
-         "-O3",
-         "-Wall",
--        "-Werror",
-         "-Wno-unused-variable",
-     ],
- 
-@@ -254,7 +253,6 @@ cc_library_static {
- 
-         "-O3",
-         "-Wall",
--        "-Werror",
-         "-Wno-error=constant-conversion",
-     ],
- 
-
-project external/libchrome/
-diff --git a/Android.bp b/Android.bp
-index 9dfffca..f874b26 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -34,7 +34,6 @@ cc_defaults {
- 
-     cflags: [
-         "-Wall",
--        "-Werror",
-         "-Wno-deprecated-declarations",
-         "-Wno-missing-field-initializers",
-         "-Wno-unused-parameter",
-
-project external/libcups/
-diff --git a/Android.bp b/Android.bp
-index 4ab57d7..78c245e 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -84,7 +84,6 @@ cc_library_shared {
-         "-Wno-sign-compare",
-         "-Wno-missing-field-initializers",
-         "-Wno-implicit-function-declaration",
--        "-Werror",
-     ],
- 
-     export_include_dirs: [
-
-project external/libcxx/
-diff --git a/buildcmds/Android.mk b/buildcmds/Android.mk
-index b552e0c40..c792ab70a 100644
---- a/buildcmds/Android.mk
-+++ b/buildcmds/Android.mk
-@@ -36,10 +36,6 @@ LOCAL_CPPFLAGS := \
-     -Wno-unused-variable \
-     -Wno-format-zero-length \
- 
--# Optimization is causing relocation for nothrow new to be thrown away.
--# http://llvm.org/bugs/show_bug.cgi?id=21421
--LOCAL_CPPFLAGS += -O0
--
- LOCAL_RTTI_FLAG := -frtti
- include $(LOCAL_PATH)/testconfig.mk
- 
-
-project external/libcxxabi/
-diff --git a/Android.bp b/Android.bp
-index 167f6b0..afb840d 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -44,7 +44,6 @@ cc_library_static {
-     export_include_dirs: ["include"],
-     cflags: [
-         "-Wall",
--        "-Werror",
-     ],
-     cppflags: [
-         "-std=c++14",
-
-project external/libexif/
-diff --git a/Android.bp b/Android.bp
-index 62ba943..e95ecbe 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -58,10 +58,10 @@ cc_library_shared {
-         // TODO(b/27347470): Disable the following warnings.
-         "-Wno-conversion",
-         "-Wno-unused-parameter",
-+        "-Wno-unused-value",
-         "-Wno-missing-field-initializers",
-         "-Wno-switch",
-         "-Wno-absolute-value",
--        "-Werror",
-     ],
- 
-     sanitize: {
-
-project external/libffi/
-diff --git a/Android.bp b/Android.bp
-index 923cb10..e005bd2 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -25,7 +25,6 @@ cc_library_static {
-     vendor_available: true,
-     cflags: [
-         "-Wall",
--        "-Werror",
-         "-Wno-error=incompatible-pointer-types",
-         "-Wno-pointer-arith",
-         "-Wno-sign-compare",
-
-project external/libgsm/
-diff --git a/Android.bp b/Android.bp
-index 5ef4777..1d4ed6a 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -38,8 +38,8 @@ cc_library_static {
-     cflags: [
-         "-DSASR",
-         "-DWAV49",
--        "-Werror",
-         "-Wno-unused-parameter",
-+        "-Wno-unused-const-variable",
-     ],
- 
-     export_include_dirs: ["inc"],
-
-project external/libhevc/
-diff --git a/Android.bp b/Android.bp
-index d74fb76..951eb66 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -10,7 +10,6 @@ cc_library_static {
-         "-O3",
-         "-DANDROID",
-         "-Wall",
--        "-Werror",
-         // common/x86/ihevc_sao_ssse3_intr.c: implicit conversion from
-         // 'int' to 'char' changes value from 128 to -128
-         "-Wno-error=constant-conversion",
-
-project external/libjpeg-turbo/
-diff --git a/Android.bp b/Android.bp
-index 1c5d924..b045337 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -212,7 +212,6 @@ cc_binary {
-         "-DBMP_SUPPORTED",
-         "-DPPM_SUPPORTED",
-         "-Wno-unused-parameter",
--        "-Werror",
-     ],
- 
-     srcs: [
-
-project external/libldac/
-diff --git a/Android.bp b/Android.bp
-index 97420a3..dbf4c82 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -16,7 +16,7 @@ cc_library_shared {
-     ],
-     // -D_32BIT_FIXED_POINT should be added to cflags for devices without a FPU
-     // unit such as ARM Cortex-R series or external 32-bit DSPs.
--    cflags: ["-O2", "-Werror", "-Wall", "-Wextra"],
-+    cflags: ["-O3", "-Wall", "-Wextra"],
- }
- 
- cc_library_shared {
-@@ -33,5 +33,5 @@ cc_library_shared {
-     export_include_dirs: ["abr/inc"],
-     srcs: ["abr/src/ldacBT_abr.c"],
-     shared_libs: ["libldacBT_enc"],
--    cflags: ["-O2", "-Werror", "-Wall", "-Wextra"]
-+    cflags: ["-O3", "-Wall", "-Wextra"]
- }
-
-project external/libmpeg2/
-diff --git a/Android.bp b/Android.bp
-index c5487c3..f541d48 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -10,7 +10,6 @@ cc_library_static {
- 
-         "-O3",
-         "-DANDROID",
--        "-Werror",
-     ],
- 
-     export_include_dirs: [
-
-project external/libogg/
-diff --git a/Android.bp b/Android.bp
-index 01f038b..740bada 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -6,7 +6,7 @@ cc_library_static {
-         "src/framing.c",
-     ],
- 
--    cflags: ["-Wall", "-Werror"],
-+    cflags: ["-Wall"],
- 
-     export_include_dirs: ["include"],
- 
-
-project external/libopus/
-diff --git a/Android.bp b/Android.bp
-index 82f6a7c..6b4d62d 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -167,15 +167,14 @@ cc_library_shared {
-         "-DUSE_ALLOCA",
-         "-DHAVE_LRINT",
-         "-DHAVE_LRINTF",
--        "-O2",
-+        "-O3",
-         "-fno-math-errno",
-         "-Wall",
--        "-Werror",
-     ],
-     cppflags: [
-         "-DBSD=1",
-         "-ffast-math",
--        "-O2",
-+        "-O3",
-         "-funroll-loops",
-     ],
- 
-
-project external/libpcap/
-diff --git a/Android.bp b/Android.bp
-index 1d3a5cb..52e73bc 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -20,7 +20,6 @@ cc_defaults {
-         "-Dlint",
-         "-D_U_=__attribute__((__unused__))",
-         "-Wall",
--        "-Werror",
-         "-Wno-macro-redefined",
-         "-Wno-pointer-arith",
-         "-Wno-sign-compare",
-
-project external/libpng/
-diff --git a/Android.bp b/Android.bp
-index aea02bf..962982d 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -23,7 +23,6 @@ cc_defaults {
-     cflags: [
-         "-std=gnu89",
-         "-Wall",
--        "-Werror",
-         "-Wno-unused-parameter",
-     ],
-     arch: {
-
-project external/linux-kselftest/
-diff --git a/Android.bp b/Android.bp
-index 6cf8cf1129ff..c9be6c0315e0 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -351,7 +351,7 @@ cc_test {
-         },
-     },
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-pthread",
-     ],
-     c_std: "gnu99",
-@@ -374,7 +374,7 @@ cc_test {
-         },
-     },
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-pthread",
-     ],
-     c_std: "gnu99",
-@@ -395,7 +395,7 @@ cc_test {
-         "tools/testing/selftests/x86/raw_syscall_helper_32.S",
-     ],
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-pthread",
-     ],
-     c_std: "gnu99",
-@@ -418,7 +418,7 @@ cc_test {
-         "tools/testing/selftests/x86/thunks_32.S",
-     ],
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-pthread",
-     ],
-     c_std: "gnu99",
-
-project external/llvm/
-diff --git a/Android.bp b/Android.bp
-index e81c5b49b3c..c8d615ff5b7 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -30,7 +30,6 @@ llvm_defaults {
-         "-Wno-maybe-uninitialized",
-         "-Wno-missing-field-initializers",
-         "-Wwrite-strings",
--        "-Werror",
-         "-Dsprintf=sprintf",
-     ],
- 
-
-project external/mdnsresponder/
-diff --git a/Android.bp b/Android.bp
-index 68a7959..b9e24d4 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -7,8 +7,8 @@ cc_defaults {
-     name: "mdnsresponder_default_cflags",
- 
-     cflags: [
--        "-O2",
--        "-g",
-+        "-O3",
-+        "-g0",
-         "-fno-strict-aliasing",
-         "-fwrapv",
-         "-D_GNU_SOURCE",
-
-project external/minijail/
-diff --git a/common.mk b/common.mk
-index 77879d8..083366c 100644
---- a/common.mk
-+++ b/common.mk
-@@ -320,7 +320,7 @@ endif
- COMMON_CFLAGS-gcc := -fvisibility=internal -ggdb3 -Wa,--noexecstack
- COMMON_CFLAGS-clang := -fvisibility=hidden -ggdb
- COMMON_CFLAGS := -Wall -Wunused -Wno-unused-parameter -Werror -Wformat=2 \
--  -fno-strict-aliasing $(SSP_CFLAGS) -O1
-+  -fno-strict-aliasing $(SSP_CFLAGS) -O3
- CXXFLAGS += $(COMMON_CFLAGS) $(COMMON_CFLAGS-$(CXXDRIVER)) -std=gnu++14
- CFLAGS += $(COMMON_CFLAGS) $(COMMON_CFLAGS-$(CDRIVER)) -std=gnu11
- CPPFLAGS += -D_FORTIFY_SOURCE=2
-@@ -336,8 +336,8 @@ endif
- 
- ifeq ($(MODE),opt)
-   # Up the optimizations.
--  CFLAGS := $(filter-out -O1,$(CFLAGS)) -O2
--  CXXFLAGS := $(filter-out -O1,$(CXXFLAGS)) -O2
-+  CFLAGS := $(filter-out -O3,$(CFLAGS)) -O3
-+  CXXFLAGS := $(filter-out -O3,$(CXXFLAGS)) -O3
-   # Only drop -g* if symbols aren't desired.
-   ifeq ($(NOSTRIP),0)
-     # TODO: do we want -fomit-frame-pointer on x86?
-@@ -347,8 +347,8 @@ ifeq ($(MODE),opt)
- endif
- 
- ifeq ($(MODE),profiling)
--  CFLAGS := $(CFLAGS) -O0 -g  --coverage
--  CXXFLAGS := $(CXXFLAGS) -O0 -g  --coverage
-+  CFLAGS := $(CFLAGS) -O3 -g0  --coverage
-+  CXXFLAGS := $(CXXFLAGS) -O3 -g0  --coverage
-   LDFLAGS := $(LDFLAGS) --coverage
- endif
- 
-
-project external/mksh/
-diff --git a/Android.bp b/Android.bp
-index 94c499c..b65689e 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -28,7 +28,6 @@ cc_defaults {
-     cflags: [
-         // Compiler flags...
-         "-Wall",
--        "-Werror",
-         "-Wno-deprecated-declarations",
-         "-fno-asynchronous-unwind-tables",
-         "-fno-strict-aliasing",
-@@ -152,7 +151,6 @@ cc_library_static {
-     cflags: [
-         // Compiler flags...
-         "-Wall",
--        "-Werror",
-         "-Wno-deprecated-declarations",
-         "-fno-asynchronous-unwind-tables",
-         "-fno-strict-aliasing",
-diff --git a/mkshrc b/mkshrc
-index 4cc8bac..ae4857b 100644
---- a/mkshrc
-+++ b/mkshrc
-@@ -1,18 +1,25 @@
--# Copyright (c) 2010, 2012, 2013, 2014
--#	Thorsten Glaser <tg@mirbsd.org>
-+# Copyright (c) 2010
-+#	Thorsten Glaser <t.glaser@tarent.de>
- # This file is provided under the same terms as mksh.
- #-
- # Minimal /system/etc/mkshrc for Android
--#
--# Support: https://launchpad.net/mksh
- 
-+: ${TERM:=xterm-256color} ${HOME:=/} ${MKSH:=/system/bin/sh} ${HOSTNAME:=android}
-+: ${SHELL:=$MKSH} ${USER:=$(getprop ro.product.device)}
- if (( USER_ID )); then PS1='$'; else PS1='#'; fi
--PS4='[$EPOCHREALTIME] '; PS1='${|
--	local e=$?
- 
--	(( e )) && REPLY+="$e|"
-+PS1='$USER@$HOSTNAME:${PWD:-?} '"$PS1 "
-+if [ -d "/sbin/.magisk/busybox" ]; then
-+  BBDIR="/sbin/.magisk/busybox"
-+elif [ -d "/sbin/.core/busybox" ]; then
-+  BBDIR="/sbin/.core/busybox"
-+fi
-+PATH=$PATH:/sbin:$BBDIR:.
-+export TERM HOME MKSH HOSTNAME SHELL USER PATH
- 
--	return $e
--}$HOSTNAME:${PWD:-?} '"$PS1 "
-+for p in ~/.bin; do
-+	[[ -d $p/. ]] || continue
-+	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
-+done
- 
--export TERM=xterm-256color
-\ No newline at end of file
-+unset p
-
-project external/mtpd/
-diff --git a/Android.bp b/Android.bp
-index 064b0c8..390971d 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -28,7 +28,6 @@ cc_binary {
-     cflags: [
-         "-DANDROID_CHANGES",
-         "-Wall",
--        "-Werror",
-     ],
-     init_rc: ["mtpd.rc"],
- }
++++ /dev/null
 
 project external/nano/
 diff --git a/Android.mk b/Android.mk
-index 014d5d75..99286ccb 100644
+deleted file mode 100644
+index 014d5d75..00000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,73 +1,4 @@
--LOCAL_PATH:= $(call my-dir)
--
- # ========================================================
- # nano
- # ========================================================
--include $(CLEAR_VARS)
--
--LOCAL_SRC_FILES:= \
--	src/browser.c \
--	src/chars.c \
--	src/color.c \
--	src/cut.c \
--	src/files.c \
--	src/global.c \
--	src/help.c \
--	src/history.c \
--	src/move.c \
--	src/nano.c \
--	src/prompt.c \
--	src/rcfile.c \
--	src/search.c \
--	src/text.c \
--	src/utils.c \
--	src/winio.c
--
--LOCAL_C_INCLUDES += \
--	$(LOCAL_PATH) \
--	external/libncurses/include \
--	external/openssh/openbsd-compat
--
--LOCAL_CFLAGS += \
--	-DHAVE_CONFIG_H \
--	-DLOCALEDIR=\"/data/locale\" \
--	-DSYSCONFDIR=\"/system/etc/nano\"
- 
--LOCAL_CFLAGS += -Wno-sign-compare -Wno-unused-parameter
--
--LOCAL_SHARED_LIBRARIES += \
--	libncurses \
--	libssh
--
--LOCAL_MODULE := nano
--LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
--LOCAL_MODULE_TAGS := debug
--include $(BUILD_EXECUTABLE)
--
--# ========================================================
--# nano configs
--# ========================================================
--NANO_ETC := $(TARGET_OUT_ETC)/$(LOCAL_MODULE)
--
--syntax_files := $(wildcard $(LOCAL_PATH)/syntax/*.nanorc)
--NANO_SYNTAX := $(addprefix $(LOCAL_PATH)/syntax/,$(notdir $(syntax_files)))
--$(NANO_SYNTAX): $(LOCAL_INSTALLED_MODULE)
--	@echo "Install: $@ -> $(NANO_ETC)"
--	@mkdir -p $(NANO_ETC)
--	$(hide) cp $@ $(NANO_ETC)
--
--nanorc_file := $(LOCAL_PATH)/etc/nanorc
--NANO_NANORC := $(addprefix $(LOCAL_PATH)/etc/,$(notdir $(nanorc_file)))
--$(NANO_NANORC): $(LOCAL_INSTALLED_MODULE)
--	@echo "Install: $@ -> $(NANO_ETC)"
--	@mkdir -p $(NANO_ETC)
--	$(hide) cp $@ $(NANO_ETC)
--
--ALL_DEFAULT_INSTALLED_MODULES += $(NANO_SYNTAX) $(NANO_NANORC)
--
--ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
--	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_SYNTAX) \
--	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_NANORC)
--
--# ========================================================
--include $(call all-makefiles-under,$(LOCAL_PATH))
-
-project external/netcat/
-diff --git a/Android.mk b/Android.mk
-index 0636929..deeb1e7 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -7,7 +7,7 @@ LOCAL_SRC_FILES:=\
- 
- 
- LOCAL_CFLAGS:= \
--    -O2 -g \
-+    -O3 -g0 \
-     -Wall -Werror \
-     -Wno-deprecated-declarations \
-     -Wno-sign-compare \
++++ /dev/null
 
 project external/noto-fonts/
 diff --git a/Android.mk b/Android.mk
@@ -1525,16 +474,16 @@ index 3cfee0c..ed35072 100644
 +++ b/Android.mk
 @@ -41,28 +41,13 @@ ifneq ($(MINIMAL_FONT_FOOTPRINT),true)
  LOCAL_PATH := $(NOTO_DIR)/cjk
- 
+
  font_src_files := \
 -    NotoSansCJK-Regular.ttc
 +    NotoSansCJK.ttc
- 
+
  $(foreach f, $(font_src_files), $(call build-one-font-module, $(f)))
  font_src_files :=
- 
+
  endif # !MINIMAL_FONT_FOOTPRINT
- 
+
 -#############################################################################
 -# Similary "build" the Noto CJK fonts for serif family.
 -# These are not included in SMALLER_FONT_FOOTPRINT builds.
@@ -1553,6 +502,20 @@ index 3cfee0c..ed35072 100644
  #############################################################################
  # Now "build" the Noto Color Emoji font, which is in its own directory. It is
  # not included in the MINIMAL_FONT_FOOTPRINT builds.
+
+diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
+index 5a324bf..4a274ce 100755
+--- a/cjk/subset_noto_cjk.py
++++ b/cjk/subset_noto_cjk.py
+@@ -98,6 +98,6 @@ def remove_codepoints_from_ttc(ttc_name):
+         for f in otf_names:
+             os.remove(f)
+
+-
++remove_codepoints_from_ttc('NotoSansCJK.ttc')
+ remove_codepoints_from_ttc('NotoSansCJK-Regular.ttc')
+ remove_codepoints_from_ttc('NotoSerifCJK-Regular.ttc')
+
 diff --git a/fonts.mk b/fonts.mk
 index fea0aef..abf40ea 100644
 --- a/fonts.mk
@@ -1574,44 +537,23 @@ index fea0aef..abf40ea 100644
      NotoSerifDevanagari-Bold.ttf \
      NotoSerifDevanagari-Regular.ttf \
      NotoSerifEthiopic-Bold.otf \
+
 diff --git a/other/NotoSerif-Bold.ttf b/other/NotoSerif-Bold.ttf
 index 2ffdf8c..128288b 100644
 Binary files a/other/NotoSerif-Bold.ttf and b/other/NotoSerif-Bold.ttf differ
+
 diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
 index 9d9a347..78136ac 100644
 Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
 
-project external/pdfium/
-diff --git a/Android.bp b/Android.bp
-index d11b36e..ef7fd76 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -13,7 +13,6 @@ cc_defaults {
-         "-Wno-unused-parameter",
-         "-Wno-sign-compare",
-         "-Wno-missing-field-initializers",
--        "-Werror",
- 
-         "-DOPJ_STATIC",
-         "-DPNG_PREFIX",
-
 project external/perfetto/
 diff --git a/Android.bp b/Android.bp
-index 93919262..f04cbcf6 100644
+index 93919262..1f920adf 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -230,7 +230,7 @@ cc_binary {
- cc_defaults {
-   name: "perfetto_defaults",
-   cflags: [
--    "-Oz",
-+    "-O3",
-     "-Wno-error=return-type",
-     "-Wno-sign-compare",
-     "-Wno-sign-promo",
 @@ -3810,37 +3810,8 @@ cc_binary_host {
  }
- 
+
  // GN target: //:traced
 -cc_binary {
 -  name: "traced",
@@ -1629,7 +571,7 @@ index 93919262..f04cbcf6 100644
 -    "perfetto_defaults",
 -  ],
 -}
- 
+
  // GN target: //:traced_probes
 -cc_binary {
 -  name: "traced_probes",
@@ -1644,7 +586,7 @@ index 93919262..f04cbcf6 100644
 -    "perfetto_defaults",
 -  ],
 -}
- 
+
  // These targets are appended to the autogenerated Android.bp by tools/gen_android_bp.
  cc_library_static {
 @@ -3896,4 +3867,4 @@ cc_library_static {
@@ -1655,673 +597,12 @@ index 93919262..f04cbcf6 100644
 \ No newline at end of file
 +}
 
-project external/puffin/
-diff --git a/Makefile b/Makefile
-index ae86afd..caa4971 100644
---- a/Makefile
-+++ b/Makefile
-@@ -32,7 +32,7 @@ UNITTEST_OBJECTS = $(addprefix $(OBJDIR)/, $(UNITTEST_SOURCES:.cc=.o))
- LIBPUFFIN = libpuffin.so
- UNITTESTS = puffin_unittests
- 
--CXXFLAGS ?= -O3 -ggdb
-+CXXFLAGS ?= -O3 -g0
- CXXFLAGS += -Wall -fPIC -std=c++11
- CPPFLAGS += -I../ -Isrc/include
- LDLIBS = -lgflags -lglog -lprotobuf-lite -lgtest -lpthread
-
-project external/sfntly/
-diff --git a/Android.bp b/Android.bp
-index 862ae81..32fb7fd 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -63,7 +63,6 @@ cc_library_static {
-     cflags: [
-         "-fstack-protector",
-         "--param=ssp-buffer-size=4",
--        "-Werror",
-         "-fno-exceptions",
-         "-fno-strict-aliasing",
-         "-Wall",
-@@ -84,7 +83,7 @@ cc_library_static {
-         "-Wno-extra",
-         "-Wno-ignored-qualifiers",
-         "-Wno-type-limits",
--        "-Os",
-+        "-O3",
-         "-fno-ident",
-         "-fdata-sections",
-         "-ffunction-sections",
-
-project external/skia/
-diff --git a/Android.bp b/Android.bp
-index 4001deb6a5..ff49eba17f 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -10,7 +10,6 @@ cc_library_static {
-         "-DSK_PRINT_CODEC_MESSAGES",
-         "-D_FORTIFY_SOURCE=1",
-         "-Wall",
--        "-Werror",
-         "-Weverything",
-         "-Wextra",
-         "-Winit-self",
-diff --git a/src/jumper/build_stages.py b/src/jumper/build_stages.py
-index d4d598264a..7a012ecb83 100755
---- a/src/jumper/build_stages.py
-+++ b/src/jumper/build_stages.py
-@@ -28,7 +28,7 @@ generated_win = sys.argv[7] if len(sys.argv) > 7 else generated_win
- clang = [ccache, clang, '-x', 'c++']
- 
- 
--cflags = ['-std=c++11', '-Os', '-DJUMPER_IS_OFFLINE',
-+cflags = ['-std=c++11', '-O3', '-DJUMPER_IS_OFFLINE',
-           '-momit-leaf-frame-pointer', '-ffp-contract=fast',
-           '-fno-exceptions', '-fno-rtti', '-fno-unwind-tables']
- 
-
-project external/skqp/
-diff --git a/src/jumper/build_stages.py b/src/jumper/build_stages.py
-index d4d5982..7a012ec 100755
---- a/src/jumper/build_stages.py
-+++ b/src/jumper/build_stages.py
-@@ -28,7 +28,7 @@ generated_win = sys.argv[7] if len(sys.argv) > 7 else generated_win
- clang = [ccache, clang, '-x', 'c++']
- 
- 
--cflags = ['-std=c++11', '-Os', '-DJUMPER_IS_OFFLINE',
-+cflags = ['-std=c++11', '-O3', '-DJUMPER_IS_OFFLINE',
-           '-momit-leaf-frame-pointer', '-ffp-contract=fast',
-           '-fno-exceptions', '-fno-rtti', '-fno-unwind-tables']
- 
-
-project external/speex/
-diff --git a/Android.bp b/Android.bp
-index 4fd0d46..e877924 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -41,7 +41,6 @@ cc_library_shared {
-         "-fstrict-aliasing",
-         "-fprefetch-loop-arrays",
-         "-Wall",
--        "-Werror",
-         "-Wno-sign-compare",
-     ],
- 
-
-project external/sqlite/
-diff --git a/android/Android.bp b/android/Android.bp
-index 9173a03..b17b34b 100644
---- a/android/Android.bp
-+++ b/android/Android.bp
-@@ -5,7 +5,6 @@ cc_library_static {
-     cflags: [
-         "-DSQLITE_ENABLE_ICU",
-         "-Wall",
--        "-Werror",
-         "-Wno-unused-function",
-         "-Wno-unused-variable",
-     ],
-diff --git a/dist/Android.bp b/dist/Android.bp
-index 2211d1f..6d334e6 100644
---- a/dist/Android.bp
-+++ b/dist/Android.bp
-@@ -38,7 +38,7 @@ cc_defaults {
-         "-DSQLITE_SECURE_DELETE",
-         "-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE",
-         "-Wno-unused-parameter",
--        "-Werror",
-+        "-Wno-unused-function"
-     ],
- 
-     target: {
-
-project external/swiftshader/
-diff --git a/BUILD.gn b/BUILD.gn
-index 7af9f6af2..f138cdd62 100644
---- a/BUILD.gn
-+++ b/BUILD.gn
-@@ -63,8 +63,7 @@ config("swiftshader_config") {
- 
-     if (is_debug) {
-       cflags += [
--        "-g",
--        "-g3",
-+        "-g0",
-       ]
-     } else {  # Release
-       # All Release builds use function/data sections to make the shared libraries smaller
-@@ -72,7 +71,7 @@ config("swiftshader_config") {
-         "-ffunction-sections",
-         "-fdata-sections",
-         "-fomit-frame-pointer",
--        "-Os",
-+        "-O3",
-       ]
- 
-       defines += [
-diff --git a/src/OpenGL/libEGL/Android.mk b/src/OpenGL/libEGL/Android.mk
-index 60abaca67..c683acb8e 100644
---- a/src/OpenGL/libEGL/Android.mk
-+++ b/src/OpenGL/libEGL/Android.mk
-@@ -89,7 +89,7 @@ LOCAL_STATIC_LIBRARIES += swiftshader_top_debug $(COMMON_STATIC_LIBRARIES)
- LOCAL_SHARED_LIBRARIES += $(COMMON_SHARED_LIBRARIES)
- LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
- LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
--LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
-+LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
- include $(BUILD_SHARED_LIBRARY)
- 
- include $(CLEAR_VARS)
-diff --git a/src/OpenGL/libGLES_CM/Android.mk b/src/OpenGL/libGLES_CM/Android.mk
-index e34ba4285..7af124641 100644
---- a/src/OpenGL/libGLES_CM/Android.mk
-+++ b/src/OpenGL/libGLES_CM/Android.mk
-@@ -112,7 +112,7 @@ LOCAL_STATIC_LIBRARIES += swiftshader_top_debug $(COMMON_STATIC_LIBRARIES)
- LOCAL_SHARED_LIBRARIES += $(COMMON_SHARED_LIBRARIES)
- LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
- LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
--LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
-+LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
- include $(BUILD_SHARED_LIBRARY)
- 
- include $(CLEAR_VARS)
-diff --git a/src/OpenGL/libGLESv2/Android.mk b/src/OpenGL/libGLESv2/Android.mk
-index 56d077f05..df2cfc790 100644
---- a/src/OpenGL/libGLESv2/Android.mk
-+++ b/src/OpenGL/libGLESv2/Android.mk
-@@ -11,7 +11,6 @@ COMMON_CFLAGS := \
- 	-DGL_APICALL= \
- 	-DGL_GLEXT_PROTOTYPES \
- 	-Wall \
--	-Werror \
- 	-Wno-format \
- 	-Wno-sign-compare \
- 	-Wno-unused-parameter \
-@@ -121,7 +120,7 @@ LOCAL_STATIC_LIBRARIES += swiftshader_compiler_debug swiftshader_top_debug $(COM
- LOCAL_SHARED_LIBRARIES += $(COMMON_SHARED_LIBRARIES)
- LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
- LOCAL_LDFLAGS += $(COMMON_LDFLAGS)
--LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g -O0
-+LOCAL_CFLAGS += $(COMMON_CFLAGS) -UNDEBUG -g0 -O3
- include $(BUILD_SHARED_LIBRARY)
- 
- include $(CLEAR_VARS)
-
-project external/tensorflow/
-diff --git a/tensorflow/contrib/pi_examples/camera/Makefile b/tensorflow/contrib/pi_examples/camera/Makefile
-index b354c03b6e..c994f10004 100644
---- a/tensorflow/contrib/pi_examples/camera/Makefile
-+++ b/tensorflow/contrib/pi_examples/camera/Makefile
-@@ -29,7 +29,7 @@ EXECUTABLE_NAME := $(BINDIR)/camera
- 
- # Settings for the target compiler.
- CXX := gcc
--OPTFLAGS := -O0
-+OPTFLAGS := -O3
- CXXFLAGS := --std=c++11 $(OPTFLAGS)
- LDFLAGS := \
- -L/usr/local/lib \
-diff --git a/tensorflow/contrib/pi_examples/label_image/Makefile b/tensorflow/contrib/pi_examples/label_image/Makefile
-index 9d054a3133..968bf49a6e 100644
---- a/tensorflow/contrib/pi_examples/label_image/Makefile
-+++ b/tensorflow/contrib/pi_examples/label_image/Makefile
-@@ -29,7 +29,7 @@ EXECUTABLE_NAME := $(BINDIR)/label_image
- 
- # Settings for the target compiler.
- CXX := gcc
--OPTFLAGS := -O0
-+OPTFLAGS := -O3
- CXXFLAGS := --std=c++11 $(OPTFLAGS)
- LDFLAGS := \
- -L/usr/local/lib \
-
-project external/toybox/
-diff --git a/Android.mk b/Android.mk
-index db73370b..d9f93b08 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -222,7 +222,7 @@ common_SRC_FILES := \
- 
- common_CFLAGS := \
-     -std=gnu11 \
--    -Os \
-+    -O3 \
-     -Wall -Werror \
-     -Wno-char-subscripts \
-     -Wno-gnu-variable-sized-type-not-at-end \
-
-project external/tremolo/
-diff --git a/Android.bp b/Android.bp
-index 080b563..69a8f99 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -53,7 +53,7 @@ cc_library {
-     },
- 
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-D_GNU_SOURCE",
-         "-funsigned-char",
-         "-Wall",
-
-project external/unrar/
-diff --git a/Android.mk b/Android.mk
-index 4782f8f..b750ef9 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -13,7 +13,7 @@ LOCAL_SRC_FILES := src/rar.cpp src/strlist.cpp src/strfn.cpp src/pathfn.cpp src/
- 
- LOCAL_C_INCLUDES := src
- 
--LOCAL_CFLAGS := -O2 -Wall -DUNRAR -D__BIONIC__ \
-+LOCAL_CFLAGS := -O3 -Wall -DUNRAR -D__BIONIC__ \
-                 -D_LARGEFILE_SOURCE -DNOVOLUME -DRAR_NOCRYPT
- 
- LOCAL_CFLAGS += \
-
-project external/v8/
-diff --git a/Android.d8.mk b/Android.d8.mk
-index 2abab1a9..29066ee1 100644
---- a/Android.d8.mk
-+++ b/Android.d8.mk
-@@ -36,14 +36,13 @@ LOCAL_SHARED_LIBRARIES := liblog libicuuc libicui18n
- 
- LOCAL_MODULE_TAGS := optional
- 
--LOCAL_CFLAGS += \
--	-O0
-+LOCAL_CFLAGS += -O3
- 
- LOCAL_C_INCLUDES := \
- 	$(LOCAL_PATH)/include
- 
- # Bug: http://b/31101212  WAR LLVM bug until next Clang update
--LOCAL_CFLAGS_mips += -O2
-+LOCAL_CFLAGS_mips += -O3
- 
- LOCAL_MODULE_TARGET_ARCH_WARN := $(V8_SUPPORTED_ARCH)
- 
-diff --git a/Android.v8common.mk b/Android.v8common.mk
-index 11ada3e8..57b36a40 100644
---- a/Android.v8common.mk
-+++ b/Android.v8common.mk
-@@ -4,7 +4,6 @@ LOCAL_CPP_EXTENSION := cc
- 
- LOCAL_CFLAGS += \
- 	-Wall \
--	-Werror \
- 	-Wno-endif-labels \
- 	-Wno-import \
- 	-Wno-format \
-@@ -22,7 +21,7 @@ LOCAL_CFLAGS += \
- 	-DV8_NATIVE_REGEXP \
- 	-DV8_I18N_SUPPORT \
- 	-std=gnu++0x \
--	-Os
-+	-O3
- 
- LOCAL_CFLAGS_arm += -DV8_TARGET_ARCH_ARM
- LOCAL_CFLAGS_arm64 += -DV8_TARGET_ARCH_ARM64
-diff --git a/gypfiles/standalone.gypi b/gypfiles/standalone.gypi
-index d438a5ae..bd3cc365 100644
---- a/gypfiles/standalone.gypi
-+++ b/gypfiles/standalone.gypi
-@@ -473,9 +473,9 @@
-       'DebugBaseCommon': {
-         'conditions': [
-           ['OS=="aix"', {
--            'cflags': [ '-g', '-Og', '-gxcoff' ],
-+            'cflags': [ '-g0', '-O3' ],
-           }, {
--            'cflags': [ '-g', '-O0' ],
-+            'cflags': [ '-g0', '-O3' ],
-           }],
-         ],
-       },
-
 project external/vim/
 diff --git a/Android.mk b/Android.mk
-index e96cd4839..792d60054 100644
+deleted file mode 100644
+index e96cd4839..000000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,217 +1 @@
--vim_src := $(call my-dir)
--
--# ========================================================
--# etc/vimrc
--# ========================================================
--
--LOCAL_PATH := $(vim_src)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE := vimrc
--LOCAL_MODULE_TAGS := eng
--LOCAL_MODULE_CLASS := ETC
--
--LOCAL_SRC_FILES := vimrc.android
--
--include $(BUILD_PREBUILT)
--
--# ========================================================
--# vim
--# ========================================================
--
--LOCAL_PATH := $(vim_src)/src
--include $(CLEAR_VARS)
--
--LOCAL_SRC_FILES := \
--	auto/pathdef.c \
--	autocmd.c \
--	blob.c \
--	blowfish.c \
--	buffer.c \
--	change.c \
--	channel.c \
--	charset.c \
--	debugger.c \
--	dict.c \
--	diff.c \
--	digraph.c \
--	edit.c \
--	eval.c \
--	evalfunc.c \
--	ex_cmds.c \
--	ex_cmds2.c \
--	ex_docmd.c \
--	ex_eval.c \
--	ex_getln.c \
--	fileio.c \
--	findfile.c \
--	fold.c \
--	getchar.c \
--	hardcopy.c \
--	hashtab.c \
--	if_cscope.c \
--	if_xcmdsrv.c \
--	indent.c \
--	json.c \
--	list.c \
--	main.c \
--	mark.c \
--	mbyte.c \
--	memfile.c \
--	memline.c \
--	menu.c \
--	message.c \
--	misc1.c \
--	misc2.c \
--	move.c \
--	normal.c \
--	ops.c \
--	option.c \
--	os_unix.c \
--	popupmnu.c \
--	popupwin.c \
--	pty.c \
--	quickfix.c \
--	regexp.c \
--	screen.c \
--	search.c \
--	sha256.c \
--	spell.c \
--	syntax.c \
--	tag.c \
--	term.c \
--	textprop.c \
--	ui.c \
--	undo.c \
--	usercmd.c \
--	userfunc.c \
--	version.c \
--	window.c
--
--LOCAL_C_INCLUDES += \
--	external/libselinux/include \
--	external/libncurses/include \
--	$(LOCAL_PATH)/proto \
--	$(LOCAL_PATH)/auto
--
--LOCAL_SHARED_LIBRARIES += \
--	libselinux \
--	libncurses \
--	libm \
--	libdl
--
--LOCAL_CFLAGS += \
--	-DHAVE_CONFIG_H \
--	-DSYS_VIMRC_FILE=\"/system/etc/vimrc\"
--
--# vim variants: TINY SMALL CM NORMAL BIG HUGE
- #
--# NORMAL, BIG and HUGE are almost the same (1.1M)
--# TINY and SMALL are similar to busybox vi (460K)
--#
--# our profile is between SMALL and NORMAL (780K)
--# with syntax and utf8 (mbyte) support
--#
--# to reduce vim size, manually define wanted features
--LOCAL_CFLAGS += \
--	-DFEAT_SMALL=1 \
--	-DFEAT_MBYTE=1 \
--	-DFEAT_SYN_HL=1 \
--	-DFEAT_CINDENT=1 \
--	-DFEAT_COMMENTS=1 \
--	-DFEAT_EVAL=1 \
--	-DFEAT_AUTOCMD=1 \
--	-DFEAT_USR_CMDS=1 \
--	-DFEAT_EX_EXTRA=1 \
--	-DFEAT_CMDL_COMPL=1 \
--	-DFEAT_LISTCMDS=1 \
--	-DFEAT_CMDL_INFO=1 \
--	-DFEAT_SEARCH_EXTRA=1
--
--LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter
--
--LOCAL_MODULE := vim
--LOCAL_MODULE_TAGS := eng
--LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
--LOCAL_REQUIRED_MODULES := vimrc
--include $(BUILD_EXECUTABLE)
--
--# ========================================================
--# vim runtime files
--# ========================================================
--ifeq (vim,$(filter vim, $(ALL_MODULES)))
--
--vim_runtime_path := $(vim_src)/runtime
--
--vim_runtime_files := \
--	scripts.vim \
--	indent.vim \
--	indoff.vim \
--	filetype.vim \
--	ftoff.vim
--
--vim_doc_files := \
--	help.txt intro.txt tags \
--	motion.txt editing.txt scroll.txt \
--	options.txt term.txt
--
--vim_colors_files := \
--	default.vim \
--	desert.vim
--
--vim_syntax_files := \
--	logcat.vim \
--	awk.vim \
--	config.vim \
--	conf.vim \
--	cpp.vim \
--	c.vim \
--	css.vim \
--	diff.vim \
--	doxygen.vim \
--	html.vim vb.vim \
--	xml.vim dtd.vim \
--	context.vim \
--	gitcommit.vim \
--	help.vim \
--	javascript.vim \
--	java.vim \
--	lua.vim \
--	manual.vim \
--	markdown.vim \
--	pod.vim \
--	sh.vim \
--	syncolor.vim \
--	synload.vim \
--	syntax.vim \
--	vim.vim
--
--vim_plugin_files := \
--	matchparen.vim \
--
--vim_autoload_files := \
--	dist/ft.vim \
--	spacehi.vim
--
--VIM_SHARED := $(TARGET_OUT)/usr/share/vim
--
--vim_runtime_files := \
--  $(vim_runtime_files) \
--  $(addprefix doc/, $(vim_doc_files)) \
--  $(addprefix colors/, $(vim_colors_files)) \
--  $(addprefix syntax/, $(vim_syntax_files)) \
--  $(addprefix plugin/, $(vim_plugin_files)) \
--  $(addprefix autoload/, $(vim_autoload_files)) \
--
--$(vim_runtime_files): $(LOCAL_BUILT_MODULE)
--	@echo "Install: $(VIM_SHARED)/$@"
--	@mkdir -p $(dir $(VIM_SHARED)/$@)
--	$(hide) cp $(vim_runtime_path)/$@ $(VIM_SHARED)/$@
--
--ALL_DEFAULT_INSTALLED_MODULES += $(vim_runtime_files)
--
--ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
--  $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) \
--  $(addprefix $(VIM_SHARED)/, $(vim_runtime_files))
--
--endif
-
-project external/vixl/
-diff --git a/Android.bp b/Android.bp
-index 5f63861f..c058ccfb 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -114,8 +114,8 @@ cc_defaults {
-         "-DVIXL_DEBUG",
-         "-UNDEBUG",
- 
--        "-O2",
--        "-ggdb3",
-+        "-O3",
-+        "-g0",
-     ],
- }
- 
-
-project external/wayland/
-diff --git a/Android.bp b/Android.bp
-index 313f7a6..e8b6a0e 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -18,7 +18,7 @@ cc_defaults {
-     cflags: [
-         "-Wall",
-         "-Wextra",
--        "-g",
-+        "-g0",
-         "-Wstrict-prototypes",
-         "-Wmissing-prototypes",
-         "-fvisibility=hidden",
-
-project external/wayland-protocols/
-diff --git a/Android.bp b/Android.bp
-index 38774f3..dd49d09 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -62,8 +62,7 @@ cc_library_static {
-     cflags: [
-         "-Wall",
-         "-Wextra",
--        "-Werror",
--        "-g",
-+        "-g0",
-         "-fvisibility=hidden"
-     ],
-     static_libs: ["libwayland_client"],
-
-project external/webp/
-diff --git a/Android.bp b/Android.bp
-index 737a3c2..be2fdb3 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -99,7 +99,7 @@ cc_library_static {
-         },
-     },
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-DANDROID",
-         "-DWEBP_SWAP_16BIT_CSP",
-         "-Wall",
-@@ -185,7 +185,7 @@ cc_library_static {
-         },
-     },
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-DANDROID",
-         "-DWEBP_SWAP_16BIT_CSP",
-         "-Wall",
-
-project external/zip/
-diff --git a/Android.mk b/Android.mk
-index 04923d2..952be10 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -7,7 +7,7 @@ LOCAL_SRC_FILES := src/zip.c src/zipfile.c src/zipup.c src/fileio.c src/util.c s
- 
- LOCAL_C_INCLUDES := src src/unix
- 
--LOCAL_CFLAGS := -O2 -Wall -DUNIX -D__BIONIC__ -DNO_LARGE_FILE_SUPPORT \
-+LOCAL_CFLAGS := -O3 -Wall -DUNIX -D__BIONIC__ -DNO_LARGE_FILE_SUPPORT \
-                 -DHAVE_DIRENT_H -DHAVE_TERMIOS_H
- 
- LOCAL_CFLAGS += \
-
-project external/zlib/
-diff --git a/Android.bp b/Android.bp
-index 85eaeb6..b05042a 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -16,7 +16,6 @@ cc_library {
-         "-DUSE_MMAP",
-         "-DZLIB_CONST",
-         "-Wall",
--        "-Werror",
-     ],
-     stl: "none",
-     export_include_dirs: ["."],
-
-project external/zopfli/
-diff --git a/Android.bp b/Android.bp
-index 9fc9f57..8b0c0f4 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -3,9 +3,8 @@ cc_library {
-     host_supported: true,
- 
-     cflags: [
--        "-O2",
-+        "-O3",
-         "-Wno-unused-parameter",
--        "-Werror",
-     ],
-     srcs: [
-         "src/zopfli/blocksplitter.c",
++++ /dev/null
 
 project frameworks/base/
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
@@ -2331,7 +612,7 @@ index 34d26f0da90..08f95ec1fdf 100644
 @@ -2357,6 +2357,13 @@
          android:description="@string/permdesc_getPackageSize"
          android:protectionLevel="normal" />
- 
+
 +    <!-- @hide Allows an application to change the package signature as
 +	 seen by applications -->
 +    <permission android:name="android.permission.FAKE_PACKAGE_SIGNATURE"
@@ -2342,6 +623,7 @@ index 34d26f0da90..08f95ec1fdf 100644
      <!-- @deprecated No longer useful, see
           {@link android.content.pm.PackageManager#addPackageToPreferred}
           for details. -->
+
 diff --git a/core/res/res/values-zh-rCN/strings.xml b/core/res/res/values-zh-rCN/strings.xml
 index bc5e1a56807..f0e930f4857 100644
 --- a/core/res/res/values-zh-rCN/strings.xml
@@ -2353,6 +635,7 @@ index bc5e1a56807..f0e930f4857 100644
 +    <string name="permlab_fakePackageSignature">模拟软件包签名</string>
 +    <string name="permdesc_fakePackageSignature">允许应用伪装成为其他应用</string>
  </resources>
+
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
 index f19b0c386f0..a080fa226d6 100644
 --- a/core/res/res/values/config.xml
@@ -2364,16 +647,17 @@ index f19b0c386f0..a080fa226d6 100644
 +        <!-- The (faked) microg fused location provider -->
 +        <item>com.google.android.gms</item>
      </string-array>
- 
+
      <!-- This string array can be overriden to enable test location providers initially. -->
+
 diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
 index f6600462ea7..9c52929608f 100644
 --- a/core/res/res/values/strings.xml
 +++ b/core/res/res/values/strings.xml
 @@ -785,6 +785,10 @@
- 
+
      <!--  Permissions -->
- 
+
 +    <string name="permlab_fakePackageSignature">Spoof package signature</string>
 +    <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 +    <string name="permdesc_fakePackageSignature">Allows the app to pretend to be a different app.</string>
@@ -2381,6 +665,7 @@ index f6600462ea7..9c52929608f 100644
      <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
      <string name="permlab_statusBar">disable or modify status bar</string>
      <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
+
 diff --git a/data/fonts/fonts.xml b/data/fonts/fonts.xml
 index 72d9bce687a..51a82495e1a 100644
 --- a/data/fonts/fonts.xml
@@ -2450,6 +735,7 @@ index 72d9bce687a..51a82495e1a 100644
      </family>
      <family lang="und-Zsye">
          <font weight="400" style="normal">NotoColorEmoji.ttf</font>
+
 diff --git a/data/fonts/fonts_no_serif.xml b/data/fonts/fonts_no_serif.xml
 index 28beba4e460..1ec79209231 100644
 --- a/data/fonts/fonts_no_serif.xml
@@ -2507,188 +793,55 @@ index 28beba4e460..1ec79209231 100644
      </family>
      <family lang="und-Zsye">
          <font weight="400" style="normal">NotoColorEmoji.ttf</font>
+
 diff --git a/packages/CtsShim/Android.mk b/packages/CtsShim/Android.mk
-index 12972f14514..e8e634c947b 100644
+deleted file mode 100644
+index 12972f14514..00000000000
 --- a/packages/CtsShim/Android.mk
-+++ b/packages/CtsShim/Android.mk
-@@ -14,51 +14,11 @@
- # limitations under the License.
- #
- 
--LOCAL_PATH := $(call my-dir)
-+# LOCAL_PATH := $(call my-dir)
- 
- ###########################################################
- # Variant: Privileged app
- 
--include $(CLEAR_VARS)
--
--LOCAL_MODULE := CtsShimPrivPrebuilt
--LOCAL_MODULE_TAGS := optional
--# this needs to be a privileged application
--LOCAL_PRIVILEGED_MODULE := true
--LOCAL_MODULE_CLASS := APPS
--LOCAL_BUILT_MODULE_STEM := package.apk
--# Make sure the build system doesn't try to resign the APK
--LOCAL_CERTIFICATE := PRESIGNED
--LOCAL_DEX_PREOPT := false
--LOCAL_MODULE_TARGET_ARCH := arm arm64 x86 x86_64
--
--LOCAL_SRC_FILES_arm := apk/arm/CtsShimPriv.apk
--LOCAL_SRC_FILES_arm64 := apk/arm/CtsShimPriv.apk
--LOCAL_SRC_FILES_x86 := apk/x86/CtsShimPriv.apk
--LOCAL_SRC_FILES_x86_64 := apk/x86/CtsShimPriv.apk
--
--include $(BUILD_PREBUILT)
--
--
- ###########################################################
- # Variant: System app
- 
--include $(CLEAR_VARS)
--
--LOCAL_MODULE := CtsShimPrebuilt
--LOCAL_MODULE_TAGS := optional
--LOCAL_MODULE_CLASS := APPS
--LOCAL_BUILT_MODULE_STEM := package.apk
--# Make sure the build system doesn't try to resign the APK
--LOCAL_CERTIFICATE := PRESIGNED
--LOCAL_DEX_PREOPT := false
--LOCAL_MODULE_TARGET_ARCH := arm arm64 x86 x86_64
--
--LOCAL_SRC_FILES_arm := apk/arm/CtsShim.apk
--LOCAL_SRC_FILES_arm64 := apk/arm/CtsShim.apk
--LOCAL_SRC_FILES_x86 := apk/x86/CtsShim.apk
--LOCAL_SRC_FILES_x86_64 := apk/x86/CtsShim.apk
--
--include $(BUILD_PREBUILT)
--
--include $(call all-makefiles-under,$(LOCAL_PATH))
++++ /dev/null
+
+diff --git a/packages/CtsShim/build/Android.mk b/packages/CtsShim/build/Android.mk
+deleted file mode 100644
+index ec14d50b371..00000000000
+--- a/packages/CtsShim/build/Android.mk
++++ /dev/null
+
 diff --git a/packages/EasterEgg/Android.bp b/packages/EasterEgg/Android.bp
-index 43ed810b567..514611c681b 100644
+deleted file mode 100644
+index 43ed810b567..00000000000
 --- a/packages/EasterEgg/Android.bp
-+++ b/packages/EasterEgg/Android.bp
-@@ -14,20 +14,3 @@
- // limitations under the License.
- //
- 
--android_app {
--    // the build system in pi-dev can't quite handle R.java in kt
--    // so we will have a mix of java and kotlin files
--    srcs: ["src/**/*.java", "src/**/*.kt"],
--
--    resource_dirs: ["res"],
--
--    name: "EasterEgg",
--
--    certificate: "platform",
--
--	sdk_version: "current",
--
--    optimize: {
--        enabled: false,
--    }
--}
++++ /dev/null
+
 diff --git a/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk
-index 74c43b40616..792d6005489 100644
+deleted file mode 100644
+index 74c43b40616..00000000000
 --- a/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk
-+++ b/packages/overlays/DisplayCutoutEmulationCornerOverlay/Android.mk
-@@ -1,14 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_RRO_THEME := DisplayCutoutEmulationCorner
--LOCAL_CERTIFICATE := platform
--
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := DisplayCutoutEmulationCornerOverlay
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_RRO_PACKAGE)
-+#
++++ /dev/null
+
 diff --git a/packages/overlays/DisplayCutoutEmulationDoubleOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationDoubleOverlay/Android.mk
-index d83b30a8785..792d6005489 100644
+deleted file mode 100644
+index d83b30a8785..00000000000
 --- a/packages/overlays/DisplayCutoutEmulationDoubleOverlay/Android.mk
-+++ b/packages/overlays/DisplayCutoutEmulationDoubleOverlay/Android.mk
-@@ -1,14 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_RRO_THEME := DisplayCutoutEmulationDouble
--LOCAL_CERTIFICATE := platform
--
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := DisplayCutoutEmulationDoubleOverlay
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_RRO_PACKAGE)
-+#
++++ /dev/null
+
 diff --git a/packages/overlays/DisplayCutoutEmulationNarrowOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationNarrowOverlay/Android.mk
-index f5afad24676..792d6005489 100644
+deleted file mode 100644
+index f5afad24676..00000000000
 --- a/packages/overlays/DisplayCutoutEmulationNarrowOverlay/Android.mk
-+++ b/packages/overlays/DisplayCutoutEmulationNarrowOverlay/Android.mk
-@@ -1,14 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_RRO_THEME := DisplayCutoutEmulationNarrow
--LOCAL_CERTIFICATE := platform
--
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := DisplayCutoutEmulationNarrowOverlay
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_RRO_PACKAGE)
-+#
++++ /dev/null
+
 diff --git a/packages/overlays/DisplayCutoutEmulationTallOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationTallOverlay/Android.mk
-index f1f8c27d94f..792d6005489 100644
+deleted file mode 100644
+index f1f8c27d94f..00000000000
 --- a/packages/overlays/DisplayCutoutEmulationTallOverlay/Android.mk
-+++ b/packages/overlays/DisplayCutoutEmulationTallOverlay/Android.mk
-@@ -1,14 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_RRO_THEME := DisplayCutoutEmulationTall
--LOCAL_CERTIFICATE := platform
--
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := DisplayCutoutEmulationTallOverlay
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_RRO_PACKAGE)
-+#
++++ /dev/null
+
 diff --git a/packages/overlays/DisplayCutoutEmulationWideOverlay/Android.mk b/packages/overlays/DisplayCutoutEmulationWideOverlay/Android.mk
-index d149d8ecf4d..792d6005489 100644
+deleted file mode 100644
+index d149d8ecf4d..00000000000
 --- a/packages/overlays/DisplayCutoutEmulationWideOverlay/Android.mk
-+++ b/packages/overlays/DisplayCutoutEmulationWideOverlay/Android.mk
-@@ -1,14 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_RRO_THEME := DisplayCutoutEmulationWide
--LOCAL_CERTIFICATE := platform
--
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := DisplayCutoutEmulationWideOverlay
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_RRO_PACKAGE)
-+#
++++ /dev/null
+
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
 index 7edf729608a..83fd95ea5a3 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
@@ -2696,19 +849,19 @@ index 7edf729608a..83fd95ea5a3 100644
 @@ -4003,8 +4003,9 @@ public class PackageManagerService extends IPackageManager.Stub
              final Set<String> permissions = ArrayUtils.isEmpty(p.requestedPermissions)
                      ? Collections.<String>emptySet() : permissionsState.getPermissions(userId);
- 
+
 -            PackageInfo packageInfo = PackageParser.generatePackageInfo(p, gids, flags,
 -                    ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId);
 +            PackageInfo packageInfo = mayFakeSignature(p, PackageParser.generatePackageInfo(p, gids, flags,
 +                ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId),
 +                permissions);
- 
+
              if (packageInfo == null) {
                  return null;
 @@ -4040,6 +4041,24 @@ public class PackageManagerService extends IPackageManager.Stub
          }
      }
- 
+
 +    private PackageInfo mayFakeSignature(PackageParser.Package p, PackageInfo pi,
 +            Set<String> permissions) {
 +        try {
@@ -2731,317 +884,94 @@ index 7edf729608a..83fd95ea5a3 100644
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
 
+project hardware/qcom/media-caf/msm8994/
+diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
+index 6f783c429..c14bdcffe 100644
+--- a/mm-video-v4l2/vidc/common/Android.mk
++++ b/mm-video-v4l2/vidc/common/Android.mk
+@@ -13,7 +13,6 @@ libmm-vidc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
+ libmm-vidc-def += -DT_ARM
+ libmm-vidc-def += -Dinline=__inline
+ libmm-vidc-def += -D_ANDROID_
+-libmm-vidc-def += -Werror
+ libmm-vidc-def += -D_ANDROID_ICS_
+
+ # ---------------------------------------------------------------------------------
+
+diff --git a/mm-video-v4l2/vidc/vdec/Android.mk b/mm-video-v4l2/vidc/vdec/Android.mk
+index aedca2059..de931ab52 100644
+--- a/mm-video-v4l2/vidc/vdec/Android.mk
++++ b/mm-video-v4l2/vidc/vdec/Android.mk
+@@ -97,7 +97,7 @@ include $(CLEAR_VARS)
+ LOCAL_MODULE                    := libOmxVdec
+ LOCAL_MODULE_TAGS               := optional
+ LOCAL_VENDOR_MODULE             := true
+-LOCAL_CFLAGS                    := $(libmm-vdec-def) -Werror
++LOCAL_CFLAGS                    := $(libmm-vdec-def)
+ LOCAL_C_INCLUDES                += $(libmm-vdec-inc)
+
+ LOCAL_HEADER_LIBRARIES := generated_kernel_headers
+
+diff --git a/mm-video-v4l2/vidc/venc/Android.mk b/mm-video-v4l2/vidc/venc/Android.mk
+index ff43abdcd..f1b15dfc3 100644
+--- a/mm-video-v4l2/vidc/venc/Android.mk
++++ b/mm-video-v4l2/vidc/venc/Android.mk
+@@ -17,7 +17,6 @@ libmm-venc-def += -DENABLE_DEBUG_ERROR
+ libmm-venc-def += -UINPUT_BUFFER_LOG
+ libmm-venc-def += -UOUTPUT_BUFFER_LOG
+ libmm-venc-def += -USINGLE_ENCODER_INSTANCE
+-libmm-venc-def += -Werror
+ libmm-venc-def += -D_ANDROID_ICS_
+ libmm-venc-def += -D_MSM8974_
+
 project lineage-sdk/
 diff --git a/packages/LineageSettingsProvider/Android.bp b/packages/LineageSettingsProvider/Android.bp
-index 3b9d3e6..076d6c9 100644
+deleted file mode 100644
+index 3b9d3e6..0000000
 --- a/packages/LineageSettingsProvider/Android.bp
-+++ b/packages/LineageSettingsProvider/Android.bp
-@@ -14,20 +14,3 @@
- // limitations under the License.
- //
- 
--android_app {
--    srcs: ["src/**/*.java"],
--    resource_dirs: ["res"],
--
--    name: "LineageSettingsProvider",
--    certificate: "platform",
--    privileged: true,
--
--    static_libs: [
--        "android-support-v4",
--        "android-support-v7-appcompat",
--        "android-support-v7-preference",
--        "android-support-v7-recyclerview",
--        "android-support-v14-preference",
--        "org.lineageos.platform.internal",
--    ],
--}
++++ /dev/null
 
 project packages/apps/AudioFX/
 diff --git a/Android.mk b/Android.mk
-index ba2c9ba..792d600 100644
+deleted file mode 100644
+index ba2c9ba..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,35 +1 @@
--ifneq ($(TARGET_EXCLUDES_AUDIOFX),true)
--
--LOCAL_PATH := $(call my-dir)
--
--include $(CLEAR_VARS)
--LOCAL_PACKAGE_NAME	:= AudioFX
--LOCAL_MODULE_TAGS	:= optional
--
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    android-support-v4
--
--LOCAL_STATIC_JAVA_LIBRARIES := \
--    org.lineageos.platform.internal
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--LOCAL_USE_AAPT2 := true
--
--LOCAL_PROGUARD_ENABLED := disabled
--
--LOCAL_PRIVATE_PLATFORM_APIS := true
--
--LOCAL_PRIVILEGED_MODULE := true
--
--LOCAL_CERTIFICATE := platform
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--ifeq (,$(ONE_SHOT_MAKEFILE))
--include $(call all-makefiles-under,$(LOCAL_PATH))
--endif
--
--endif # TARGET_EXCLUDES_AUDIOFX
-+#
++++ /dev/null
 
 project packages/apps/Bluetooth/
-diff --git a/tests/Android.mk b/tests/Android.mk
-index fd297e35..792d6005 100644
---- a/tests/Android.mk
-+++ b/tests/Android.mk
-@@ -1,5 +1 @@
--LOCAL_PATH := $(call my-dir)
--include $(CLEAR_VARS)
--
--# Include all makefiles in subdirectories
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
+diff --git a/tests b/tests
+deleted file mode 100644
+index fd297e35..00000000
+--- a/tests
++++ /dev/null
 
 project packages/apps/Calendar/
 diff --git a/Android.mk b/Android.mk
-index 656f3847..792d6005 100644
+deleted file mode 100644
+index 656f3847..00000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,52 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--# Include res dir from chips
--chips_dir := ../../../frameworks/opt/chips/res
--color_picker_dir := ../../../frameworks/opt/colorpicker/res
--datetimepicker_dir := ../../../frameworks/opt/datetimepicker/res
--timezonepicker_dir := ../../../frameworks/opt/timezonepicker/res
--res_dirs := $(chips_dir) $(color_picker_dir) $(datetimepicker_dir) $(timezonepicker_dir) res
--src_dirs := src
--
--LOCAL_JACK_COVERAGE_INCLUDE_FILTER := com.android.calendar.*
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := $(call all-java-files-under,$(src_dirs))
--
--# bundled
--#LOCAL_STATIC_JAVA_LIBRARIES += \
--#        android-common \
--#        libchips \
--#        calendar-common
--
--# unbundled
--LOCAL_STATIC_JAVA_LIBRARIES := \
--        android-common \
--        libchips \
--        colorpicker \
--        android-opt-datetimepicker \
--        android-opt-timezonepicker \
--        android-support-v4 \
--        calendar-common
--
--LOCAL_SDK_VERSION := current
--
--LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
--
--LOCAL_PACKAGE_NAME := Calendar
--
--LOCAL_PROGUARD_FLAG_FILES := proguard.flags \
--                             ../../../frameworks/opt/datetimepicker/proguard.flags
--
--LOCAL_AAPT_FLAGS := --auto-add-overlay
--LOCAL_AAPT_FLAGS += --extra-packages com.android.ex.chips
--LOCAL_AAPT_FLAGS += --extra-packages com.android.colorpicker
--LOCAL_AAPT_FLAGS += --extra-packages com.android.datetimepicker
--LOCAL_AAPT_FLAGS += --extra-packages com.android.timezonepicker
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
-
-project packages/apps/Eleven/
-diff --git a/Android.mk b/Android.mk
-index ef58cac..cef2115 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -33,7 +33,7 @@ LOCAL_JNI_SHARED_LIBRARIES := librsjni
- 
- LOCAL_PROGUARD_FLAGS := -include $(LOCAL_PATH)/proguard.cfg
- ifeq ($(TARGET_BUILD_VARIANT),user)
--    LOCAL_PROGUARD_ENABLED := obfuscation
-+    LOCAL_PROGUARD_ENABLED := optimization
- else
-     LOCAL_PROGUARD_ENABLED := disabled
- endif
++++ /dev/null
 
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
-index cfc205b89..c54a7949e 100644
+deleted file mode 100644
+index cfc205b89..000000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -12,69 +12,3 @@
- # See the License for the specific language governing permissions and
- # limitations under the License.
- 
--LOCAL_PATH := $(call my-dir)
--
--# Build the Email application itself, along with its tests and tests for the emailcommon
--# static library.  All tests can be run via runtest email
--
--include $(CLEAR_VARS)
--
--unified_email_dir := ../UnifiedEmail
--res_dir := res $(unified_email_dir)/res
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := $(call all-java-files-under, $(unified_email_dir)/src)
--LOCAL_SRC_FILES += $(call all-java-files-under, src/com/android)
--LOCAL_SRC_FILES += $(call all-java-files-under, provider_src/com/android)
--LOCAL_SRC_FILES += $(call all-java-files-under, src/com/beetstra)
--
--LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dir))
--LOCAL_USE_AAPT2 := true
--
--# Use assets dir from UnifiedEmail
--# (the default package target doesn't seem to deal with multiple asset dirs)
--LOCAL_ASSET_DIR := $(LOCAL_PATH)/$(unified_email_dir)/assets
--
--LOCAL_AAPT_FLAGS := --auto-add-overlay
--LOCAL_AAPT_FLAGS += --extra-packages com.android.mail:com.android.email:com.android.emailcommon
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    com.android.emailcommon \
--    libchips \
--    libphotoviewer_appcompat \
--    android-opt-bitmap \
--    android-opt-datetimepicker \
--    android-support-compat \
--    android-support-media-compat \
--    android-support-core-utils \
--    android-support-core-ui \
--    android-support-fragment \
--    android-support-v7-appcompat \
--    android-support-v7-gridlayout \
--    android-support-v13
--
--LOCAL_STATIC_JAVA_LIBRARIES := \
--    android-support-annotations \
--    android-common \
--    guava \
--    owasp-html-sanitizer
--
--LOCAL_JAVA_LIBRARIES := org.apache.http.legacy
--
--LOCAL_PACKAGE_NAME := Email
--
--LOCAL_PROGUARD_FLAG_FILES := proguard.flags $(unified_email_dir)/proguard.flags
--ifeq (eng,$(TARGET_BUILD_VARIANT))
--  LOCAL_PROGUARD_FLAG_FILES += proguard-test.flags
--endif
--
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_PACKAGE)
--
--# only include rules to build other stuff for the original package, not the derived package.
--ifeq ($(strip $(LOCAL_PACKAGE_OVERRIDES)),)
--# additionally, build unit tests in a separate .apk
--include $(call all-makefiles-under,$(LOCAL_PATH))
--endif
++++ /dev/null
 
 project packages/apps/Exchange/
 diff --git a/Android.mk b/Android.mk
-index a3a7d20b..c54a7949 100644
+deleted file mode 100644
+index a3a7d20b..00000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -12,39 +12,3 @@
- # See the License for the specific language governing permissions and
- # limitations under the License.
- 
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--#
--# Exchange2
--#
--LOCAL_MODULE_TAGS := optional
--
--# Include res dir from emailcommon
--emailcommon_dir := ../Email/emailcommon
--res_dir := res $(emailcommon_dir)/res
--
--LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dir))
--
--LOCAL_AAPT_FLAGS := --auto-add-overlay
--LOCAL_AAPT_FLAGS += --extra-packages com.android.emailcommon
--
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--LOCAL_SRC_FILES += $(call all-java-files-under, build/src)
--
--LOCAL_STATIC_JAVA_LIBRARIES := android-common com.android.emailcommon
--LOCAL_STATIC_JAVA_LIBRARIES += calendar-common
--LOCAL_STATIC_JAVA_LIBRARIES += android-support-v4
--
--LOCAL_PACKAGE_NAME := Exchange2
--LOCAL_OVERRIDES_PACKAGES := Exchange
--
--LOCAL_PROGUARD_FLAG_FILES := proguard.flags
--LOCAL_SDK_VERSION := 19
--
--LOCAL_JACK_COVERAGE_INCLUDE_FILTER += com.android.exchange.*
--
--include $(BUILD_PACKAGE)
--
--# additionally, build unit tests in a separate .apk
--include $(call all-makefiles-under,$(LOCAL_PATH))
++++ /dev/null
 
 project packages/apps/LockClock/
 diff --git a/Android.mk b/Android.mk
-index 603f888..7fb560b 100644
+deleted file mode 100644
+index 603f888..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -14,25 +14,3 @@
- # limitations under the License.
- #
- 
--LOCAL_PATH := $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_PRIVATE_PLATFORM_APIS := true
--LOCAL_PACKAGE_NAME := LockClock
--LOCAL_PROGUARD_FLAG_FILES := proguard.flags
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--LOCAL_USE_AAPT2 := true
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    android-support-v4 \
--    android-support-v7-appcompat \
--    android-support-v7-preference \
--    android-support-v7-recyclerview
--
--LOCAL_STATIC_JAVA_LIBRARIES := \
--    org.lineageos.platform.internal
--
--include $(BUILD_PACKAGE)
++++ /dev/null
 
 project packages/apps/Settings/
 diff --git a/src/com/android/settings/development/RootAccessPreferenceController.java b/src/com/android/settings/development/RootAccessPreferenceController.java
@@ -3049,7 +979,7 @@ index 7e40e92ba7..669067d936 100644
 --- a/src/com/android/settings/development/RootAccessPreferenceController.java
 +++ b/src/com/android/settings/development/RootAccessPreferenceController.java
 @@ -54,8 +54,8 @@ public class RootAccessPreferenceController extends DeveloperOptionsPreferenceCo
- 
+
      @Override
      public boolean isAvailable() {
 -        // User builds don't get root, and eng always gets root
@@ -3057,14 +987,15 @@ index 7e40e92ba7..669067d936 100644
 +        // Not only eng or userdebug builds, user builds could also get root now
 +        return true;
      }
- 
+
      @Override
+
 diff --git a/src/com/android/settings/development/RootAppOpsPreferenceController.java b/src/com/android/settings/development/RootAppOpsPreferenceController.java
 index 7a6b0f1a7b..4ce15e9ac6 100644
 --- a/src/com/android/settings/development/RootAppOpsPreferenceController.java
 +++ b/src/com/android/settings/development/RootAppOpsPreferenceController.java
 @@ -48,8 +48,8 @@ public class RootAppOpsPreferenceController extends DeveloperOptionsPreferenceCo
- 
+
      @Override
      public boolean isAvailable() {
 -        // User builds don't get root, and eng always gets root
@@ -3072,256 +1003,79 @@ index 7a6b0f1a7b..4ce15e9ac6 100644
 +        // Not only eng or userdebug builds, user builds could also get root now
 +        return true;
      }
- 
+
      @Override
+
+project packages/apps/Snap/
+diff --git a/res/values/config.xml b/res/values/config.xml
+index cb78e532c..2fd6601d2 100644
+--- a/res/values/config.xml
++++ b/res/values/config.xml
+@@ -29,7 +29,7 @@
+     <bool name="enable_warped_pano_preview">false</bool>
+
+     <!-- Enable support for camera api v2 -->
+-    <bool name="support_camera_api_v2">false</bool>
++    <bool name="support_camera_api_v2">true</bool>
+
+     <!-- Opens back camera using openLegacy() and forces api v1 -->
+     <bool name="back_camera_open_legacy">true</bool>
 
 project packages/apps/Stk/
 diff --git a/Android.mk b/Android.mk
-index 135fcf9..ca8204e 100644
+deleted file mode 100644
+index 135fcf9..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,16 +1,2 @@
- # Copyright 2007-2008 The Android Open Source Project
- 
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_JAVA_LIBRARIES := telephony-common
--LOCAL_STATIC_JAVA_LIBRARIES := android-support-v4
--LOCAL_SRC_FILES := $(call all-subdir-java-files)
--
--LOCAL_PACKAGE_NAME := Stk
--LOCAL_PRIVATE_PLATFORM_APIS := true
--LOCAL_CERTIFICATE := platform
--
--include $(BUILD_PACKAGE)
++++ /dev/null
 
 project packages/apps/Traceur/
 diff --git a/Android.mk b/Android.mk
-index 2c5803e..792d600 100644
+deleted file mode 100644
+index 2c5803e..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,26 +1 @@
--LOCAL_PATH := $(call my-dir)
--
--include $(CLEAR_VARS)
--
--LOCAL_PACKAGE_NAME := Traceur
--LOCAL_PRIVATE_PLATFORM_APIS := true
--LOCAL_CERTIFICATE := platform
--LOCAL_USE_AAPT2 := true
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    android-support-v17-leanback \
--    android-support-v14-preference \
--    android-support-v7-appcompat \
--    android-support-v7-preference \
--    android-support-v7-recyclerview \
--    android-support-v4
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--include frameworks/base/packages/SettingsLib/common.mk
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
++++ /dev/null
 
 project packages/apps/Updater/
 diff --git a/Android.mk b/Android.mk
-index df2b1f5..792d600 100644
+deleted file mode 100644
+index df2b1f5..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,49 +1 @@
--LOCAL_PATH:= $(call my-dir)
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_USE_AAPT2 := true
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    android-support-design \
--    android-support-transition \
--    android-support-v4 \
--    android-support-v7-appcompat \
--    android-support-v7-cardview \
--    android-support-v7-preference \
--    android-support-v7-recyclerview
--
--LOCAL_RESOURCE_DIR := \
--    $(LOCAL_PATH)/res
--
--LOCAL_PACKAGE_NAME := Updater
--LOCAL_PRIVATE_PLATFORM_APIS := true
--LOCAL_PRIVILEGED_MODULE := true
--LOCAL_PROGUARD_FLAG_FILES := proguard.flags
--
--include $(BUILD_PACKAGE)
--
--
--include $(CLEAR_VARS)
--LOCAL_MODULE := UpdaterStudio
--LOCAL_MODULE_CLASS := FAKE
--LOCAL_MODULE_SUFFIX := -timestamp
--updater_system_deps := $(call java-lib-deps,framework)
--updater_system_libs_path := $(abspath $(LOCAL_PATH))/system_libs
--
--include $(BUILD_SYSTEM)/base_rules.mk
--
--.PHONY: copy_updater_system_deps
--copy_updater_system_deps: $(updater_system_deps)
--	$(hide) mkdir -p $(updater_system_libs_path)
--	$(hide) rm -rf $(updater_system_libs_path)/*.jar
--	$(hide) cp $(updater_system_deps) $(updater_system_libs_path)/framework.jar
--
--$(LOCAL_BUILT_MODULE): copy_updater_system_deps
--	$(hide) echo "Fake: $@"
--	$(hide) mkdir -p $(dir $@)
--	$(hide) touch $@
-+#
++++ /dev/null
 
 project packages/providers/BookmarkProvider/
 diff --git a/Android.mk b/Android.mk
-index f2100b5..7305ebf 100644
+deleted file mode 100644
+index f2100b5..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -12,17 +12,3 @@
- # License for the specific language governing permissions and limitations under
- # the License.
- 
--LOCAL_PATH:= $(call my-dir)
--
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_SRC_FILES := \
--        $(call all-java-files-under, src)
--
--LOCAL_PACKAGE_NAME := BookmarkProvider
--LOCAL_PRIVATE_PLATFORM_APIS := true
--
--include $(BUILD_PACKAGE)
--
++++ /dev/null
 
 project packages/providers/WeatherProvider/
 diff --git a/Android.mk b/Android.mk
-index 10087e2..792d600 100644
+deleted file mode 100644
+index 10087e2..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,26 +1 @@
--LOCAL_PATH := $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
--LOCAL_USE_AAPT2 := true
--
--LOCAL_STATIC_ANDROID_LIBRARIES := \
--    android-support-v4 \
--    android-support-v7-appcompat \
--    android-support-v7-preference \
--    android-support-v7-recyclerview \
--    android-support-v14-preference
--
--LOCAL_STATIC_JAVA_LIBRARIES := \
--    org.lineageos.platform.internal
--
--LOCAL_MODULE_TAGS := optional
--
--LOCAL_PACKAGE_NAME := WeatherProvider
--LOCAL_CERTIFICATE := platform
--LOCAL_PRIVATE_PLATFORM_APIS := true
--LOCAL_PRIVILEGED_MODULE := true
--
--include $(BUILD_PACKAGE)
-+#
++++ /dev/null
 
 project packages/screensavers/Basic/
 diff --git a/Android.mk b/Android.mk
-index 59d54fb..792d600 100644
+deleted file mode 100644
+index 59d54fb..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,18 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--# Only compile source java files in this apk.
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_PACKAGE_NAME := BasicDreams
--LOCAL_PRIVATE_PLATFORM_APIS := true
--
--# need tasty bits
--# LOCAL_CERTIFICATE := platform
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
++++ /dev/null
 
 project packages/screensavers/PhotoTable/
 diff --git a/Android.mk b/Android.mk
-index e2f2f3a..792d600 100644
+deleted file mode 100644
+index e2f2f3a..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,16 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--# Only compile source java files in this apk.
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_PACKAGE_NAME := PhotoTable
--
--LOCAL_SDK_VERSION := current
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
++++ /dev/null
 
 project packages/screensavers/WebView/
 diff --git a/Android.mk b/Android.mk
-index 7f79bc3..792d600 100644
+deleted file mode 100644
+index 7f79bc3..0000000
 --- a/Android.mk
-+++ b/Android.mk
-@@ -1,18 +1 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_MODULE_TAGS := optional
--
--# Only compile source java files in this apk.
--LOCAL_SRC_FILES := $(call all-java-files-under, src)
--
--LOCAL_PACKAGE_NAME := WebViewDream
--LOCAL_SDK_VERSION := current
--
--# need tasty bits
--# LOCAL_CERTIFICATE := platform
--
--include $(BUILD_PACKAGE)
--
--# Use the following include to make our test apk.
--include $(call all-makefiles-under,$(LOCAL_PATH))
-+#
++++ /dev/null
 
 project packages/services/BuiltInPrintService/
 diff --git a/jni/Android.mk b/jni/Android.mk
@@ -3330,7 +1084,7 @@ index 5dbe400..26ffa36 100644
 +++ b/jni/Android.mk
 @@ -24,7 +24,7 @@ IPP_HELPER_DIR := ipphelper
  LOCAL_SDK_VERSION := current
- 
+
  LOCAL_CFLAGS += \
 -      -DINCLUDE_PDF=1 -Werror -Wextra -Wno-unused-parameter \
 +      -DINCLUDE_PDF=1 -Wextra -Wno-unused-parameter \
@@ -3346,7 +1100,7 @@ index 7e6f24d15..92386dfad 100644
 @@ -233,77 +233,6 @@ cc_benchmark {
      ],
  }
- 
+
 -cc_binary {
 -    name: "crash_dump",
 -    srcs: [
@@ -3421,6 +1175,7 @@ index 7e6f24d15..92386dfad 100644
  subdirs = [
      "crasher",
  ]
+
 diff --git a/init/Android.bp b/init/Android.bp
 index 3287331e2..23ee5f11c 100644
 --- a/init/Android.bp
@@ -3434,6 +1189,7 @@ index 3287331e2..23ee5f11c 100644
          "-DREBOOT_BOOTLOADER_ON_PANIC=0",
          "-DWORLD_WRITABLE_KMSG=0",
          "-DDUMP_ON_UMOUNT_FAILURE=0",
+
 diff --git a/init/Android.mk b/init/Android.mk
 index 2295bd719..f008aff55 100644
 --- a/init/Android.mk
@@ -3447,6 +1203,7 @@ index 2295bd719..f008aff55 100644
      -DREBOOT_BOOTLOADER_ON_PANIC=0 \
      -DWORLD_WRITABLE_KMSG=0 \
      -DDUMP_ON_UMOUNT_FAILURE=0
+
 diff --git a/rootdir/init.rc b/rootdir/init.rc
 index 4a8a60a96..28b83d0af 100644
 --- a/rootdir/init.rc
@@ -3454,7 +1211,7 @@ index 4a8a60a96..28b83d0af 100644
 @@ -397,11 +397,6 @@ on post-fs-data
      start vold
      installkey /data
- 
+
 -    # Start bootcharting as soon as possible after the data partition is
 -    # mounted to collect more data.
 -    mkdir /data/bootchart 0755 shell shell
@@ -3462,7 +1219,7 @@ index 4a8a60a96..28b83d0af 100644
 -
      # Avoid predictable entropy pool. Carry over entropy from previous boot.
      copy /data/system/entropy.dat /dev/urandom
- 
+
 @@ -447,7 +442,6 @@ on post-fs-data
      mkdir /data/misc/ethernet 0770 system system
      mkdir /data/misc/dhcp 0770 dhcp dhcp
@@ -3487,7 +1244,7 @@ index 4a8a60a96..28b83d0af 100644
      mkdir /data/misc/profiles/ref 0771 system system
 -    mkdir /data/misc/profman 0770 system shell
 -    mkdir /data/misc/gcov 0770 root root
- 
+
      mkdir /data/vendor 0771 root root
      mkdir /data/vendor_ce 0771 root root
 @@ -476,7 +462,6 @@ on post-fs-data
@@ -3505,7 +1262,7 @@ index 4a8a60a96..28b83d0af 100644
 -    mkdir /data/tombstones 0771 system system
 -    mkdir /data/vendor/tombstones 0771 root root
 -    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
- 
+
      # create dalvik-cache, so as to enforce our permissions
      mkdir /data/dalvik-cache 0771 root root
 -    # create the A/B OTA directory, so as to enforce our permissions
@@ -3514,13 +1271,13 @@ index 4a8a60a96..28b83d0af 100644
 -    # create the OTA package directory. It will be accessed by GmsCore (cache
 -    # group), update_engine and update_verifier.
 -    mkdir /data/ota_package 0770 system cache
- 
+
      # create resource-cache and double-check the perms
      mkdir /data/resource-cache 0771 system system
 @@ -513,19 +489,11 @@ on post-fs-data
      # the following directory.
      mkdir /data/mediadrm 0770 mediadrm mediadrm
- 
+
 -    mkdir /data/anr 0775 system system
 -
 -    # NFC: create data/nfc for nv storage
@@ -3531,23 +1288,36 @@ index 4a8a60a96..28b83d0af 100644
      # and get proper encryption policy installed
      mkdir /data/backup 0700 system system
 -    mkdir /data/ss 0700 system system
- 
+
      mkdir /data/system 0775 system system
 -    mkdir /data/system/heapdump 0700 system system
      mkdir /data/system/users 0775 system system
- 
+
      mkdir /data/system_de 0770 system system
 @@ -712,7 +680,7 @@ on property:vold.decrypt=trigger_shutdown_framework
      class_reset main
- 
+
  on property:sys.boot_completed=1
 -    bootchart stop
 +    exec /system/bin/setenforce 1
- 
+
  # system server cannot write to /proc/sys files,
  # and chown/chmod does not work for /proc/sys/ entries.
 
 project system/extras/su/
+diff --git a/Android.mk b/Android.mk
+index 86b5f70..4db5dc1 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -14,7 +14,6 @@ LOCAL_SHARED_LIBRARIES := \
+
+ LOCAL_SRC_FILES := su.c daemon.c utils.c pts.c
+ LOCAL_SRC_FILES += binder/appops-wrapper.cpp binder/pm-wrapper.c
+-LOCAL_CFLAGS += -Werror -Wall
+ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+
+ LOCAL_INIT_RC := superuser.rc
+
 diff --git a/su.c b/su.c
 index 5ec7ee4..5b402ef 100644
 --- a/su.c
@@ -3555,7 +1325,7 @@ index 5ec7ee4..5b402ef 100644
 @@ -277,12 +277,6 @@ int access_disabled(const struct su_initiator* from) {
          return 1;
      }
- 
+
 -    /* Only allow su on debuggable builds */
 -    if (!property_get_bool("ro.debuggable", false)) {
 -        ALOGE("Root access is disabled on non-debug builds");
@@ -3574,7 +1344,7 @@ index ff38a43a..de5a58af 100644
 @@ -80,10 +80,12 @@ ifndef BOARD_SEPOLICY_VERS
  BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
  endif
- 
+
 -NEVERALLOW_ARG :=
 +# Hacks to keep SELinux permissive in user builds
 +SELINUX_IGNORE_NEVERALLOWS := true
@@ -3597,7 +1367,7 @@ index ff38a43a..de5a58af 100644
 -		exit 1; \
  		fi
  	$(hide) mv $@.tmp $@
- 
+
 @@ -756,10 +757,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
  	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
  	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
@@ -3609,28 +1379,28 @@ index ff38a43a..de5a58af 100644
 -		exit 1; \
  		fi
  	$(hide) mv $@.tmp $@
- 
+
 diff --git a/prebuilts/api/28.0/private/adbd.te b/prebuilts/api/28.0/private/adbd.te
 index 3ac47443..1b44403d 100644
 --- a/prebuilts/api/28.0/private/adbd.te
 +++ b/prebuilts/api/28.0/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
- 
+
  domain_auto_trans(adbd, shell_exec, shell)
- 
+
 -userdebug_or_eng(`
 +
    allow adbd self:process setcurrent;
    allow adbd su:process dyntransition;
 -')
 +
- 
+
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
 @@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
  allow adbd adb_keys_file:dir search;
  allow adbd adb_keys_file:file r_file_perms;
- 
+
 -userdebug_or_eng(`
 +
    # Write debugging information to /data/adb
@@ -3640,7 +1410,7 @@ index 3ac47443..1b44403d 100644
    allow adbd adb_data_file:file create_file_perms;
 -')
 +
- 
+
  # ndk-gdb invokes adb forward to forward the gdbserver socket.
  allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
@@ -3649,6 +1419,7 @@ index 3ac47443..1b44403d 100644
  neverallow adbd { domain -crash_dump -shell }:process transition;
 -neverallow adbd { domain userdebug_or_eng(`-su') }:process dyntransition;
 +neverallow adbd { domain -su }:process dyntransition;
+
 diff --git a/prebuilts/api/28.0/private/compat/26.0/26.0.ignore.cil b/prebuilts/api/28.0/private/compat/26.0/26.0.ignore.cil
 index b07350c4..635726b0 100644
 --- a/prebuilts/api/28.0/private/compat/26.0/26.0.ignore.cil
@@ -3659,6 +1430,7 @@ index b07350c4..635726b0 100644
       ))
 +
 +allow sudaemon untrusted_app_all_devpts:chr_file *;
+
 diff --git a/prebuilts/api/28.0/private/su.te b/prebuilts/api/28.0/private/su.te
 index 16e47bbb..27a97bdb 100644
 --- a/prebuilts/api/28.0/private/su.te
@@ -3667,14 +1439,15 @@ index 16e47bbb..27a97bdb 100644
 -userdebug_or_eng(`
 +
    typeattribute su coredomain;
- 
+
    domain_auto_trans(shell, su_exec, su)
 @@ -20,4 +20,4 @@ userdebug_or_eng(`
    permissive su;
- 
+
    app_domain(su)
 -')
 +
+
 diff --git a/prebuilts/api/28.0/private/untrusted_app_25.te b/prebuilts/api/28.0/private/untrusted_app_25.te
 index ba2c1e1c..ad66b60b 100644
 --- a/prebuilts/api/28.0/private/untrusted_app_25.te
@@ -3684,6 +1457,7 @@ index ba2c1e1c..ad66b60b 100644
  # This will go away in a future Android release
  allow untrusted_app_25 proc_tty_drivers:file r_file_perms;
 +allow untrusted_app socket_device:sock_file *;
+
 diff --git a/prebuilts/api/28.0/private/untrusted_app_all.te b/prebuilts/api/28.0/private/untrusted_app_all.te
 index 6cf16682..b19c0cc0 100644
 --- a/prebuilts/api/28.0/private/untrusted_app_all.te
@@ -3693,17 +1467,18 @@ index 6cf16682..b19c0cc0 100644
  dontaudit untrusted_app_all proc_vmstat:file read;
  dontaudit untrusted_app_all proc_uptime:file read;
 +allow untrusted_app socket_device:sock_file write;
+
 diff --git a/prebuilts/api/28.0/public/app.te b/prebuilts/api/28.0/public/app.te
 index 239332c1..35a679b5 100644
 --- a/prebuilts/api/28.0/public/app.te
 +++ b/prebuilts/api/28.0/public/app.te
 @@ -306,7 +306,7 @@ allowxperm { appdomain -bluetooth } self:{ rawip_socket tcp_socket udp_socket }
- 
+
  allow { appdomain -isolated_app } ion_device:chr_file rw_file_perms;
  # TODO is write really necessary ?
 -auditallow { appdomain userdebug_or_eng(`-su') } ion_device:chr_file { write append };
 +auditallow { appdomain -su' } ion_device:chr_file { write append };
- 
+
  # TODO(b/36375899) replace with hal_client_domain for mediacodec (hal_omx)
  get_prop({ appdomain -isolated_app }, hwservicemanager_prop);
 @@ -433,9 +433,9 @@ neverallow appdomain { domain -appdomain }:process
@@ -3716,8 +1491,9 @@ index 239332c1..35a679b5 100644
 -neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
 +neverallow { appdomain -shell -su } { domain -appdomain }:process
      { dyntransition };
- 
+
  # Write to rootfs.
+
 diff --git a/prebuilts/api/28.0/public/domain.te b/prebuilts/api/28.0/public/domain.te
 index 14f2f767..67264033 100644
 --- a/prebuilts/api/28.0/public/domain.te
@@ -3725,7 +1501,7 @@ index 14f2f767..67264033 100644
 @@ -32,7 +32,7 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
  # Inherit or receive open files from others.
  allow domain init:fd use;
- 
+
 -userdebug_or_eng(`
 +
    allow domain su:fd use;
@@ -3734,7 +1510,7 @@ index 14f2f767..67264033 100644
 @@ -46,6 +46,7 @@ userdebug_or_eng(`
    # allow "gdbserver --attach" to work for su.
    allow domain su:process sigchld;
- 
+
 +userdebug_or_eng(`
    # Allow writing coredumps to /cores/*
    allow domain coredump_file:file create_file_perms;
@@ -3756,7 +1532,7 @@ index 14f2f767..67264033 100644
 +
      get_prop({domain -coredomain -appdomain}, vendor_default_prop)
  ')
- 
+
 @@ -315,7 +316,7 @@ neverallow {
  # Limit raw I/O to these whitelisted domains. Do not apply to debug builds.
  neverallow {
@@ -3809,7 +1585,7 @@ index 14f2f767..67264033 100644
 +    -su
    } vndservicemanager:binder *;
  ')
- 
+
 @@ -736,7 +737,7 @@ full_treble_only(`
      -logd # Logging by writing to logd Unix domain socket is public API
      -netd # netdomain needs this
@@ -3825,18 +1601,19 @@ index 14f2f767..67264033 100644
  # su itself execute su.
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
 +neverallow { domain -shell -su -dumpstate } su_exec:file no_x_file_perms;
- 
+
  # Do not allow the introduction of new execmod rules. Text relocations
  # and modification of executable pages are unsafe.
 @@ -1206,7 +1207,7 @@ neverallow {
- 
+
  # Only domains spawned from zygote and runas may have the appdomain attribute.
  neverallow { domain -runas -webview_zygote -zygote } {
 -  appdomain -shell userdebug_or_eng(`-su')
 +  appdomain -shell -su
  }:process { transition dyntransition };
- 
+
  # Minimize read access to shell- or app-writable symlinks.
+
 diff --git a/prebuilts/api/28.0/public/hal_configstore.te b/prebuilts/api/28.0/public/hal_configstore.te
 index c8051e14..b3761db6 100644
 --- a/prebuilts/api/28.0/public/hal_configstore.te
@@ -3849,7 +1626,7 @@ index c8051e14..b3761db6 100644
 +  -su
    -tombstoned
  }:{ unix_dgram_socket unix_stream_socket } *;
- 
+
 diff --git a/prebuilts/api/28.0/public/installd.te b/prebuilts/api/28.0/public/installd.te
 index f34ef0c5..07801629 100644
 --- a/prebuilts/api/28.0/public/installd.te
@@ -3860,19 +1637,21 @@ index f34ef0c5..07801629 100644
  neverallow { domain -system_server -dumpstate } installd:binder call;
 -neverallow installd { domain -system_server -servicemanager userdebug_or_eng(`-su') }:binder call;
 +neverallow installd { domain -system_server -servicemanager -su }:binder call;
+
 diff --git a/prebuilts/api/28.0/public/netd.te b/prebuilts/api/28.0/public/netd.te
 index a550b258..c94e26b4 100644
 --- a/prebuilts/api/28.0/public/netd.te
 +++ b/prebuilts/api/28.0/public/netd.te
 @@ -137,7 +137,7 @@ neverallow { domain -netd } netd:bpf { map_create };
- 
+
  # apps may not interact with netd over binder.
  neverallow appdomain netd:binder call;
 -neverallow netd { appdomain userdebug_or_eng(`-su') }:binder call;
 +neverallow netd { appdomain -su }:binder call;
- 
+
  # persist.netd.stable_secret contains RFC 7217 secret key which should never be
  # leaked to other processes. Make sure it never leaks.
+
 diff --git a/prebuilts/api/28.0/public/su.te b/prebuilts/api/28.0/public/su.te
 index 03129454..4da87619 100644
 --- a/prebuilts/api/28.0/public/su.te
@@ -3880,7 +1659,7 @@ index 03129454..4da87619 100644
 @@ -5,7 +5,7 @@ type su, domain;
  # File types must be defined for file_contexts.
  type su_exec, exec_type, file_type;
- 
+
 -userdebug_or_eng(`
 +
    # Domain used for su processes, as well as for adbd and adb shell
@@ -3892,6 +1671,7 @@ index 03129454..4da87619 100644
    typeattribute su hal_wifi_supplicant_client;
 -')
 +
+
 diff --git a/prebuilts/api/28.0/public/te_macros b/prebuilts/api/28.0/public/te_macros
 index dcebbefa..3af099c2 100644
 --- a/prebuilts/api/28.0/public/te_macros
@@ -3907,7 +1687,7 @@ index dcebbefa..3af099c2 100644
 -')
 +
  ')
- 
+
  #####################################
 @@ -494,9 +494,9 @@ define(`with_asan', ifelse(target_with_asan, `true', userdebug_or_eng(`$1'), ))
  # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
@@ -3921,6 +1701,7 @@ index dcebbefa..3af099c2 100644
  allow $1 anr_data_file:file append;
  allow $1 dumpstate:fd use;
  allow $1 incidentd:fd use;
+
 diff --git a/prebuilts/api/28.0/public/vold.te b/prebuilts/api/28.0/public/vold.te
 index 852e91ea..5a663f23 100644
 --- a/prebuilts/api/28.0/public/vold.te
@@ -3932,29 +1713,30 @@ index 852e91ea..5a663f23 100644
 -  userdebug_or_eng(`-su')
 +  -su
  }:binder call;
- 
+
  neverallow vold fsck_exec:file execute_no_trans;
+
 diff --git a/private/adbd.te b/private/adbd.te
 index 3ac47443..1b44403d 100644
 --- a/private/adbd.te
 +++ b/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
- 
+
  domain_auto_trans(adbd, shell_exec, shell)
- 
+
 -userdebug_or_eng(`
 +
    allow adbd self:process setcurrent;
    allow adbd su:process dyntransition;
 -')
 +
- 
+
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
 @@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
  allow adbd adb_keys_file:dir search;
  allow adbd adb_keys_file:file r_file_perms;
- 
+
 -userdebug_or_eng(`
 +
    # Write debugging information to /data/adb
@@ -3964,7 +1746,7 @@ index 3ac47443..1b44403d 100644
    allow adbd adb_data_file:file create_file_perms;
 -')
 +
- 
+
  # ndk-gdb invokes adb forward to forward the gdbserver socket.
  allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
@@ -3973,6 +1755,7 @@ index 3ac47443..1b44403d 100644
  neverallow adbd { domain -crash_dump -shell }:process transition;
 -neverallow adbd { domain userdebug_or_eng(`-su') }:process dyntransition;
 +neverallow adbd { domain -su }:process dyntransition;
+
 diff --git a/private/logd.te b/private/logd.te
 index 4338e400..2762e923 100644
 --- a/private/logd.te
@@ -3985,6 +1768,7 @@ index 4338e400..2762e923 100644
 +  -su
    -system_app
  } runtime_event_log_tags_file:file no_rw_file_perms;
+
 diff --git a/private/storaged.te b/private/storaged.te
 index 931d0e26..1ce508a3 100644
 --- a/private/storaged.te
@@ -3992,15 +1776,16 @@ index 931d0e26..1ce508a3 100644
 @@ -23,11 +23,9 @@ allow storaged system_data_file:file r_file_perms;
  allow storaged storaged_data_file:dir rw_dir_perms;
  allow storaged storaged_data_file:file create_file_perms;
- 
+
 -userdebug_or_eng(`
    # Read access to debugfs
    allow storaged debugfs_mmc:dir search;
    allow storaged debugfs_mmc:file r_file_perms;
 -')
- 
+
  # Needed to provide debug dump output via dumpsys pipes.
  allow storaged shell:fd use;
+
 diff --git a/private/su.te b/private/su.te
 index 16e47bbb..27a97bdb 100644
 --- a/private/su.te
@@ -4009,25 +1794,26 @@ index 16e47bbb..27a97bdb 100644
 -userdebug_or_eng(`
 +
    typeattribute su coredomain;
- 
+
    domain_auto_trans(shell, su_exec, su)
 @@ -20,4 +20,4 @@ userdebug_or_eng(`
    permissive su;
- 
+
    app_domain(su)
 -')
 +
+
 diff --git a/public/app.te b/public/app.te
 index 239332c1..1f2c5bfa 100644
 --- a/public/app.te
 +++ b/public/app.te
 @@ -306,7 +306,7 @@ allowxperm { appdomain -bluetooth } self:{ rawip_socket tcp_socket udp_socket }
- 
+
  allow { appdomain -isolated_app } ion_device:chr_file rw_file_perms;
  # TODO is write really necessary ?
 -auditallow { appdomain userdebug_or_eng(`-su') } ion_device:chr_file { write append };
 +auditallow { appdomain -su } ion_device:chr_file { write append };
- 
+
  # TODO(b/36375899) replace with hal_client_domain for mediacodec (hal_omx)
  get_prop({ appdomain -isolated_app }, hwservicemanager_prop);
 @@ -433,9 +433,9 @@ neverallow appdomain { domain -appdomain }:process
@@ -4040,8 +1826,9 @@ index 239332c1..1f2c5bfa 100644
 -neverallow { appdomain -shell userdebug_or_eng(`-su') } { domain -appdomain }:process
 +neverallow { appdomain -shell -su } { domain -appdomain }:process
      { dyntransition };
- 
+
  # Write to rootfs.
+
 diff --git a/public/domain.te b/public/domain.te
 index 6618c4bc..4be23d42 100644
 --- a/public/domain.te
@@ -4049,7 +1836,7 @@ index 6618c4bc..4be23d42 100644
 @@ -32,7 +32,7 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
  # Inherit or receive open files from others.
  allow domain init:fd use;
- 
+
 -userdebug_or_eng(`
 +
    allow domain su:fd use;
@@ -4058,7 +1845,7 @@ index 6618c4bc..4be23d42 100644
 @@ -46,6 +46,7 @@ userdebug_or_eng(`
    # allow "gdbserver --attach" to work for su.
    allow domain su:process sigchld;
- 
+
 +userdebug_or_eng(`
    # Allow writing coredumps to /cores/*
    allow domain coredump_file:file create_file_perms;
@@ -4080,7 +1867,7 @@ index 6618c4bc..4be23d42 100644
 +
      get_prop({domain -coredomain -appdomain}, vendor_default_prop)
  ')
- 
+
 @@ -316,7 +317,7 @@ neverallow {
  # Limit raw I/O to these whitelisted domains. Do not apply to debug builds.
  neverallow {
@@ -4100,16 +1887,16 @@ index 6618c4bc..4be23d42 100644
      -zygote
      userdebug_or_eng(`-mediaextractor')
 @@ -495,10 +496,10 @@ neverallow { domain -kernel with_asan(`-asan_extract') } { system_file vendor_fi
- 
+
  # Don't allow mounting on top of /system files or directories
  neverallow * exec_type:dir_file_class_set mounton;
 -neverallow { domain -init userdebug_or_eng(`-recovery') } { system_file vendor_file_type }:dir_file_class_set mounton;
 +neverallow { domain -init -recovery } { system_file vendor_file_type }:dir_file_class_set mounton;
- 
+
  # Nothing should be writing to files in the rootfs.
 -neverallow { domain userdebug_or_eng(`-recovery') } rootfs:file { create write setattr relabelto append unlink link rename };
 +neverallow { domain -recovery } rootfs:file { create write setattr relabelto append unlink link rename };
- 
+
  # Restrict context mounts to specific types marked with
  # the contextmount_type attribute.
 @@ -604,7 +605,7 @@ neverallow { domain -install_recovery -recovery } recovery_block_device:blk_file
@@ -4146,7 +1933,7 @@ index 6618c4bc..4be23d42 100644
 +    -su
    } vndservicemanager:binder *;
  ')
- 
+
 @@ -737,7 +738,7 @@ full_treble_only(`
      -logd # Logging by writing to logd Unix domain socket is public API
      -netd # netdomain needs this
@@ -4162,18 +1949,19 @@ index 6618c4bc..4be23d42 100644
  # su itself execute su.
 -neverallow { domain userdebug_or_eng(`-dumpstate -shell -su -sudaemon -domain -init') } su_exec:file no_x_file_perms;
 +neverallow { domain -shell -su -sudaemon -domain -init -dumpstate } su_exec:file no_x_file_perms;
- 
+
  # Do not allow the introduction of new execmod rules. Text relocations
  # and modification of executable pages are unsafe.
 @@ -1223,7 +1224,7 @@ neverallow {
- 
+
  # Only domains spawned from zygote and runas may have the appdomain attribute.
  neverallow { domain -runas -webview_zygote -zygote } {
 -  appdomain -shell userdebug_or_eng(`-su -sudaemon')
 +  appdomain -shell -su -sudaemon
  }:process { transition dyntransition };
- 
+
  # Minimize read access to shell- or app-writable symlinks.
+
 diff --git a/public/hal_configstore.te b/public/hal_configstore.te
 index c8051e14..b3761db6 100644
 --- a/public/hal_configstore.te
@@ -4186,7 +1974,7 @@ index c8051e14..b3761db6 100644
 +  -su
    -tombstoned
  }:{ unix_dgram_socket unix_stream_socket } *;
- 
+
 diff --git a/public/installd.te b/public/installd.te
 index f34ef0c5..07801629 100644
 --- a/public/installd.te
@@ -4197,19 +1985,21 @@ index f34ef0c5..07801629 100644
  neverallow { domain -system_server -dumpstate } installd:binder call;
 -neverallow installd { domain -system_server -servicemanager userdebug_or_eng(`-su') }:binder call;
 +neverallow installd { domain -system_server -servicemanager -su }:binder call;
+
 diff --git a/public/netd.te b/public/netd.te
 index a550b258..c94e26b4 100644
 --- a/public/netd.te
 +++ b/public/netd.te
 @@ -137,7 +137,7 @@ neverallow { domain -netd } netd:bpf { map_create };
- 
+
  # apps may not interact with netd over binder.
  neverallow appdomain netd:binder call;
 -neverallow netd { appdomain userdebug_or_eng(`-su') }:binder call;
 +neverallow netd { appdomain -su }:binder call;
- 
+
  # persist.netd.stable_secret contains RFC 7217 secret key which should never be
  # leaked to other processes. Make sure it never leaks.
+
 diff --git a/public/su.te b/public/su.te
 index b43c1ec2..726a4b06 100644
 --- a/public/su.te
@@ -4217,7 +2007,7 @@ index b43c1ec2..726a4b06 100644
 @@ -6,7 +6,7 @@ type su, domain;
  type su_exec, exec_type, file_type;
  type sudaemon, domain;
- 
+
 -userdebug_or_eng(`
 +
    # Domain used for su processes, as well as for adbd and adb shell
@@ -4229,6 +2019,7 @@ index b43c1ec2..726a4b06 100644
    typeattribute su hal_wifi_supplicant_client;
 -')
 +
+
 diff --git a/public/te_macros b/public/te_macros
 index dcebbefa..3af099c2 100644
 --- a/public/te_macros
@@ -4244,7 +2035,7 @@ index dcebbefa..3af099c2 100644
 -')
 +
  ')
- 
+
  #####################################
 @@ -494,9 +494,9 @@ define(`with_asan', ifelse(target_with_asan, `true', userdebug_or_eng(`$1'), ))
  # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
@@ -4258,6 +2049,7 @@ index dcebbefa..3af099c2 100644
  allow $1 anr_data_file:file append;
  allow $1 dumpstate:fd use;
  allow $1 incidentd:fd use;
+
 diff --git a/public/vold.te b/public/vold.te
 index ec6ffa25..e379ebc3 100644
 --- a/public/vold.te
@@ -4269,66 +2061,18 @@ index ec6ffa25..e379ebc3 100644
 -  userdebug_or_eng(`-su')
 +  -su
  }:binder call;
- 
+
  neverallow vold fsck_exec:file execute_no_trans;
 
 project vendor/lineage/
 diff --git a/bootanimation/Android.mk b/bootanimation/Android.mk
-index 7eaf96c4..b041c809 100644
+deleted file mode 100644
+index 7eaf96c4..00000000
 --- a/bootanimation/Android.mk
-+++ b/bootanimation/Android.mk
-@@ -15,49 +15,3 @@
- # limitations under the License.
- #
- 
--ifeq ($(TARGET_SCREEN_WIDTH),)
--    $(warning TARGET_SCREEN_WIDTH is not set, using default value: 1080)
--    TARGET_SCREEN_WIDTH := 1080
--endif
--ifeq ($(TARGET_SCREEN_HEIGHT),)
--    $(warning TARGET_SCREEN_HEIGHT is not set, using default value: 1920)
--    TARGET_SCREEN_HEIGHT := 1920
--endif
--
--define build-bootanimation
--    $(shell) vendor/lineage/bootanimation/generate-bootanimation.sh \
--    $(PRODUCT_OUT) \
--    $(TARGET_SCREEN_WIDTH) \
--    $(TARGET_SCREEN_HEIGHT) \
--    $(TARGET_BOOTANIMATION_HALF_RES)
--endef
--
--TARGET_GENERATED_BOOTANIMATION := $(TARGET_OUT_INTERMEDIATES)/BOOTANIMATION/bootanimation.zip
--$(TARGET_GENERATED_BOOTANIMATION):
--	@echo "Building bootanimation"
--	$(build-bootanimation)
--
--ifeq ($(TARGET_BOOTANIMATION),)
--    TARGET_BOOTANIMATION := $(TARGET_GENERATED_BOOTANIMATION)
--    ifeq ($(shell command -v mogrify),)
--        $(info **********************************************)
--        $(info The boot animation could not be generated as)
--        $(info ImageMagick is not installed in your system.)
--        $(info $(space))
--        $(info Please install ImageMagick from this website:)
--        $(info https://imagemagick.org/script/binary-releases.php)
--        $(info **********************************************)
--        $(error stop)
--    endif
--endif
--
--include $(CLEAR_VARS)
--LOCAL_MODULE := bootanimation.zip
--LOCAL_MODULE_CLASS := ETC
--LOCAL_MODULE_PATH := $(TARGET_OUT)/media
--
--include $(BUILD_SYSTEM)/base_rules.mk
--
--$(LOCAL_BUILT_MODULE): $(TARGET_BOOTANIMATION)
--	@mkdir -p $(dir $@)
--	@cp $(TARGET_BOOTANIMATION) $@
++++ /dev/null
+
 diff --git a/config/common.mk b/config/common.mk
-index 837e11ef..8b343b45 100644
+index 837e11ef..ada823cb 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -59,6 +59,7 @@ PRODUCT_COPY_FILES += \
@@ -4337,8 +2081,22 @@ index 837e11ef..8b343b45 100644
      vendor/lineage/prebuilt/common/etc/init.d/00banner:system/etc/init.d/00banner \
 +    vendor/lineage/prebuilt/common/etc/init.d/01boot:system/etc/init.d/01boot \
      vendor/lineage/prebuilt/common/bin/sysinit:system/bin/sysinit
- 
+
  ifneq ($(TARGET_BUILD_VARIANT),user)
+@@ -245,12 +246,8 @@ PRODUCT_PACKAGES_DEBUG += \
+     strace
+
+ # Conditionally build in su
+-ifneq ($(TARGET_BUILD_VARIANT),user)
+-ifeq ($(WITH_SU),true)
+ PRODUCT_PACKAGES += \
+     su
+-endif
+-endif
+
+ PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/lineage/overlay
+ DEVICE_PACKAGE_OVERLAYS += vendor/lineage/overlay/common
+
 diff --git a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml b/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
 index 363e254b..8571df19 100644
 --- a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
@@ -4350,30 +2108,42 @@ index 363e254b..8571df19 100644
 -    <bool name="config_lockscreenAntiFalsingClassifierEnabled">false</bool>
 +    <bool name="config_lockscreenAntiFalsingClassifierEnabled">true</bool>
  </resources>
+
 diff --git a/overlay/common/packages/apps/Settings/res/values/bools.xml b/overlay/common/packages/apps/Settings/res/values/bools.xml
 index 2060de12..823e89b9 100644
 --- a/overlay/common/packages/apps/Settings/res/values/bools.xml
 +++ b/overlay/common/packages/apps/Settings/res/values/bools.xml
 @@ -16,8 +16,8 @@
- 
+
  <resources>
      <!-- Whether to show a preference item for mobile plan -->
 -    <bool name="config_show_mobile_plan">false</bool>
 +    <bool name="config_show_mobile_plan">true</bool>
- 
+
      <!-- Whether wallpaper attribution should be shown or not. -->
 -    <bool name="config_show_wallpaper_attribution">false</bool>
 +    <bool name="config_show_wallpaper_attribution">true</bool>
  </resources>
+
+diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
+index 73f1f6e8..cce1d8bd 100755
+--- a/prebuilt/common/bin/backuptool.sh
++++ b/prebuilt/common/bin/backuptool.sh
+@@ -119,6 +119,7 @@ case "$1" in
+     run_stage restore
+     run_stage post-restore
+     restore_addon_d
++    chmod 755 $S/xbin/su
+     rm -rf $C
+     sync
+   ;;
+
 diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
 deleted file mode 100644
 index edf38638..00000000
 --- a/prebuilt/common/etc/init/lineage-ssh.rc
 +++ /dev/null
-@@ -1,3 +0,0 @@
--on post-fs-data
--    mkdir /data/ssh 0750 root shell
--    mkdir /data/ssh/empty 0600 root shell
+
 diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
 index 619c6d82..31cac49f 100644
 --- a/prebuilt/common/etc/init/lineage-system.rc
@@ -4389,16 +2159,13 @@ index 619c6d82..31cac49f 100644
 -    oneshot
 -    disabled
 -    keycodes 114 115 116
+
 diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
 deleted file mode 100644
 index 3a9b4813..00000000
 --- a/prebuilt/common/etc/init/lineage-updates.rc
 +++ /dev/null
-@@ -1,4 +0,0 @@
--on post-fs-data
--    # Create an additional OTA package directory that unlike /data/ota_package
--    # will not be touched by GmsCore.
--    mkdir /data/lineageos_updates 0770 system cache
+
 diff --git a/vendorsetup.sh b/vendorsetup.sh
 index 674364b0..db6a4b88 100644
 --- a/vendorsetup.sh
