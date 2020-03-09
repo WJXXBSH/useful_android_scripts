@@ -301,7 +301,7 @@ index 82a4abfac..b2595d45e 100644
  	$(MAKEPARALLEL_CXX_SRCS))
 
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index f7ab11cd8..355bce2d2 100644
+index f7ab11cd8..6cda1b041 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -1751,7 +1751,7 @@ class BlockDifference(object):
@@ -309,7 +309,7 @@ index f7ab11cd8..355bce2d2 100644
 
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=11',
++      brotli_cmd = ['brotli', '--quality=9',
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
@@ -884,6 +884,21 @@ index 7edf729608a..83fd95ea5a3 100644
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
 
+project hardware/qcom/audio-caf/msm8994/
+diff --git a/hal/Android.mk b/hal/Android.mk
+index b7511d527..ded6051fa 100644
+--- a/hal/Android.mk
++++ b/hal/Android.mk
+@@ -259,8 +259,6 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_AUXPCM_BT)),true)
+     LOCAL_CFLAGS += -DAUXPCM_BT_ENABLED
+ endif
+
+-LOCAL_CFLAGS += -Wall -Werror
+-
+ LOCAL_COPY_HEADERS_TO   := mm-audio
+ LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
+
+
 project hardware/qcom/media-caf/msm8994/
 diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
 index 6f783c429..c14bdcffe 100644
@@ -924,25 +939,11 @@ index ff43abdcd..f1b15dfc3 100644
  libmm-venc-def += -D_ANDROID_ICS_
  libmm-venc-def += -D_MSM8974_
 
-project lineage-sdk/
-diff --git a/packages/LineageSettingsProvider/Android.bp b/packages/LineageSettingsProvider/Android.bp
-deleted file mode 100644
-index 3b9d3e6..0000000
---- a/packages/LineageSettingsProvider/Android.bp
-+++ /dev/null
-
 project packages/apps/AudioFX/
 diff --git a/Android.mk b/Android.mk
 deleted file mode 100644
 index ba2c9ba..0000000
 --- a/Android.mk
-+++ /dev/null
-
-project packages/apps/Bluetooth/
-diff --git a/tests b/tests
-deleted file mode 100644
-index fd297e35..00000000
---- a/tests
 +++ /dev/null
 
 project packages/apps/Calendar/
@@ -1381,7 +1382,7 @@ index ff38a43a..de5a58af 100644
  	$(hide) mv $@.tmp $@
 
 diff --git a/prebuilts/api/28.0/private/adbd.te b/prebuilts/api/28.0/private/adbd.te
-index 3ac47443..1b44403d 100644
+index 3ac47443..a963c5d9 100644
 --- a/prebuilts/api/28.0/private/adbd.te
 +++ b/prebuilts/api/28.0/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
@@ -1397,22 +1398,6 @@ index 3ac47443..1b44403d 100644
 
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
-@@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
- allow adbd adb_keys_file:dir search;
- allow adbd adb_keys_file:file r_file_perms;
-
--userdebug_or_eng(`
-+
-   # Write debugging information to /data/adb
-   # when persist.adb.trace_mask is set
-   # https://code.google.com/p/android/issues/detail?id=72895
-   allow adbd adb_data_file:dir rw_dir_perms;
-   allow adbd adb_data_file:file create_file_perms;
--')
-+
-
- # ndk-gdb invokes adb forward to forward the gdbserver socket.
- allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
  # transitions to the shell domain (except when it crashes). In particular, we
  # never want to see a transition from adbd to su (aka "adb root")
@@ -1717,7 +1702,7 @@ index 852e91ea..5a663f23 100644
  neverallow vold fsck_exec:file execute_no_trans;
 
 diff --git a/private/adbd.te b/private/adbd.te
-index 3ac47443..1b44403d 100644
+index 3ac47443..a963c5d9 100644
 --- a/private/adbd.te
 +++ b/private/adbd.te
 @@ -7,10 +7,10 @@ init_daemon_domain(adbd)
@@ -1733,22 +1718,6 @@ index 3ac47443..1b44403d 100644
 
  # Do not sanitize the environment or open fds of the shell. Allow signaling
  # created processes.
-@@ -90,13 +90,13 @@ hal_client_domain(adbd, hal_graphics_allocator)
- allow adbd adb_keys_file:dir search;
- allow adbd adb_keys_file:file r_file_perms;
-
--userdebug_or_eng(`
-+
-   # Write debugging information to /data/adb
-   # when persist.adb.trace_mask is set
-   # https://code.google.com/p/android/issues/detail?id=72895
-   allow adbd adb_data_file:dir rw_dir_perms;
-   allow adbd adb_data_file:file create_file_perms;
--')
-+
-
- # ndk-gdb invokes adb forward to forward the gdbserver socket.
- allow adbd app_data_file:dir search;
 @@ -149,4 +149,4 @@ allow adbd rootfs:dir r_dir_perms;
  # transitions to the shell domain (except when it crashes). In particular, we
  # never want to see a transition from adbd to su (aka "adb root")
@@ -1768,23 +1737,6 @@ index 4338e400..2762e923 100644
 +  -su
    -system_app
  } runtime_event_log_tags_file:file no_rw_file_perms;
-
-diff --git a/private/storaged.te b/private/storaged.te
-index 931d0e26..1ce508a3 100644
---- a/private/storaged.te
-+++ b/private/storaged.te
-@@ -23,11 +23,9 @@ allow storaged system_data_file:file r_file_perms;
- allow storaged storaged_data_file:dir rw_dir_perms;
- allow storaged storaged_data_file:file create_file_perms;
-
--userdebug_or_eng(`
-   # Read access to debugfs
-   allow storaged debugfs_mmc:dir search;
-   allow storaged debugfs_mmc:file r_file_perms;
--')
-
- # Needed to provide debug dump output via dumpsys pipes.
- allow storaged shell:fd use;
 
 diff --git a/private/su.te b/private/su.te
 index 16e47bbb..27a97bdb 100644

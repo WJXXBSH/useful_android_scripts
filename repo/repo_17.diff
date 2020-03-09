@@ -1,6 +1,6 @@
 project build/make/
 diff --git a/core/Makefile b/core/Makefile
-index 469223070..4d2a1c3a3 100644
+index f98a2c0c6..d07099ca1 100644
 --- a/core/Makefile
 +++ b/core/Makefile
 @@ -302,9 +302,9 @@ endif
@@ -399,7 +399,7 @@ index 82a4abfac..b2595d45e 100644
  	$(MAKEPARALLEL_CXX_SRCS))
 
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index 9f57773ba..b0573c500 100644
+index 9f57773ba..e0a41f30b 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -2148,7 +2148,7 @@ class BlockDifference(object):
@@ -407,7 +407,7 @@ index 9f57773ba..b0573c500 100644
 
      if not self.src:
 -      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=11',
++      brotli_cmd = ['brotli', '--quality=9',
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
@@ -454,6 +454,21 @@ index b948b61..d62a3e0 100644
      permissive backuptool;
 -')
 +
+
+diff --git a/common/private/file_contexts b/common/private/file_contexts
+index d6708f8..c3e62f6 100644
+--- a/common/private/file_contexts
++++ b/common/private/file_contexts
+@@ -18,6 +18,9 @@
+ /system/bin/backuptool_ab\.sh                     u:object_r:otapreopt_chroot_exec:s0
+ /system/bin/backuptool_postinstall\.sh            u:object_r:otapreopt_chroot_exec:s0
+
++# Superuser's control sockets
++/dev/socket/su-daemon(/.*)?             u:object_r:superuser_device:s0
++
+ # ADB Root
+ /system/bin/adb_root       u:object_r:adbroot_exec:s0
+ /data/adbroot(/.*)?        u:object_r:adbroot_data_file:s0
 
 diff --git a/common/private/recovery.te b/common/private/recovery.te
 index f55499a..f339c31 100644
@@ -515,9 +530,9 @@ index 249c7ac..d39a9d3 100644
 -endif # !EXCLUDE_SERIF_FONTS && !SMALLER_FONT_FOOTPRINT
 -
  #############################################################################
- # Now "build" the Noto Color Emoji font, which is in it
-  own directory. It is
+ # Now "build" the Noto Color Emoji font, which is in its own directory. It is
  # not included in the MINIMAL_FONT_FOOTPRINT builds.
+
 diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
 index 5a324bf..4a274ce 100755
 --- a/cjk/subset_noto_cjk.py
@@ -633,10 +648,10 @@ index 858a4e8a3..000000000
 
 project frameworks/base/
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
-index 7d45b963d87..61caed9b7d4 100644
+index aa038961a0f..df996b44469 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
-@@ -2640,6 +2640,13 @@
+@@ -2644,6 +2644,13 @@
          android:description="@string/permdesc_getPackageSize"
          android:protectionLevel="normal" />
 
@@ -652,19 +667,19 @@ index 7d45b963d87..61caed9b7d4 100644
           for details. -->
 
 diff --git a/core/res/res/values-zh-rCN/strings.xml b/core/res/res/values-zh-rCN/strings.xml
-index 4f21cc20aca..720061d1657 100644
+index 833fd533fe7..02a7e827166 100644
 --- a/core/res/res/values-zh-rCN/strings.xml
 +++ b/core/res/res/values-zh-rCN/strings.xml
-@@ -2035,4 +2035,6 @@
+@@ -2046,4 +2046,6 @@
      </plurals>
-     <string name="chooser_no_direct_share_targets" msgid="997970693708458895">"无法使用直接分享功能"</string>
-     <string name="chooser_all_apps_button_label" msgid="3631524352936289457">"应用列表"</string>
+     <string name="chooser_no_direct_share_targets" msgid="492542066060841139">"无法使用直接分享功能"</string>
+     <string name="chooser_all_apps_button_label" msgid="3230427756238666328">"应用列表"</string>
 +    <string name="permlab_fakePackageSignature">模拟软件包签名</string>
 +    <string name="permdesc_fakePackageSignature">允许应用伪装成为其他应用</string>
  </resources>
 
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
-index bc53ad19dfa..1a4fe618859 100644
+index 131e015f5a1..d4b9b5d7fbc 100644
 --- a/core/res/res/values/config.xml
 +++ b/core/res/res/values/config.xml
 @@ -1872,6 +1872,8 @@
@@ -678,7 +693,7 @@ index bc53ad19dfa..1a4fe618859 100644
      <!-- This string array can be overriden to enable test location providers initially. -->
 
 diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
-index 71bd8022983..efe8fced90f 100644
+index 800399ef084..286fe752a51 100644
 --- a/core/res/res/values/strings.xml
 +++ b/core/res/res/values/strings.xml
 @@ -830,6 +830,11 @@
@@ -688,7 +703,7 @@ index 71bd8022983..efe8fced90f 100644
 +    <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 +    <string name="permlab_fakePackageSignature">Spoof package signature</string>
 +    <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
-+    <string name="permdesc_fakePackageSignature">Allows the app to pretend to be a different app. Malicious applications might be able to use this to access private application data. Legitimate uses include an emulator pretending to be what it emulates. Grant this permission with caution only!</string>
++    <string name="permdesc_fakePackageSignature">Allows the app to pretend to be a different app.</string>
 +
      <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
      <string name="permlab_statusBar">disable or modify status bar</string>
@@ -779,10 +794,10 @@ index 43ed810b567..00000000000
 +++ /dev/null
 
 diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
-index eecc10158e8..31a20948a36 100644
+index eecc10158e8..7adfcfe9033 100644
 --- a/packages/overlays/Android.mk
 +++ b/packages/overlays/Android.mk
-@@ -17,35 +17,6 @@ include $(CLEAR_VARS)
+@@ -17,41 +17,6 @@ include $(CLEAR_VARS)
 
  LOCAL_MODULE := frameworks-base-overlays
  LOCAL_REQUIRED_MODULES := \
@@ -815,12 +830,18 @@ index eecc10158e8..31a20948a36 100644
 -	IconShapeRoundedRectOverlay \
 -	IconShapeSquircleOverlay \
 -	IconShapeTeardropOverlay \
- 	NavigationBarMode3ButtonOverlay \
- 	NavigationBarMode2ButtonOverlay \
- 	NavigationBarModeGesturalOverlay \
+-	NavigationBarMode3ButtonOverlay \
+-	NavigationBarMode2ButtonOverlay \
+-	NavigationBarModeGesturalOverlay \
+-	NavigationBarModeGesturalOverlayNarrowBack \
+-	NavigationBarModeGesturalOverlayWideBack \
+-	NavigationBarModeGesturalOverlayExtraWideBack
+
+ include $(BUILD_PHONY_PACKAGE)
+ include $(CLEAR_VARS)
 
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
-index 21387704186..1924f5ce328 100644
+index 9aed9109e24..c8f4967676b 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
 +++ b/services/core/java/com/android/server/pm/PackageManagerService.java
 @@ -4157,8 +4157,9 @@ public class PackageManagerService extends IPackageManager.Stub
@@ -853,13 +874,28 @@ index 21387704186..1924f5ce328 100644
 +        } catch (Throwable t) {
 +            // We should never die because of any failures, this is system code!
 +            Log.w("PackageManagerService.FAKE_PACKAGE_SIGNATURE", t);
-+	    }
++           }
 +        return pi;
 +    }
 +
      @Override
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
+
+project hardware/qcom-caf/msm8994/audio/
+diff --git a/hal/Android.mk b/hal/Android.mk
+index 7eca4aaf7..46d6fd0d1 100644
+--- a/hal/Android.mk
++++ b/hal/Android.mk
+@@ -264,8 +264,6 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_AUXPCM_BT)),true)
+     LOCAL_CFLAGS += -DAUXPCM_BT_ENABLED
+ endif
+
+-LOCAL_CFLAGS += -Wall -Werror
+-
+ LOCAL_COPY_HEADERS_TO   := mm-audio
+ LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
+
 
 project hardware/qcom-caf/msm8994/media/
 diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
@@ -934,35 +970,11 @@ index f44369e..0000000
 --- a/Android.mk
 +++ /dev/null
 
-project packages/apps/Bluetooth/
+project packages/apps/Calendar/
 diff --git a/Android.mk b/Android.mk
-index a34d2a34f..07396867b 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -58,8 +58,8 @@ include $(call all-makefiles-under,$(LOCAL_PATH))
-
- include $(CLEAR_VARS)
-
--COMMON_LIBS_PATH := ../../../../../prebuilts/tools/common/m2/repository
--ROOM_LIBS_PATH := ../../lib/room
-+COMMON_LIBS_PATH := ../../../prebuilts/tools/common/m2/repository
-+ROOM_LIBS_PATH := lib/room
-
- LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
-         bt-androidx-annotation-nodeps:$(ROOM_LIBS_PATH)/annotation-1.0.0-beta01.jar \
-@@ -72,6 +72,6 @@ LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
-         bt-javapoet-nodeps:$(COMMON_LIBS_PATH)/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar \
-         bt-kotlin-metadata-nodeps:$(COMMON_LIBS_PATH)/me/eugeniomarletti/kotlin-metadata/1.2.1/kotlin-metadata-1.2.1.jar \
-         bt-sqlite-jdbc-nodeps:$(COMMON_LIBS_PATH)/org/xerial/sqlite-jdbc/3.20.1/sqlite-jdbc-3.20.1.jar \
--        bt-jetbrain-nodeps:../../../../../prebuilts/tools/common/m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar
-+        bt-jetbrain-nodeps:../../../prebuilts/tools/common/m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar
-
- include $(BUILD_HOST_PREBUILT)
-
-diff --git a/tests b/tests
 deleted file mode 100644
-index fd297e353..000000000
---- a/tests
+index 4b5744a7..00000000
+--- a/Android.mk
 +++ /dev/null
 
 project packages/apps/CellBroadcastReceiver/
@@ -983,7 +995,6 @@ deleted file mode 100644
 index 673ecff3..00000000
 --- a/tests/unit/Android.bp
 +++ /dev/null
-
 
 project packages/apps/Eleven/
 diff --git a/Android.mk b/Android.mk
@@ -1013,6 +1024,69 @@ deleted file mode 100644
 index 3469d737..00000000
 --- a/Android.mk
 +++ /dev/null
+
+project packages/apps/Settings/
+diff --git a/res/values-zh-rCN/cm_strings.xml b/res/values-zh-rCN/cm_strings.xml
+index a3ca2b41a6..599b948a75 100644
+--- a/res/values-zh-rCN/cm_strings.xml
++++ b/res/values-zh-rCN/cm_strings.xml
+@@ -65,6 +65,9 @@
+     <string name="security_settings_fingerprint_sensor_location_right">右侧</string>
+     <string name="status_bar_double_tap_to_sleep_title">点按以睡眠</string>
+     <string name="status_bar_double_tap_to_sleep_summary">双击状态栏或锁屏以关闭屏幕</string>
++    <string name="root_access">Root 授权</string>
++    <string name="root_access_none">已禁用</string>
++    <string name="root_access_all">应用与 ADB</string>
+     <string name="touchscreen_gesture_settings_title">触摸屏手势</string>
+     <string name="touchscreen_gesture_settings_summary">为快捷操作采用各种触摸屏手势</string>
+     <string name="proximity_wake_title">防止意外唤醒</string>
+
+diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
+index d377cec7b9..e6367ffbed 100644
+--- a/res/values/cm_strings.xml
++++ b/res/values/cm_strings.xml
+@@ -122,6 +122,11 @@
+     <string name="proximity_wake_title">Prevent accidental wake-up</string>
+     <string name="proximity_wake_summary">Check the proximity sensor prior to waking up screen</string>
+
++    <!-- Setting checkbox title for root access -->
++    <string name="root_access">Root access</string>
++    <string name="root_access_none">Disabled</string>
++    <string name="root_access_all">Apps and ADB</string>
++
+     <!-- Wake on plug -->
+     <string name="wake_when_plugged_or_unplugged_title">Wake on plug</string>
+     <string name="wake_when_plugged_or_unplugged_summary">Turn the screen on when connecting or disconnecting a power source</string>
+
+diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
+index 9e43b833a9..7977de5c42 100644
+--- a/res/xml/development_settings.xml
++++ b/res/xml/development_settings.xml
+@@ -126,6 +126,11 @@
+             android:fragment="com.android.settings.development.qstile.DevelopmentTileConfigFragment"
+             settings:searchable="false" />
+
++        <ListPreference
++            android:key="root_access"
++            android:title="@string/root_access"
++            android:persistent="false" />
++
+     <!-- Configure trust agent behavior -->
+     <SwitchPreference
+         android:key="security_setting_trust_agents_extend_unlock"
+
+diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
+index a935386b98..3e26d7db01 100644
+--- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
++++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
+@@ -499,6 +499,7 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
+         controllers.add(new ShortcutManagerThrottlingPreferenceController(context));
+         controllers.add(new BubbleGlobalPreferenceController(context));
+         controllers.add(new EnableGnssRawMeasFullTrackingPreferenceController(context));
++        controllers.add(new RootAccessPreferenceController(context, fragment));
+         controllers.add(new DefaultLaunchPreferenceController(context, "running_apps"));
+         controllers.add(new DefaultLaunchPreferenceController(context, "demo_mode"));
+         controllers.add(new DefaultLaunchPreferenceController(context, "quick_settings_tiles"));
 
 project packages/apps/Snap/
 diff --git a/res/values/config.xml b/res/values/config.xml
@@ -1544,6 +1618,611 @@ index dadd7b0a..1c922225 100644
  		fi
  	$(hide) mv $@.tmp $@
 
+diff --git a/prebuilts/api/29.0/private/adbd.te b/prebuilts/api/29.0/private/adbd.te
+index ec5c57ee..48325142 100644
+--- a/prebuilts/api/29.0/private/adbd.te
++++ b/prebuilts/api/29.0/private/adbd.te
+@@ -7,10 +7,10 @@ init_daemon_domain(adbd)
+
+ domain_auto_trans(adbd, shell_exec, shell)
+
+-userdebug_or_eng(`
++
+   allow adbd self:process setcurrent;
+   allow adbd su:process dyntransition;
+-')
++
+
+ # When 'adb shell' is executed in recovery mode, adbd explicitly
+ # switches into shell domain using setcon() because the shell executable
+@@ -191,4 +191,4 @@ allow adbd shell:fd use;
+ # transitions to the shell domain (except when it crashes). In particular, we
+ # never want to see a transition from adbd to su (aka "adb root")
+ neverallow adbd { domain -crash_dump -shell }:process transition;
+-neverallow adbd { domain userdebug_or_eng(`-su') recovery_only(`-shell') }:process dyntransition;
++neverallow adbd { domain -su -shell }:process dyntransition;
+
+diff --git a/prebuilts/api/29.0/private/compat/26.0/26.0.ignore.cil b/prebuilts/api/29.0/private/compat/26.0/26.0.ignore.cil
+index b12f917d..ee5efbbc 100644
+--- a/prebuilts/api/29.0/private/compat/26.0/26.0.ignore.cil
++++ b/prebuilts/api/29.0/private/compat/26.0/26.0.ignore.cil
+@@ -225,3 +225,6 @@
+   ( priv_objects
+     adbd_tmpfs
+     untrusted_app_27_tmpfs))
++
++allow sudaemon untrusted_app_all_devpts:chr_file *;
++allow untrusted_app untrusted_app_all_devpts:chr_file *;
+
+diff --git a/prebuilts/api/29.0/private/logd.te b/prebuilts/api/29.0/private/logd.te
+index ca92e206..7e2d23d7 100644
+--- a/prebuilts/api/29.0/private/logd.te
++++ b/prebuilts/api/29.0/private/logd.te
+@@ -33,6 +33,6 @@ neverallow {
+   -priv_app
+   -radio
+   -shell
+-  userdebug_or_eng(`-su')
++  -su
+   -system_app
+ } runtime_event_log_tags_file:file no_rw_file_perms;
+
+diff --git a/prebuilts/api/29.0/private/su.te b/prebuilts/api/29.0/private/su.te
+index 16e47bbb..27a97bdb 100644
+--- a/prebuilts/api/29.0/private/su.te
++++ b/prebuilts/api/29.0/private/su.te
+@@ -1,4 +1,4 @@
+-userdebug_or_eng(`
++
+   typeattribute su coredomain;
+
+   domain_auto_trans(shell, su_exec, su)
+@@ -20,4 +20,4 @@ userdebug_or_eng(`
+   permissive su;
+
+   app_domain(su)
+-')
++
+
+diff --git a/prebuilts/api/29.0/private/untrusted_app_25.te b/prebuilts/api/29.0/private/untrusted_app_25.te
+index a35d81bd..e1b5136d 100644
+--- a/prebuilts/api/29.0/private/untrusted_app_25.te
++++ b/prebuilts/api/29.0/private/untrusted_app_25.te
+@@ -41,6 +41,7 @@ allow untrusted_app_25 proc_misc:file r_file_perms;
+ # https://github.com/strazzere/anti-emulator/blob/master/AntiEmulator/src/diff/strazzere/anti/emulator/FindEmulator.java
+ # This will go away in a future Android release
+ allow untrusted_app_25 proc_tty_drivers:file r_file_perms;
++allow untrusted_app socket_device:sock_file *;
+
+ # Text relocation support for API < 23. This is now disallowed for targetSdkVersion>=Q.
+ # https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md#text-relocations-enforced-for-api-level-23
+
+diff --git a/prebuilts/api/29.0/private/untrusted_app_all.te b/prebuilts/api/29.0/private/untrusted_app_all.te
+index 3c20c082..cf8111d1 100644
+--- a/prebuilts/api/29.0/private/untrusted_app_all.te
++++ b/prebuilts/api/29.0/private/untrusted_app_all.te
+@@ -168,6 +168,7 @@ dontaudit untrusted_app_all net_dns_prop:file read;
+ dontaudit untrusted_app_all proc_stat:file read;
+ dontaudit untrusted_app_all proc_vmstat:file read;
+ dontaudit untrusted_app_all proc_uptime:file read;
++allow untrusted_app socket_device:sock_file *;
+
+ # Allow the allocation and use of ptys
+ # Used by: https://play.google.com/store/apps/details?id=jackpal.androidterm
+
+diff --git a/prebuilts/api/29.0/public/app.te b/prebuilts/api/29.0/public/app.te
+index 5c48e71f..0586f6d3 100644
+--- a/prebuilts/api/29.0/public/app.te
++++ b/prebuilts/api/29.0/public/app.te
+@@ -193,7 +193,7 @@ r_dir_file({
+   -untrusted_app_all
+ }, proc_net_type)
+ # audit access for all these non-core app domains.
+-userdebug_or_eng(`
++
+   auditallow {
+     appdomain
+     -ephemeral_app
+@@ -205,7 +205,7 @@ userdebug_or_eng(`
+     -system_app
+     -untrusted_app_all
+   } proc_net_type:{ dir file lnk_file } { getattr open read };
+-')
++
+
+ # Grant GPU access to all processes started by Zygote.
+ # They need that to render the standard UI.
+
+diff --git a/prebuilts/api/29.0/public/domain.te b/prebuilts/api/29.0/public/domain.te
+index f3487018..285dc30a 100644
+--- a/prebuilts/api/29.0/public/domain.te
++++ b/prebuilts/api/29.0/public/domain.te
+@@ -32,7 +32,6 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
+ # Inherit or receive open files from others.
+ allow domain init:fd use;
+
+-userdebug_or_eng(`
+   allow domain su:fd use;
+   allow domain su:unix_stream_socket { connectto getattr getopt read write shutdown };
+   allow domain su:unix_dgram_socket sendto;
+@@ -46,6 +45,7 @@ userdebug_or_eng(`
+   # allow "gdbserver --attach" to work for su.
+   allow domain su:process sigchld;
+
++userdebug_or_eng(`
+   # Allow writing coredumps to /cores/*
+   allow domain coredump_file:file create_file_perms;
+   allow domain coredump_file:dir ra_dir_perms;
+@@ -602,7 +602,7 @@ neverallow {
+ # this partition for testing purposes.
+ neverallow {
+   domain
+-  userdebug_or_eng(`-domain') # exclude debuggable builds
++  -domain # exclude debuggable builds
+   -fastbootd
+   -hal_bootctl_server
+   -init
+@@ -688,7 +688,7 @@ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+     -ueventd # uevent is granted create for this device, but we still neverallow I/O below
+   } vndbinder_device:chr_file rw_file_perms;
+ ')
+@@ -699,14 +699,14 @@ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+   } vndservice_manager_type:service_manager *;
+ ')
+ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+   } vndservicemanager:binder *;
+ ')
+
+@@ -742,7 +742,7 @@ full_treble_only(`
+     -logd # Logging by writing to logd Unix domain socket is public API
+     -netd # netdomain needs this
+     -mdnsd # netdomain needs this
+-    userdebug_or_eng(`-su') # communications with su are permitted only on userdebug or eng builds
++    -su # communications with su are permitted only on userdebug or eng builds
+     -init
+     -tombstoned # linker to tombstoned
+     userdebug_or_eng('-heapprofd`)
+@@ -1108,7 +1108,7 @@ neverallow * { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file } mou
+ # Nobody should be able to execute su on user builds.
+ # On userdebug/eng builds, only dumpstate, shell, and
+ # su itself execute su.
+-neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
++neverallow { domain -dumpstate -shell -su } su_exec:file no_x_file_perms;
+
+ # Do not allow the introduction of new execmod rules. Text relocations
+ # and modification of executable pages are unsafe.
+@@ -1196,7 +1196,7 @@ neverallow {
+ # Only domains spawned from zygote, runas and simpleperf_app_runner may have the appdomain
+ # attribute.
+ neverallow { domain -simpleperf_app_runner -runas -app_zygote -webview_zygote -zygote } {
+-  appdomain -shell userdebug_or_eng(`-su')
++  appdomain -shell -su
+ }:process { transition dyntransition };
+
+ # Minimize read access to shell- or app-writable symlinks.
+
+diff --git a/prebuilts/api/29.0/public/hal_configstore.te b/prebuilts/api/29.0/public/hal_configstore.te
+index 1a95b72f..edcdc267 100644
+--- a/prebuilts/api/29.0/public/hal_configstore.te
++++ b/prebuilts/api/29.0/public/hal_configstore.te
+@@ -31,7 +31,7 @@ neverallow hal_configstore_server {
+   domain
+   -hal_configstore_server
+   -logd
+-  userdebug_or_eng(`-su')
++  -su
+   -tombstoned
+   userdebug_or_eng(`-heapprofd')
+ }:{ unix_dgram_socket unix_stream_socket } *;
+
+diff --git a/prebuilts/api/29.0/public/installd.te b/prebuilts/api/29.0/public/installd.te
+index f0ac52a0..eb78d9e6 100644
+--- a/prebuilts/api/29.0/public/installd.te
++++ b/prebuilts/api/29.0/public/installd.te
+@@ -173,5 +173,5 @@ neverallow installd {
+     -ashmemd
+     -system_server
+     -servicemanager
+-    userdebug_or_eng(`-su')
++    -su
+ }:binder call;
+
+diff --git a/prebuilts/api/29.0/public/netd.te b/prebuilts/api/29.0/public/netd.te
+index c8877b24..540e04e9 100644
+--- a/prebuilts/api/29.0/public/netd.te
++++ b/prebuilts/api/29.0/public/netd.te
+@@ -158,7 +158,7 @@ neverallow {
+
+ # apps may not interact with netd over binder.
+ neverallow { appdomain -network_stack } netd:binder call;
+-neverallow netd { appdomain -network_stack userdebug_or_eng(`-su') }:binder call;
++neverallow netd { appdomain -network_stack -su }:binder call;
+
+ # persist.netd.stable_secret contains RFC 7217 secret key which should never be
+ # leaked to other processes. Make sure it never leaks.
+
+diff --git a/prebuilts/api/29.0/public/su.te b/prebuilts/api/29.0/public/su.te
+index a2f435e1..b0ec6533 100644
+--- a/prebuilts/api/29.0/public/su.te
++++ b/prebuilts/api/29.0/public/su.te
+@@ -4,8 +4,8 @@ type su, domain;
+
+ # File types must be defined for file_contexts.
+ type su_exec, system_file_type, exec_type, file_type;
++type sudaemon, domain;
+
+-userdebug_or_eng(`
+   # Domain used for su processes, as well as for adbd and adb shell
+   # after performing an adb root command.  The domain definition is
+   # wrapped to ensure that it does not exist at all on -user builds.
+@@ -101,4 +101,4 @@ userdebug_or_eng(`
+   typeattribute su hal_wifi_hostapd_client;
+   typeattribute su hal_wifi_offload_client;
+   typeattribute su hal_wifi_supplicant_client;
+-')
++
+
+diff --git a/prebuilts/api/29.0/public/te_macros b/prebuilts/api/29.0/public/te_macros
+index 85783dc9..f84c9c03 100644
+--- a/prebuilts/api/29.0/public/te_macros
++++ b/prebuilts/api/29.0/public/te_macros
+@@ -98,10 +98,10 @@ define(`pdx_service_socket_types', `
+ typeattribute $2 pdx_$1_endpoint_dir_type;
+ type pdx_$1_endpoint_socket, pdx_$1_endpoint_socket_type, pdx_endpoint_socket_type, file_type, coredomain_socket, mlstrustedobject, mlstrustedsubject;
+ type pdx_$1_channel_socket, pdx_$1_channel_socket_type, pdx_channel_socket_type, coredomain_socket;
+-userdebug_or_eng(`
++
+ dontaudit su pdx_$1_endpoint_socket:unix_stream_socket *;
+ dontaudit su pdx_$1_channel_socket:unix_stream_socket *;
+-')
++
+ ')
+
+ #####################################
+@@ -525,9 +525,9 @@ define(`build_test_only', ifelse(target_exclude_build_test, `true', , $1))
+ # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
+ #
+ define(`crash_dump_fallback', `
+-userdebug_or_eng(`
++
+   allow $1 su:fifo_file append;
+-')
++
+ allow $1 anr_data_file:file append;
+ allow $1 dumpstate:fd use;
+ allow $1 incidentd:fd use;
+
+diff --git a/prebuilts/api/29.0/public/vold.te b/prebuilts/api/29.0/public/vold.te
+index 49523f43..0742ba3f 100644
+--- a/prebuilts/api/29.0/public/vold.te
++++ b/prebuilts/api/29.0/public/vold.te
+@@ -315,7 +315,7 @@ neverallow vold {
+   -iorapd_service
+   -servicemanager
+   -system_server
+-  userdebug_or_eng(`-su')
++  -su
+ }:binder call;
+
+ neverallow vold fsck_exec:file execute_no_trans;
+
+diff --git a/private/adbd.te b/private/adbd.te
+index ec5c57ee..48325142 100644
+--- a/private/adbd.te
++++ b/private/adbd.te
+@@ -7,10 +7,10 @@ init_daemon_domain(adbd)
+
+ domain_auto_trans(adbd, shell_exec, shell)
+
+-userdebug_or_eng(`
++
+   allow adbd self:process setcurrent;
+   allow adbd su:process dyntransition;
+-')
++
+
+ # When 'adb shell' is executed in recovery mode, adbd explicitly
+ # switches into shell domain using setcon() because the shell executable
+@@ -191,4 +191,4 @@ allow adbd shell:fd use;
+ # transitions to the shell domain (except when it crashes). In particular, we
+ # never want to see a transition from adbd to su (aka "adb root")
+ neverallow adbd { domain -crash_dump -shell }:process transition;
+-neverallow adbd { domain userdebug_or_eng(`-su') recovery_only(`-shell') }:process dyntransition;
++neverallow adbd { domain -su -shell }:process dyntransition;
+
+diff --git a/private/compat/26.0/26.0.ignore.cil b/private/compat/26.0/26.0.ignore.cil
+index b12f917d..ee5efbbc 100644
+--- a/private/compat/26.0/26.0.ignore.cil
++++ b/private/compat/26.0/26.0.ignore.cil
+@@ -225,3 +225,6 @@
+   ( priv_objects
+     adbd_tmpfs
+     untrusted_app_27_tmpfs))
++
++allow sudaemon untrusted_app_all_devpts:chr_file *;
++allow untrusted_app untrusted_app_all_devpts:chr_file *;
+
+diff --git a/private/logd.te b/private/logd.te
+index ca92e206..7e2d23d7 100644
+--- a/private/logd.te
++++ b/private/logd.te
+@@ -33,6 +33,6 @@ neverallow {
+   -priv_app
+   -radio
+   -shell
+-  userdebug_or_eng(`-su')
++  -su
+   -system_app
+ } runtime_event_log_tags_file:file no_rw_file_perms;
+
+diff --git a/private/su.te b/private/su.te
+index 16e47bbb..27a97bdb 100644
+--- a/private/su.te
++++ b/private/su.te
+@@ -1,4 +1,4 @@
+-userdebug_or_eng(`
++
+   typeattribute su coredomain;
+
+   domain_auto_trans(shell, su_exec, su)
+@@ -20,4 +20,4 @@ userdebug_or_eng(`
+   permissive su;
+
+   app_domain(su)
+-')
++
+
+diff --git a/private/untrusted_app_25.te b/private/untrusted_app_25.te
+index a35d81bd..e1b5136d 100644
+--- a/private/untrusted_app_25.te
++++ b/private/untrusted_app_25.te
+@@ -41,6 +41,7 @@ allow untrusted_app_25 proc_misc:file r_file_perms;
+ # https://github.com/strazzere/anti-emulator/blob/master/AntiEmulator/src/diff/strazzere/anti/emulator/FindEmulator.java
+ # This will go away in a future Android release
+ allow untrusted_app_25 proc_tty_drivers:file r_file_perms;
++allow untrusted_app socket_device:sock_file *;
+
+ # Text relocation support for API < 23. This is now disallowed for targetSdkVersion>=Q.
+ # https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md#text-relocations-enforced-for-api-level-23
+
+diff --git a/private/untrusted_app_all.te b/private/untrusted_app_all.te
+index 3c20c082..cf8111d1 100644
+--- a/private/untrusted_app_all.te
++++ b/private/untrusted_app_all.te
+@@ -168,6 +168,7 @@ dontaudit untrusted_app_all net_dns_prop:file read;
+ dontaudit untrusted_app_all proc_stat:file read;
+ dontaudit untrusted_app_all proc_vmstat:file read;
+ dontaudit untrusted_app_all proc_uptime:file read;
++allow untrusted_app socket_device:sock_file *;
+
+ # Allow the allocation and use of ptys
+ # Used by: https://play.google.com/store/apps/details?id=jackpal.androidterm
+
+diff --git a/public/app.te b/public/app.te
+index 5c48e71f..0586f6d3 100644
+--- a/public/app.te
++++ b/public/app.te
+@@ -193,7 +193,7 @@ r_dir_file({
+   -untrusted_app_all
+ }, proc_net_type)
+ # audit access for all these non-core app domains.
+-userdebug_or_eng(`
++
+   auditallow {
+     appdomain
+     -ephemeral_app
+@@ -205,7 +205,7 @@ userdebug_or_eng(`
+     -system_app
+     -untrusted_app_all
+   } proc_net_type:{ dir file lnk_file } { getattr open read };
+-')
++
+
+ # Grant GPU access to all processes started by Zygote.
+ # They need that to render the standard UI.
+
+diff --git a/public/domain.te b/public/domain.te
+index f3487018..285dc30a 100644
+--- a/public/domain.te
++++ b/public/domain.te
+@@ -32,7 +32,6 @@ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
+ # Inherit or receive open files from others.
+ allow domain init:fd use;
+
+-userdebug_or_eng(`
+   allow domain su:fd use;
+   allow domain su:unix_stream_socket { connectto getattr getopt read write shutdown };
+   allow domain su:unix_dgram_socket sendto;
+@@ -46,6 +45,7 @@ userdebug_or_eng(`
+   # allow "gdbserver --attach" to work for su.
+   allow domain su:process sigchld;
+
++userdebug_or_eng(`
+   # Allow writing coredumps to /cores/*
+   allow domain coredump_file:file create_file_perms;
+   allow domain coredump_file:dir ra_dir_perms;
+@@ -602,7 +602,7 @@ neverallow {
+ # this partition for testing purposes.
+ neverallow {
+   domain
+-  userdebug_or_eng(`-domain') # exclude debuggable builds
++  -domain # exclude debuggable builds
+   -fastbootd
+   -hal_bootctl_server
+   -init
+@@ -688,7 +688,7 @@ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+     -ueventd # uevent is granted create for this device, but we still neverallow I/O below
+   } vndbinder_device:chr_file rw_file_perms;
+ ')
+@@ -699,14 +699,14 @@ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+   } vndservice_manager_type:service_manager *;
+ ')
+ full_treble_only(`
+   neverallow {
+     coredomain
+     -shell
+-    userdebug_or_eng(`-su')
++    -su
+   } vndservicemanager:binder *;
+ ')
+
+@@ -742,7 +742,7 @@ full_treble_only(`
+     -logd # Logging by writing to logd Unix domain socket is public API
+     -netd # netdomain needs this
+     -mdnsd # netdomain needs this
+-    userdebug_or_eng(`-su') # communications with su are permitted only on userdebug or eng builds
++    -su # communications with su are permitted only on userdebug or eng builds
+     -init
+     -tombstoned # linker to tombstoned
+     userdebug_or_eng('-heapprofd`)
+@@ -1108,7 +1108,7 @@ neverallow * { file_type fs_type dev_type }:{ lnk_file fifo_file sock_file } mou
+ # Nobody should be able to execute su on user builds.
+ # On userdebug/eng builds, only dumpstate, shell, and
+ # su itself execute su.
+-neverallow { domain userdebug_or_eng(`-dumpstate -shell -su') } su_exec:file no_x_file_perms;
++neverallow { domain -dumpstate -shell -su } su_exec:file no_x_file_perms;
+
+ # Do not allow the introduction of new execmod rules. Text relocations
+ # and modification of executable pages are unsafe.
+@@ -1196,7 +1196,7 @@ neverallow {
+ # Only domains spawned from zygote, runas and simpleperf_app_runner may have the appdomain
+ # attribute.
+ neverallow { domain -simpleperf_app_runner -runas -app_zygote -webview_zygote -zygote } {
+-  appdomain -shell userdebug_or_eng(`-su')
++  appdomain -shell -su
+ }:process { transition dyntransition };
+
+ # Minimize read access to shell- or app-writable symlinks.
+
+diff --git a/public/hal_configstore.te b/public/hal_configstore.te
+index 1a95b72f..edcdc267 100644
+--- a/public/hal_configstore.te
++++ b/public/hal_configstore.te
+@@ -31,7 +31,7 @@ neverallow hal_configstore_server {
+   domain
+   -hal_configstore_server
+   -logd
+-  userdebug_or_eng(`-su')
++  -su
+   -tombstoned
+   userdebug_or_eng(`-heapprofd')
+ }:{ unix_dgram_socket unix_stream_socket } *;
+
+diff --git a/public/installd.te b/public/installd.te
+index f0ac52a0..eb78d9e6 100644
+--- a/public/installd.te
++++ b/public/installd.te
+@@ -173,5 +173,5 @@ neverallow installd {
+     -ashmemd
+     -system_server
+     -servicemanager
+-    userdebug_or_eng(`-su')
++    -su
+ }:binder call;
+
+diff --git a/public/netd.te b/public/netd.te
+index c8877b24..540e04e9 100644
+--- a/public/netd.te
++++ b/public/netd.te
+@@ -158,7 +158,7 @@ neverallow {
+
+ # apps may not interact with netd over binder.
+ neverallow { appdomain -network_stack } netd:binder call;
+-neverallow netd { appdomain -network_stack userdebug_or_eng(`-su') }:binder call;
++neverallow netd { appdomain -network_stack -su }:binder call;
+
+ # persist.netd.stable_secret contains RFC 7217 secret key which should never be
+ # leaked to other processes. Make sure it never leaks.
+
+diff --git a/public/su.te b/public/su.te
+index a2f435e1..b0ec6533 100644
+--- a/public/su.te
++++ b/public/su.te
+@@ -4,8 +4,8 @@ type su, domain;
+
+ # File types must be defined for file_contexts.
+ type su_exec, system_file_type, exec_type, file_type;
++type sudaemon, domain;
+
+-userdebug_or_eng(`
+   # Domain used for su processes, as well as for adbd and adb shell
+   # after performing an adb root command.  The domain definition is
+   # wrapped to ensure that it does not exist at all on -user builds.
+@@ -101,4 +101,4 @@ userdebug_or_eng(`
+   typeattribute su hal_wifi_hostapd_client;
+   typeattribute su hal_wifi_offload_client;
+   typeattribute su hal_wifi_supplicant_client;
+-')
++
+
+diff --git a/public/te_macros b/public/te_macros
+index 85783dc9..f84c9c03 100644
+--- a/public/te_macros
++++ b/public/te_macros
+@@ -98,10 +98,10 @@ define(`pdx_service_socket_types', `
+ typeattribute $2 pdx_$1_endpoint_dir_type;
+ type pdx_$1_endpoint_socket, pdx_$1_endpoint_socket_type, pdx_endpoint_socket_type, file_type, coredomain_socket, mlstrustedobject, mlstrustedsubject;
+ type pdx_$1_channel_socket, pdx_$1_channel_socket_type, pdx_channel_socket_type, coredomain_socket;
+-userdebug_or_eng(`
++
+ dontaudit su pdx_$1_endpoint_socket:unix_stream_socket *;
+ dontaudit su pdx_$1_channel_socket:unix_stream_socket *;
+-')
++
+ ')
+
+ #####################################
+@@ -525,9 +525,9 @@ define(`build_test_only', ifelse(target_exclude_build_test, `true', , $1))
+ # Fallback crash handling for processes that can't exec crash_dump (e.g. because of seccomp).
+ #
+ define(`crash_dump_fallback', `
+-userdebug_or_eng(`
++
+   allow $1 su:fifo_file append;
+-')
++
+ allow $1 anr_data_file:file append;
+ allow $1 dumpstate:fd use;
+ allow $1 incidentd:fd use;
+
+diff --git a/public/vold.te b/public/vold.te
+index 49523f43..0742ba3f 100644
+--- a/public/vold.te
++++ b/public/vold.te
+@@ -315,7 +315,7 @@ neverallow vold {
+   -iorapd_service
+   -servicemanager
+   -system_server
+-  userdebug_or_eng(`-su')
++  -su
+ }:binder call;
+
+ neverallow vold fsck_exec:file execute_no_trans;
 
 project vendor/lineage/
 diff --git a/bootanimation/Android.mk b/bootanimation/Android.mk
@@ -1553,10 +2232,10 @@ index 2bc78ceb..00000000
 +++ /dev/null
 
 diff --git a/config/common.mk b/config/common.mk
-index 7c8809f4..b07c06ec 100644
+index 9b688031..eb4395d4 100644
 --- a/config/common.mk
 +++ b/config/common.mk
-@@ -48,6 +48,18 @@ PRODUCT_COPY_FILES += \
+@@ -47,6 +47,18 @@ PRODUCT_COPY_FILES += \
  PRODUCT_COPY_FILES += \
      vendor/lineage/config/permissions/lineage-sysconfig.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/sysconfig/lineage-sysconfig.xml
 
@@ -1575,7 +2254,7 @@ index 7c8809f4..b07c06ec 100644
  # Copy all Lineage-specific init rc files
  $(foreach f,$(wildcard vendor/lineage/prebuilt/common/etc/init/*.rc),\
  	$(eval PRODUCT_COPY_FILES += $(f):$(TARGET_COPY_OUT_SYSTEM)/etc/init/$(notdir $f)))
-@@ -232,14 +244,9 @@ PRODUCT_PACKAGES_DEBUG += \
+@@ -231,14 +243,9 @@ PRODUCT_PACKAGES_DEBUG += \
      procmem
 
  # Conditionally build in su
@@ -1589,8 +2268,8 @@ index 7c8809f4..b07c06ec 100644
 -endif
 -endif
 
- PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += vendor/lineage/overlay
- DEVICE_PACKAGE_OVERLAYS += vendor/lineage/overlay/common
+ # Dex preopt
+ PRODUCT_DEXPREOPT_SPEED_APPS += \
 
 diff --git a/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml b/overlay/common/frameworks/base/packages/SystemUI/res/values/config.xml
 index 6dc72ff1..b26117e1 100644
@@ -1623,18 +2302,18 @@ index 651905da..5c815424 100644
      <string name="config_wallpaper_picker_package" translatable="false">com.android.wallpaper</string>
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
-index de7b79bf..3bcb4a83 100755
+index 662b4673..5da27733 100755
 --- a/prebuilt/common/bin/backuptool.sh
 +++ b/prebuilt/common/bin/backuptool.sh
-@@ -150,6 +150,8 @@ case "$1" in
-     run_stage restore
-     run_stage post-restore
-     restore_addon_d
-+    chmod 755 $S/xbin/su
-+    chmod 755 $S/etc/init.d/*
-     rm -rf $C
-     sync
-     unmount_system
+@@ -97,6 +97,8 @@ case "$1" in
+       run_stage restore
+       run_stage post-restore
+       restore_addon_d
++      chmod 755 $S/xbin/su
++      chmod 755 $S/etc/init.d/*
+       rm -rf $C
+       sync
+     fi
 
 diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
 deleted file mode 100644
