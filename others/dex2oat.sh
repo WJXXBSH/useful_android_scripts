@@ -3,6 +3,9 @@
 mount -o remount,rw /
 
 # Inputmethod
+chmod 755 /system/product/app/Inputmethod
+chmod 755 /system/product/app/Inputmethod/lib
+chmod 755 /system/product/app/Inputmethod/lib/arm64
 mkdir /system/product/app/Inputmethod/oat
 chmod 755 /system/product/app/Inputmethod/oat
 mkdir /system/product/app/Inputmethod/oat/arm64

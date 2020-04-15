@@ -1070,21 +1070,6 @@ index 7a6b0f1a7b..4ce15e9ac6 100644
 
      @Override
 
-project packages/apps/Snap/
-diff --git a/res/values/config.xml b/res/values/config.xml
-index cb78e532c..2fd6601d2 100644
---- a/res/values/config.xml
-+++ b/res/values/config.xml
-@@ -29,7 +29,7 @@
-     <bool name="enable_warped_pano_preview">false</bool>
-
-     <!-- Enable support for camera api v2 -->
--    <bool name="support_camera_api_v2">false</bool>
-+    <bool name="support_camera_api_v2">true</bool>
-
-     <!-- Opens back camera using openLegacy() and forces api v1 -->
-     <bool name="back_camera_open_legacy">true</bool>
-
 project packages/apps/Stk/
 diff --git a/Android.mk b/Android.mk
 deleted file mode 100644

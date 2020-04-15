@@ -21,7 +21,6 @@ index 712f2df56..2fc96b536 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
 @@ -613,7 +613,7 @@ endif
-
  # Turn on all warnings and warnings as errors for RS compiles.
  # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
 -renderscript_flags := -Wall -Werror
@@ -29,15 +28,6 @@ index 712f2df56..2fc96b536 100644
  renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
  # -m32 or -m64
  renderscript_flags += -m$(my_32_64_bit_suffix)
-@@ -1450,7 +1450,7 @@ my_asflags := $(call convert-to-clang-flags,$(my_asflags))
- my_ldflags := $(call convert-to-clang-flags,$(my_ldflags))
-
- ifeq ($(my_fdo_build), true)
--  my_cflags := $(patsubst -Os,-O2,$(my_cflags))
-+  my_cflags := $(patsubst -O3,-g0,$(my_cflags))
-   fdo_incompatible_flags := -fno-early-inlining -finline-limit=%
-   my_cflags := $(filter-out $(fdo_incompatible_flags),$(my_cflags))
- endif
 @@ -1490,10 +1490,10 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
        $(eval MODULES_USING_WNO_ERROR := $(MODULES_USING_WNO_ERROR) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
      else
@@ -51,14 +41,6 @@ index 712f2df56..2fc96b536 100644
          else
            $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
            my_cflags := -Wall $(my_cflags)
-@@ -1672,7 +1672,7 @@ ifeq ($(NATIVE_COVERAGE),true)
-         # with `--gcov-tool /usr/bin/gcov-4.6`.
-         #
-         # http://stackoverflow.com/questions/17758126/clang-code-coverage-invalid-output
--        my_cflags += --coverage -O0
-+        my_cflags += --coverage -O3 -g0
-         my_ldflags += --coverage
-     endif
 
 diff --git a/core/dex_preopt_config.mk b/core/dex_preopt_config.mk
 index b5834b08b..50cbed031 100644
@@ -129,20 +111,6 @@ index 85ddbfa36..27865e1ac 100644
    $(call json_end)
 
    my_dexpreopt_config := $(intermediates)/dexpreopt.config
-
-diff --git a/core/host_test_internal.mk b/core/host_test_internal.mk
-index dfe8cf150..35bb766c6 100644
---- a/core/host_test_internal.mk
-+++ b/core/host_test_internal.mk
-@@ -6,7 +6,7 @@ ifeq ($(LOCAL_GTEST),true)
-   LOCAL_CFLAGS_linux += -DGTEST_OS_LINUX
-   LOCAL_CFLAGS_darwin += -DGTEST_OS_MAC
-
--  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O0 -g
-+  LOCAL_CFLAGS += -DGTEST_HAS_STD_STRING -O3 -g0
-
-   LOCAL_STATIC_LIBRARIES += libgtest_main_host libgtest_host
- endif
 
 diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
 index 13a6f8e66..72801a92d 100644
@@ -896,7 +864,6 @@ index 7eca4aaf7..46d6fd0d1 100644
  LOCAL_COPY_HEADERS_TO   := mm-audio
  LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
 
-
 project hardware/qcom-caf/msm8994/media/
 diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
 index 6f783c429..bf248f963 100644
@@ -906,8 +873,7 @@ index 6f783c429..bf248f963 100644
  # 				Common definitons
  # ---------------------------------------------------------------------------------
 
--libmm-vidc-def := -g -O3 -Dlrintf=_ffix_r
-+libmm-vidc-def := -g0 -O3 -Dlrintf=_ffix_r
+ libmm-vidc-def := -g -O3 -Dlrintf=_ffix_r
  libmm-vidc-def += -D__align=__alignx
  libmm-vidc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
  libmm-vidc-def += -DT_ARM
@@ -926,8 +892,7 @@ index aedca2059..4cfdcc4f1 100644
  libmm-vdec-def := -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
  libmm-vdec-def += -D__align=__alignx
  libmm-vdec-def += -Dinline=__inline
--libmm-vdec-def += -g -O3
-+libmm-vdec-def += -g0 -O3
+ libmm-vdec-def += -g -O3
  libmm-vdec-def += -DIMAGE_APPS_PROC
  libmm-vdec-def += -D_ANDROID_
  libmm-vdec-def += -DCDECL
@@ -949,8 +914,7 @@ index ff43abdcd..6c3654f99 100644
  # 				Common definitons
  # ---------------------------------------------------------------------------------
 
--libmm-venc-def := -g -O3 -Dlrintf=_ffix_r
-+libmm-venc-def := -g0 -O3 -Dlrintf=_ffix_r
+ libmm-venc-def := -g -O3 -Dlrintf=_ffix_r
  libmm-venc-def += -D__align=__alignx
  libmm-venc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
  libmm-venc-def += -DT_ARM
@@ -961,7 +925,6 @@ index ff43abdcd..6c3654f99 100644
 -libmm-venc-def += -Werror
  libmm-venc-def += -D_ANDROID_ICS_
  libmm-venc-def += -D_MSM8974_
-
 
 project packages/apps/AudioFX/
 diff --git a/Android.mk b/Android.mk
@@ -995,21 +958,6 @@ deleted file mode 100644
 index 673ecff3..00000000
 --- a/tests/unit/Android.bp
 +++ /dev/null
-
-project packages/apps/Eleven/
-diff --git a/Android.mk b/Android.mk
-index 7633ce7..4be31a5 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -30,7 +30,7 @@ LOCAL_JNI_SHARED_LIBRARIES := librsjni
-
- LOCAL_PROGUARD_FLAGS := -include $(LOCAL_PATH)/proguard.cfg
- ifeq ($(TARGET_BUILD_VARIANT),user)
--    LOCAL_PROGUARD_ENABLED := obfuscation
-+    LOCAL_PROGUARD_ENABLED := full
- else
-     LOCAL_PROGUARD_ENABLED := disabled
- endif
 
 project packages/apps/Email/
 diff --git a/Android.mk b/Android.mk
@@ -1087,21 +1035,6 @@ index a935386b98..3e26d7db01 100644
          controllers.add(new DefaultLaunchPreferenceController(context, "running_apps"));
          controllers.add(new DefaultLaunchPreferenceController(context, "demo_mode"));
          controllers.add(new DefaultLaunchPreferenceController(context, "quick_settings_tiles"));
-
-project packages/apps/Snap/
-diff --git a/res/values/config.xml b/res/values/config.xml
-index cb78e532c..2fd6601d2 100644
---- a/res/values/config.xml
-+++ b/res/values/config.xml
-@@ -29,7 +29,7 @@
-     <bool name="enable_warped_pano_preview">false</bool>
-
-     <!-- Enable support for camera api v2 -->
--    <bool name="support_camera_api_v2">false</bool>
-+    <bool name="support_camera_api_v2">true</bool>
-
-     <!-- Opens back camera using openLegacy() and forces api v1 -->
-     <bool name="back_camera_open_legacy">true</bool>
 
 project packages/apps/Stk/
 diff --git a/Android.bp b/Android.bp
@@ -1327,6 +1260,7 @@ index 2cf6be96d..ff3937b67 100644
      name: "libbatterymonitor",
      srcs: ["BatteryMonitor.cpp"],
 -    cflags: ["-Wall", "-Werror"],
++    cflags: ["-Wall"],
      vendor_available: true,
      recovery_available: true,
      export_include_dirs: ["include"],
@@ -1334,11 +1268,11 @@ index 2cf6be96d..ff3937b67 100644
  cc_defaults {
      name: "android.hardware.health@2.0-service_defaults",
 
--    cflags: [
--        "-Wall",
+     cflags: [
+         "-Wall",
 -        "-Werror",
--    ],
--
+     ],
+
      static_libs: [
          "android.hardware.health@2.0-impl",
          "android.hardware.health@1.0-convert",
@@ -1346,11 +1280,11 @@ index 2cf6be96d..ff3937b67 100644
          "healthd_mode_charger_nops.cpp",
      ],
 
--    cflags: [
--        "-Wall",
+     cflags: [
+         "-Wall",
 -        "-Werror",
--    ],
--
+     ],
+
      header_libs: [
          "libhealthd_headers",
      ],
@@ -1380,6 +1314,7 @@ index 4eb98dae0..01707af8e 100644
 
  LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 -LOCAL_CFLAGS := -Wall -Werror
++LOCAL_CFLAGS := -Wall
  LOCAL_CFLAGS += -DCHARGER_NO_UI
 
  # charger.recovery doesn't link against libhealthd_{charger,draw} or libminui, since it doesn't need
@@ -1388,7 +1323,7 @@ index 4eb98dae0..01707af8e 100644
  LOCAL_MODULE := charger_test
  LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 -LOCAL_CFLAGS := -Wall -Werror -DCHARGER_NO_UI
-+LOCAL_CFLAGS := -DCHARGER_NO_UI
++LOCAL_CFLAGS := -Wall -DCHARGER_NO_UI
  LOCAL_STATIC_LIBRARIES := $(CHARGER_STATIC_LIBRARIES)
  LOCAL_SHARED_LIBRARIES := $(CHARGER_SHARED_LIBRARIES)
  LOCAL_SRC_FILES := \
