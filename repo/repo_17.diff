@@ -42,76 +42,6 @@ index 712f2df56..2fc96b536 100644
            $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
            my_cflags := -Wall $(my_cflags)
 
-diff --git a/core/dex_preopt_config.mk b/core/dex_preopt_config.mk
-index b5834b08b..50cbed031 100644
---- a/core/dex_preopt_config.mk
-+++ b/core/dex_preopt_config.mk
-@@ -1,7 +1,7 @@
- DEX_PREOPT_CONFIG := $(PRODUCT_OUT)/dexpreopt.config
-
- # The default value for LOCAL_DEX_PREOPT
--DEX_PREOPT_DEFAULT ?= true
-+DEX_PREOPT_DEFAULT := true
-
- # The default filter for which files go into the system_other image (if it is
- # being used). To bundle everything one should set this to '%'
-@@ -16,20 +16,20 @@ SYSTEM_OTHER_ODEX_FILTER ?= \
- # The default values for pre-opting. To support the runtime module we ensure no dex files
- # get stripped.
- ifeq ($(PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING),)
--  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING := true
-+  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING := false
- endif
- # Conditional to building on linux, as dex2oat currently does not work on darwin.
- ifeq ($(HOST_OS),linux)
-   ifeq (eng,$(TARGET_BUILD_VARIANT))
-     # Don't strip for quick development turnarounds.
--    DEX_PREOPT_DEFAULT := nostripping
-+    DEX_PREOPT_DEFAULT := true
-     # For an eng build only pre-opt the boot image and system server. This gives reasonable performance
-     # and still allows a simple workflow: building in frameworks/base and syncing.
--    WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY ?= true
-+    WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := false
-   endif
-   # Add mini-debug-info to the boot classpath unless explicitly asked not to.
-   ifneq (false,$(WITH_DEXPREOPT_DEBUG_INFO))
--    PRODUCT_DEX_PREOPT_BOOT_FLAGS += --generate-mini-debug-info
-+    PRODUCT_DEX_PREOPT_BOOT_FLAGS +=
-   endif
-
-   # Non eng linux builds must have preopt enabled so that system server doesn't run as interpreter
-@@ -48,7 +48,7 @@ endif
- ifeq ($(USE_DEX2OAT_DEBUG),false)
- DEX2OAT := $(SOONG_HOST_OUT_EXECUTABLES)/dex2oat$(HOST_EXECUTABLE_SUFFIX)
- else
--DEX2OAT := $(SOONG_HOST_OUT_EXECUTABLES)/dex2oatd$(HOST_EXECUTABLE_SUFFIX)
-+DEX2OAT := $(SOONG_HOST_OUT_EXECUTABLES)/dex2oat$(HOST_EXECUTABLE_SUFFIX)
- endif
-
- DEX2OAT_DEPENDENCY += $(DEX2OAT)
-@@ -86,7 +86,6 @@ ifeq ($(WRITE_SOONG_VARIABLES),true)
-
-   $(call json_start)
-
--  $(call add_json_bool, DefaultNoStripping,                 $(filter nostripping,$(DEX_PREOPT_DEFAULT)))
-   $(call add_json_bool, DisablePreopt,                      $(call invert_bool,$(filter true,$(WITH_DEXPREOPT))))
-   $(call add_json_list, DisablePreoptModules,               $(DEXPREOPT_DISABLED_MODULES))
-   $(call add_json_bool, OnlyPreoptBootImageAndSystemServer, $(filter true,$(WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY)))
-
-diff --git a/core/dex_preopt_odex_install.mk b/core/dex_preopt_odex_install.mk
-index 85ddbfa36..27865e1ac 100644
---- a/core/dex_preopt_odex_install.mk
-+++ b/core/dex_preopt_odex_install.mk
-@@ -225,8 +225,6 @@ ifdef LOCAL_DEX_PREOPT
-   $(call add_json_bool, ForceCreateAppImage,            $(filter true,$(LOCAL_DEX_PREOPT_APP_IMAGE)))
-   $(call add_json_bool, PresignedPrebuilt,              $(filter PRESIGNED,$(LOCAL_CERTIFICATE)))
-
--  $(call add_json_bool, NoStripping,                    $(filter nostripping,$(LOCAL_DEX_PREOPT)))
--
-   $(call json_end)
-
-   my_dexpreopt_config := $(intermediates)/dexpreopt.config
-
 diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
 index 13a6f8e66..72801a92d 100644
 --- a/core/java_renderscript.mk
@@ -200,20 +130,6 @@ index 0489b28d9..d29350b96 100644
  # Enable CFI for security-sensitive components
  $(call inherit-product, $(SRC_TARGET_DIR)/product/cfi-common.mk)
  $(call inherit-product-if-exists, vendor/google/products/cfi-vendor.mk)
-
-diff --git a/target/product/profile_boot_common.mk b/target/product/profile_boot_common.mk
-index fc199541f..6f74cb2ac 100644
---- a/target/product/profile_boot_common.mk
-+++ b/target/product/profile_boot_common.mk
-@@ -21,7 +21,7 @@
- # support to separate the image from the compile code.
- PRODUCT_DEX_PREOPT_BOOT_IMAGE_PROFILE_LOCATION := build/make/target/product/empty-profile
- PRODUCT_DEX_PREOPT_BOOT_FLAGS := --count-hotness-in-compiled-code
--DEX_PREOPT_DEFAULT := nostripping
-+DEX_PREOPT_DEFAULT := true
-
- # Disable uncompressing priv apps so that there is enough space to build the system partition.
- DONT_UNCOMPRESS_PRIV_APPS_DEXS := true
 
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
 index a88ba3c8d..ed19be911 100644
@@ -365,20 +281,6 @@ index 82a4abfac..b2595d45e 100644
 
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
-
-diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index 9f57773ba..e0a41f30b 100644
---- a/tools/releasetools/common.py
-+++ b/tools/releasetools/common.py
-@@ -2148,7 +2148,7 @@ class BlockDifference(object):
-     #   decompression_time: 15s  | 25s                | 25s
-
-     if not self.src:
--      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=9',
-                     '--output={}.new.dat.br'.format(self.path),
-                     '{}.new.dat'.format(self.path)]
-       print("Compressing {}.new.dat with brotli".format(self.partition))
 
 diff --git a/tools/zipalign/Android.bp b/tools/zipalign/Android.bp
 index 8e6196d29..9e65a5cf9 100644
@@ -780,30 +682,9 @@ index eecc10158e8..7adfcfe9033 100644
 -	DisplayCutoutEmulationDoubleOverlay \
 -	DisplayCutoutEmulationTallOverlay \
 -	FontNotoSerifSourceOverlay \
--	IconPackCircularAndroidOverlay \
--	IconPackCircularLauncherOverlay \
--	IconPackCircularSettingsOverlay \
--	IconPackCircularSystemUIOverlay \
--	IconPackCircularThemePickerOverlay \
--	IconPackFilledAndroidOverlay \
--	IconPackFilledLauncherOverlay \
--	IconPackFilledSettingsOverlay \
--	IconPackFilledSystemUIOverlay \
--	IconPackFilledThemePickerOverlay \
--	IconPackRoundedAndroidOverlay \
--	IconPackRoundedLauncherOverlay \
--	IconPackRoundedSettingsOverlay \
--	IconPackRoundedSystemUIOverlay \
--	IconPackRoundedThemePickerOverlay \
--	IconShapeRoundedRectOverlay \
--	IconShapeSquircleOverlay \
--	IconShapeTeardropOverlay \
--	NavigationBarMode3ButtonOverlay \
--	NavigationBarMode2ButtonOverlay \
--	NavigationBarModeGesturalOverlay \
--	NavigationBarModeGesturalOverlayNarrowBack \
--	NavigationBarModeGesturalOverlayWideBack \
--	NavigationBarModeGesturalOverlayExtraWideBack
+	IconPackCircularAndroidOverlay \
+	IconPackCircularLauncherOverlay \
+	IconPackCircularSettingsOverlay \
 
  include $(BUILD_PHONY_PACKAGE)
  include $(CLEAR_VARS)

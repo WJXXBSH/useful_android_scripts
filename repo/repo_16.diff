@@ -300,20 +300,6 @@ index 82a4abfac..b2595d45e 100644
  MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
  	$(MAKEPARALLEL_CXX_SRCS))
 
-diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index f7ab11cd8..6cda1b041 100644
---- a/tools/releasetools/common.py
-+++ b/tools/releasetools/common.py
-@@ -1751,7 +1751,7 @@ class BlockDifference(object):
-     #   decompression_time: 15s  | 25s                | 25s
-
-     if not self.src:
--      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=11',
-                     '--output={}.new.dat.br'.format(self.path),
-                     '{}.new.dat'.format(self.path)]
-       print("Compressing {}.new.dat with brotli".format(self.partition))
-
 diff --git a/tools/zipalign/Android.bp b/tools/zipalign/Android.bp
 index 8e6196d29..9e65a5cf9 100644
 --- a/tools/zipalign/Android.bp
