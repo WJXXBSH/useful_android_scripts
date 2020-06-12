@@ -26,6 +26,15 @@
             "size": 721397520,
             "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200514-UNOFFICIAL-libra.zip",
             "version": "17.1"
+        },
+        {
+            "datetime": 1591946301,
+            "filename": "lineage-17.1-20200612-UNOFFICIAL-libra.zip",
+            "id": "1ad701a778ca48ac97ec96fba79f945f",
+            "romtype": "unofficial",
+            "size": 724491797,
+            "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200612-UNOFFICIAL-libra.zip",
+            "version": "17.1"
         }
     ]
 }

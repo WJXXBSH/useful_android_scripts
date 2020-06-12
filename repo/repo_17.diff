@@ -1320,7 +1320,7 @@ index 58a83e091..91c0ee765 100644
      # Create all remaining /data root dirs so that they are made through init
      # and get proper encryption policy installed
      mkdir /data/backup 0700 system system
--    mkdir /data/ss 0700 system system
+     mkdir /data/ss 0700 system system
 
      mkdir /data/system 0775 system system
 -    mkdir /data/system/dropbox 0700 system system
