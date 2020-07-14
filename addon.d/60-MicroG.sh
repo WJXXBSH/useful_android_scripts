@@ -3,14 +3,14 @@
 # ADDOND_VERSION=2
 #
 # /system/addon.d/60-MicroG.sh
-# During a LineageOS 16.0 upgrade, this script backs up MicroG stuff,
+# During a LineageOS upgrade, this script backs up MicroG stuff,
 # /system is formatted and reinstalled, then the file is restored.
 #
 
 . /tmp/backuptool.functions
 
 list_files() {
-cat <<EOF
+  cat <<EOF
 app/IchnaeaBackend/IchnaeaBackend.apk
 app/NominatimBackend/NominatimBackend.apk
 etc/default-permissions/microg-permissions.xml
@@ -28,29 +28,29 @@ EOF
 }
 
 case "$1" in
-  backup)
-    list_files | while read FILE DUMMY; do
-      backup_file $S/"$FILE"
-    done
+backup)
+  list_files | while read FILE DUMMY; do
+    backup_file $S/"$FILE"
+  done
   ;;
-  restore)
-    list_files | while read FILE REPLACEMENT; do
-      R=""
-      [ -n "$REPLACEMENT" ] && R="$S/$REPLACEMENT"
-      [ -f "$C/$S/$FILE" ] && restore_file $S/"$FILE" "$R"
-    done
+restore)
+  list_files | while read FILE REPLACEMENT; do
+    R=""
+    [ -n "$REPLACEMENT" ] && R="$S/$REPLACEMENT"
+    [ -f "$C/$S/$FILE" ] && restore_file $S/"$FILE" "$R"
+  done
   ;;
-  pre-backup)
-    # Stub
+pre-backup)
+  # Stub
   ;;
-  post-backup)
-    # Stub
+post-backup)
+  # Stub
   ;;
-  pre-restore)
-    # Stub
+pre-restore)
+  # Stub
   ;;
-  post-restore)
-    # Stub
+post-restore)
+  # Stub
   ;;
 esac
 
