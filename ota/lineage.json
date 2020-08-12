@@ -42,7 +42,16 @@
             "id": "ee86b48a92534e408de002cabda98078",
             "romtype": "unofficial",
             "size": 732891474,
-            "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200714-UNOFFICIAL-libra.zip",
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.07.14/lineage-17.1-20200714-UNOFFICIAL-libra.zip",
+            "version": "17.1"
+        },
+        {
+            "datetime": 1597201374,
+            "filename": "lineage-17.1-20200812-UNOFFICIAL-libra.zip",
+            "id": "b1a7d0d66b7549379135d22a30a8932c",
+            "romtype": "unofficial",
+            "size": 729826511,
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.08.12/lineage-17.1-20200812-UNOFFICIAL-libra.zip",
             "version": "17.1"
         }
     ]

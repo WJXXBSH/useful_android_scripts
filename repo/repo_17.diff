@@ -161,6 +161,21 @@ index 699b9c7a1..9071f7b54 100644
      tune2fs \
      tzdatacheck \
      uiautomator \
+@@ -261,7 +251,6 @@ PRODUCT_PACKAGES += \
+     viewcompiler \
+     voip-common \
+     vold \
+-    WallpaperBackup \
+     watchdogd \
+     wificond \
+     wifi-service \
+@@ -371,8 +360,7 @@ PRODUCT_PACKAGES_DEBUG := \
+
+ # The set of packages whose code can be loaded by the system server.
+ PRODUCT_SYSTEM_SERVER_APPS += \
+-    SettingsProvider \
+-    WallpaperBackup
++    SettingsProvider
 
 diff --git a/target/product/full_base.mk b/target/product/full_base.mk
 index f3fb8c306..832a1c7c9 100644
@@ -201,7 +216,12 @@ index e5771cc94..7cd703b86 100644
      ExternalStorageProvider \
      FusedLocation \
      InputDevices \
-@@ -68,7 +65,6 @@ PRODUCT_PACKAGES += \
+@@ -63,12 +60,10 @@ PRODUCT_PACKAGES += \
+     ProxyHandler \
+     screenrecord \
+     SecureElement \
+-    SharedStorageBackup \
+     SimAppDialog \
      Telecom \
      TelephonyProvider \
      TeleService \
@@ -279,6 +299,18 @@ index a88ba3c8d..ed19be911 100644
  # Disable iorapd by default
  PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
      ro.iorapd.enable=false
+
+diff --git a/target/product/telephony_system.mk b/target/product/telephony_system.mk
+index 584cf1ee6..a6fe9682e 100644
+--- a/target/product/telephony_system.mk
++++ b/target/product/telephony_system.mk
+@@ -20,7 +20,6 @@
+ PRODUCT_PACKAGES := \
+     ONS \
+-    CarrierDefaultApp \
+-    CallLogBackup \
+-    CellBroadcastReceiver \
++    CarrierDefaultApp
 
 diff --git a/target/product/updatable_apex.mk b/target/product/updatable_apex.mk
 index 3d5e8e2a2..bdaf54517 100644
@@ -482,6 +514,35 @@ index 2b6f7fa..2461781 100644
  # Volume manager
  allow recovery block_device:dir create_dir_perms;
 
+project external/bash/
+diff --git a/Android.mk b/Android.mk
+index 1a23613..f5aea6a 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -61,22 +61,5 @@ LOCAL_MODULE_TAGS := optional
+
+ include $(BUILD_EXECUTABLE)
+
+-# ========================================================
+-# bash configs
+-# ========================================================
+-etc_files := $(wildcard $(LOCAL_PATH)/etc/*)
+-
+-BASH_ETC := $(TARGET_OUT)/etc/$(LOCAL_MODULE)
+-BASH_CONFIGS := $(addprefix $(BASH_ETC)/,$(notdir $(etc_files)))
+-$(BASH_CONFIGS): $(BASH_ETC)/%: $(LOCAL_PATH)/etc/% | $(LOCAL_BUILT_MODULE)
+-       @echo "Install: $@ -> $(BASH_ETC)"
+-       @mkdir -p $(dir $@)
+-       $(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(BASH_CONFIGS)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-    $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(BASH_CONFIGS)
+-
+ # ========================================================
+ include $(call all-makefiles-under,$(LOCAL_PATH))
+
 project external/mksh/
 diff --git a/mkshrc b/mkshrc
 index 256f20e..f7bab3a 100644
@@ -601,18 +662,58 @@ Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf dif
 
 project frameworks/base/
 diff --git a/Android.bp b/Android.bp
-index bdd88034655..6b1bd69220c 100644
+index bdd88034655..5890b491d21 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -784,7 +784,7 @@ java_defaults {
-
-     required: [
-         // TODO: remove gps_debug when the build system propagates "required" properly.
--        "gps_debug.conf",
-+        // "gps_debug.conf",
+@@ -782,11 +782,6 @@ java_defaults {
+         "devicepolicyprotosnano",
      ],
 
+-    required: [
+-        // TODO: remove gps_debug when the build system propagates "required" properly.
+-        "gps_debug.conf",
+-    ],
+-
      dxflags: [
+         "--core-library",
+         "--multi-dex",
+
+diff --git a/core/java/android/app/SystemServiceRegistry.java b/core/java/android/app/SystemServiceRegistry.java
+index d1090a348e7..66e976c2972 100644
+--- a/core/java/android/app/SystemServiceRegistry.java
++++ b/core/java/android/app/SystemServiceRegistry.java
+@@ -131,7 +131,6 @@ import android.os.BatteryStats;
+ import android.os.BugreportManager;
+ import android.os.Build;
+ import android.os.DeviceIdleManager;
+-import android.os.DropBoxManager;
+ import android.os.HardwarePropertiesManager;
+ import android.os.IBatteryPropertiesRegistrar;
+ import android.os.IBinder;
+@@ -194,7 +193,6 @@ import com.android.internal.app.IBatteryStats;
+ import com.android.internal.app.ISoundTriggerService;
+ import com.android.internal.appwidget.IAppWidgetService;
+ import com.android.internal.net.INetworkWatchlistManager;
+-import com.android.internal.os.IDropBoxManagerService;
+ import com.android.internal.policy.PhoneLayoutInflater;
+
+ import java.util.Map;
+@@ -412,15 +410,6 @@ final class SystemServiceRegistry {
+                 return new NfcManager(ctx);
+             }});
+
+-        registerService(Context.DROPBOX_SERVICE, DropBoxManager.class,
+-                new CachedServiceFetcher<DropBoxManager>() {
+-            @Override
+-            public DropBoxManager createService(ContextImpl ctx) throws ServiceNotFoundException {
+-                IBinder b = ServiceManager.getServiceOrThrow(Context.DROPBOX_SERVICE);
+-                IDropBoxManagerService service = IDropBoxManagerService.Stub.asInterface(b);
+-                return new DropBoxManager(ctx, service);
+-            }});
+-
+         registerService(Context.INPUT_SERVICE, InputManager.class,
+                 new StaticServiceFetcher<InputManager>() {
+             @Override
 
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
 index 7bcd7a048db..5f7fde41669 100644
@@ -770,6 +871,704 @@ index eecc10158e8..c1f3f17d361 100644
  	IconPackCircularAndroidOverlay \
  	IconPackCircularLauncherOverlay \
 
+diff --git a/services/core/Android.bp b/services/core/Android.bp
+index 6edd33c8d35..74a15839588 100644
+--- a/services/core/Android.bp
++++ b/services/core/Android.bp
+@@ -32,10 +32,6 @@ java_library_static {
+         "org.lineageos.platform.internal",
+     ],
+
+-    required: [
+-        "gps_debug.conf",
+-    ],
+-
+     static_libs: [
+         "time_zone_distro",
+         "time_zone_distro_installer",
+@@ -76,9 +72,3 @@ java_library {
+     name: "services.core",
+     static_libs: ["services.core.priorityboosted"],
+ }
+-
+-
+-prebuilt_etc {
+-    name: "gps_debug.conf",
+-    src: "java/com/android/server/location/gps_debug.conf",
+-}
+
+diff --git a/services/core/java/com/android/server/BatteryService.java b/services/core/java/com/android/server/BatteryService.java
+index d041476a1d6..d2d30d00981 100644
+--- a/services/core/java/com/android/server/BatteryService.java
++++ b/services/core/java/com/android/server/BatteryService.java
+@@ -37,7 +37,6 @@ import android.os.BatteryProperty;
+ import android.os.BatteryStats;
+ import android.os.Binder;
+ import android.os.Bundle;
+-import android.os.DropBoxManager;
+ import android.os.FileUtils;
+ import android.os.Handler;
+ import android.os.HandlerThread;
+@@ -775,9 +774,6 @@ public final class BatteryService extends SystemService {
+         IBinder batteryInfoService = ServiceManager.getService(BatteryStats.SERVICE_NAME);
+         if (batteryInfoService == null) return;
+
+-        DropBoxManager db = (DropBoxManager) mContext.getSystemService(Context.DROPBOX_SERVICE);
+-        if (db == null || !db.isTagEnabled("BATTERY_DISCHARGE_INFO")) return;
+-
+         File dumpFile = null;
+         FileOutputStream dumpStream = null;
+         try {
+@@ -787,8 +783,6 @@ public final class BatteryService extends SystemService {
+             batteryInfoService.dump(dumpStream.getFD(), DUMPSYS_ARGS);
+             FileUtils.sync(dumpStream);
+
+-            // add dump file to drop box
+-            db.addFile("BATTERY_DISCHARGE_INFO", dumpFile, DropBoxManager.IS_TEXT);
+         } catch (RemoteException e) {
+             Slog.e(TAG, "failed to dump battery service", e);
+         } catch (IOException e) {
+
+diff --git a/services/core/java/com/android/server/DropBoxManagerService.java b/services/core/java/com/android/server/DropBoxManagerService.java
+deleted file mode 100644
+index 33b846f7bb5..00000000000
+--- a/services/core/java/com/android/server/DropBoxManagerService.java
++++ /dev/null
+
+diff --git a/services/core/java/com/android/server/StorageManagerService.java b/services/core/java/com/android/server/StorageManagerService.java
+index 263efacb097..9404aedfba4 100644
+--- a/services/core/java/com/android/server/StorageManagerService.java
++++ b/services/core/java/com/android/server/StorageManagerService.java
+@@ -70,7 +70,6 @@ import android.content.res.ObbInfo;
+ import android.database.ContentObserver;
+ import android.net.Uri;
+ import android.os.Binder;
+-import android.os.DropBoxManager;
+ import android.os.Environment;
+ import android.os.Environment.UserEnvironment;
+ import android.os.FileUtils;
+@@ -1874,10 +1873,6 @@ class StorageManagerService extends IStorageManager.Stub
+                     final long run = extras.getLong("run");
+                     final long destroy = extras.getLong("destroy");
+
+-                    final DropBoxManager dropBox = mContext.getSystemService(DropBoxManager.class);
+-                    dropBox.addText(TAG_STORAGE_BENCHMARK, scrubPath(path)
+-                            + " " + ident + " " + create + " " + run + " " + destroy);
+-
+                     synchronized (mLock) {
+                         final VolumeRecord rec = findRecordForPath(path);
+                         if (rec != null) {
+@@ -2037,9 +2032,6 @@ class StorageManagerService extends IStorageManager.Stub
+                         final long bytes = extras.getLong("bytes");
+                         final long time = extras.getLong("time");
+
+-                        final DropBoxManager dropBox = mContext.getSystemService(DropBoxManager.class);
+-                        dropBox.addText(TAG_STORAGE_TRIM, scrubPath(path) + " " + bytes + " " + time);
+-
+                         synchronized (mLock) {
+                             final VolumeRecord rec = findRecordForPath(path);
+                             if (rec != null) {
+
+diff --git a/services/core/java/com/android/server/Watchdog.java b/services/core/java/com/android/server/Watchdog.java
+index 5b9c78f6e8e..289bdd31e12 100644
+--- a/services/core/java/com/android/server/Watchdog.java
++++ b/services/core/java/com/android/server/Watchdog.java
+@@ -613,26 +613,6 @@ public class Watchdog extends Thread {
+             doSysRq('w');
+             doSysRq('l');
+
+-            // Try to add the error to the dropbox, but assuming that the ActivityManager
+-            // itself may be deadlocked.  (which has happened, causing this statement to
+-            // deadlock and the watchdog as a whole to be ineffective)
+-            Thread dropboxThread = new Thread("watchdogWriteToDropbox") {
+-                    public void run() {
+-                        // If a watched thread hangs before init() is called, we don't have a
+-                        // valid mActivity. So we can't log the error to dropbox.
+-                        if (mActivity != null) {
+-                            mActivity.addErrorToDropBox(
+-                                    "watchdog", null, "system_server", null, null, null,
+-                                    subject, null, stack, null);
+-                        }
+-                        StatsLog.write(StatsLog.SYSTEM_SERVER_WATCHDOG_OCCURRED, subject);
+-                    }
+-                };
+-            dropboxThread.start();
+-            try {
+-                dropboxThread.join(2000);  // wait up to 2 seconds for it to return.
+-            } catch (InterruptedException ignored) {}
+-
+             IActivityController controller;
+             synchronized (this) {
+                 controller = mController;
+
+diff --git a/services/core/java/com/android/server/am/ActivityManagerService.java b/services/core/java/com/android/server/am/ActivityManagerService.java
+index 3ad4954d33c..f1ea5772609 100644
+--- a/services/core/java/com/android/server/am/ActivityManagerService.java
++++ b/services/core/java/com/android/server/am/ActivityManagerService.java
+@@ -241,7 +241,6 @@ import android.os.BinderProxy;
+ import android.os.Build;
+ import android.os.Bundle;
+ import android.os.Debug;
+-import android.os.DropBoxManager;
+ import android.os.FactoryTest;
+ import android.os.FileUtils;
+ import android.os.Handler;
+@@ -484,8 +483,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+
+     static final String[] EMPTY_STRING_ARRAY = new String[0];
+
+-    // How many bytes to write into the dropbox log before truncating
+-    static final int DROPBOX_MAX_SIZE = 192 * 1024;
+     // Assumes logcat entries average around 100 bytes; that's not perfect stack traces count
+     // as one line, but close enough for now.
+     static final int RESERVED_BYTES_PER_LOGCAT_LINE = 100;
+@@ -9256,9 +9253,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+             crashInfo.crashTag = crashInfo.crashTag + " " + relaunchReasonString;
+         }
+
+-        addErrorToDropBox(
+-                eventType, r, processName, null, null, null, null, null, null, crashInfo);
+-
+         mAppErrors.crashApplication(r, crashInfo);
+     }
+
+@@ -9289,9 +9283,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+                     mAlreadyLoggedViolatedStacks.add(stackFingerprint);
+                 }
+             }
+-            if (logIt) {
+-                logStrictModeViolationToDropBox(r, info);
+-            }
+         }
+
+         if ((penaltyMask & StrictMode.PENALTY_DIALOG) != 0) {
+@@ -9315,68 +9306,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+         }
+     }
+
+-    // Depending on the policy in effect, there could be a bunch of
+-    // these in quick succession so we try to batch these together to
+-    // minimize disk writes, number of dropbox entries, and maximize
+-    // compression, by having more fewer, larger records.
+-    private void logStrictModeViolationToDropBox(
+-            ProcessRecord process,
+-            StrictMode.ViolationInfo info) {
+-        if (info == null) {
+-            return;
+-        }
+-        final boolean isSystemApp = process == null ||
+-                (process.info.flags & (ApplicationInfo.FLAG_SYSTEM |
+-                                       ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+-        final String processName = process == null ? "unknown" : process.processName;
+-        final DropBoxManager dbox = (DropBoxManager)
+-                mContext.getSystemService(Context.DROPBOX_SERVICE);
+-
+-        // Exit early if the dropbox isn't configured to accept this report type.
+-        final String dropboxTag = processClass(process) + "_strictmode";
+-        if (dbox == null || !dbox.isTagEnabled(dropboxTag)) return;
+-
+-        final StringBuilder sb = new StringBuilder(1024);
+-        synchronized (sb) {
+-            appendDropBoxProcessHeaders(process, processName, sb);
+-            sb.append("Build: ").append(Build.FINGERPRINT).append("\n");
+-            sb.append("System-App: ").append(isSystemApp).append("\n");
+-            sb.append("Uptime-Millis: ").append(info.violationUptimeMillis).append("\n");
+-            if (info.violationNumThisLoop != 0) {
+-                sb.append("Loop-Violation-Number: ").append(info.violationNumThisLoop).append("\n");
+-            }
+-            if (info.numAnimationsRunning != 0) {
+-                sb.append("Animations-Running: ").append(info.numAnimationsRunning).append("\n");
+-            }
+-            if (info.broadcastIntentAction != null) {
+-                sb.append("Broadcast-Intent-Action: ").append(info.broadcastIntentAction).append("\n");
+-            }
+-            if (info.durationMillis != -1) {
+-                sb.append("Duration-Millis: ").append(info.durationMillis).append("\n");
+-            }
+-            if (info.numInstances != -1) {
+-                sb.append("Instance-Count: ").append(info.numInstances).append("\n");
+-            }
+-            if (info.tags != null) {
+-                for (String tag : info.tags) {
+-                    sb.append("Span-Tag: ").append(tag).append("\n");
+-                }
+-            }
+-            sb.append("\n");
+-            sb.append(info.getStackTrace());
+-            sb.append("\n");
+-            if (info.getViolationDetails() != null) {
+-                sb.append(info.getViolationDetails());
+-                sb.append("\n");
+-            }
+-        }
+-
+-        final String res = sb.toString();
+-        IoThread.getHandler().post(() -> {
+-            dbox.addText(dropboxTag, res);
+-        });
+-    }
+-
+     /**
+      * Used by {@link Log} via {@link com.android.internal.os.RuntimeInit} to report serious errors.
+      * @param app object of the crashing app, null for the system server
+@@ -9429,8 +9358,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+         StatsLog.write(StatsLog.WTF_OCCURRED, callingUid, tag, processName,
+                 callingPid, (r != null) ? r.getProcessClassEnum() : 0);
+
+-        addErrorToDropBox("wtf", r, processName, null, null, null, tag, null, null, crashInfo);
+-
+         return r;
+     }
+
+@@ -9448,54 +9375,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+         }
+     }
+
+-    /**
+-     * Utility function for addErrorToDropBox and handleStrictModeViolation's logging
+-     * to append various headers to the dropbox log text.
+-     */
+-    private void appendDropBoxProcessHeaders(ProcessRecord process, String processName,
+-            StringBuilder sb) {
+-        // Watchdog thread ends up invoking this function (with
+-        // a null ProcessRecord) to add the stack file to dropbox.
+-        // Do not acquire a lock on this (am) in such cases, as it
+-        // could cause a potential deadlock, if and when watchdog
+-        // is invoked due to unavailability of lock on am and it
+-        // would prevent watchdog from killing system_server.
+-        if (process == null) {
+-            sb.append("Process: ").append(processName).append("\n");
+-            return;
+-        }
+-        // Note: ProcessRecord 'process' is guarded by the service
+-        // instance.  (notably process.pkgList, which could otherwise change
+-        // concurrently during execution of this method)
+-        synchronized (this) {
+-            sb.append("Process: ").append(processName).append("\n");
+-            sb.append("PID: ").append(process.pid).append("\n");
+-            sb.append("UID: ").append(process.uid).append("\n");
+-            int flags = process.info.flags;
+-            IPackageManager pm = AppGlobals.getPackageManager();
+-            sb.append("Flags: 0x").append(Integer.toHexString(flags)).append("\n");
+-            for (int ip=0; ip<process.pkgList.size(); ip++) {
+-                String pkg = process.pkgList.keyAt(ip);
+-                sb.append("Package: ").append(pkg);
+-                try {
+-                    PackageInfo pi = pm.getPackageInfo(pkg, 0, UserHandle.getCallingUserId());
+-                    if (pi != null) {
+-                        sb.append(" v").append(pi.getLongVersionCode());
+-                        if (pi.versionName != null) {
+-                            sb.append(" (").append(pi.versionName).append(")");
+-                        }
+-                    }
+-                } catch (RemoteException e) {
+-                    Slog.e(TAG, "Error getting package info: " + pkg, e);
+-                }
+-                sb.append("\n");
+-            }
+-            if (process.info.isInstantApp()) {
+-                sb.append("Instant-App: true\n");
+-            }
+-        }
+-    }
+-
+     private static String processClass(ProcessRecord process) {
+         if (process == null || process.pid == MY_PID) {
+             return "system_server";
+@@ -9509,144 +9388,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+     private volatile long mWtfClusterStart;
+     private volatile int mWtfClusterCount;
+
+-    /**
+-     * Write a description of an error (crash, WTF, ANR) to the drop box.
+-     * @param eventType to include in the drop box tag ("crash", "wtf", etc.)
+-     * @param process which caused the error, null means the system server
+-     * @param activityShortComponentName which triggered the error, null if unknown
+-     * @param parentShortComponentName activity related to the error, null if unknown
+-     * @param parentProcess parent process
+-     * @param subject line related to the error, null if absent
+-     * @param report in long form describing the error, null if absent
+-     * @param dataFile text file to include in the report, null if none
+-     * @param crashInfo giving an application stack trace, null if absent
+-     */
+-    public void addErrorToDropBox(String eventType,
+-            ProcessRecord process, String processName, String activityShortComponentName,
+-            String parentShortComponentName, ProcessRecord parentProcess,
+-            String subject, final String report, final File dataFile,
+-            final ApplicationErrorReport.CrashInfo crashInfo) {
+-        // NOTE -- this must never acquire the ActivityManagerService lock,
+-        // otherwise the watchdog may be prevented from resetting the system.
+-
+-        // Bail early if not published yet
+-        if (ServiceManager.getService(Context.DROPBOX_SERVICE) == null) return;
+-        final DropBoxManager dbox = mContext.getSystemService(DropBoxManager.class);
+-
+-        // Exit early if the dropbox isn't configured to accept this report type.
+-        final String dropboxTag = processClass(process) + "_" + eventType;
+-        if (dbox == null || !dbox.isTagEnabled(dropboxTag)) return;
+-
+-        // Rate-limit how often we're willing to do the heavy lifting below to
+-        // collect and record logs; currently 5 logs per 10 second period.
+-        final long now = SystemClock.elapsedRealtime();
+-        if (now - mWtfClusterStart > 10 * DateUtils.SECOND_IN_MILLIS) {
+-            mWtfClusterStart = now;
+-            mWtfClusterCount = 1;
+-        } else {
+-            if (mWtfClusterCount++ >= 5) return;
+-        }
+-
+-        final StringBuilder sb = new StringBuilder(1024);
+-        appendDropBoxProcessHeaders(process, processName, sb);
+-        if (process != null) {
+-            sb.append("Foreground: ")
+-                    .append(process.isInterestingToUserLocked() ? "Yes" : "No")
+-                    .append("\n");
+-        }
+-        if (activityShortComponentName != null) {
+-            sb.append("Activity: ").append(activityShortComponentName).append("\n");
+-        }
+-        if (parentShortComponentName != null) {
+-            if (parentProcess != null && parentProcess.pid != process.pid) {
+-                sb.append("Parent-Process: ").append(parentProcess.processName).append("\n");
+-            }
+-            if (!parentShortComponentName.equals(activityShortComponentName)) {
+-                sb.append("Parent-Activity: ").append(parentShortComponentName).append("\n");
+-            }
+-        }
+-        if (subject != null) {
+-            sb.append("Subject: ").append(subject).append("\n");
+-        }
+-        sb.append("Build: ").append(Build.FINGERPRINT).append("\n");
+-        if (Debug.isDebuggerConnected()) {
+-            sb.append("Debugger: Connected\n");
+-        }
+-        if (crashInfo != null && crashInfo.crashTag != null && !crashInfo.crashTag.isEmpty()) {
+-            sb.append("Crash-Tag: ").append(crashInfo.crashTag).append("\n");
+-        }
+-        sb.append("\n");
+-
+-        // Do the rest in a worker thread to avoid blocking the caller on I/O
+-        // (After this point, we shouldn't access AMS internal data structures.)
+-        Thread worker = new Thread("Error dump: " + dropboxTag) {
+-            @Override
+-            public void run() {
+-                if (report != null) {
+-                    sb.append(report);
+-                }
+-
+-                String setting = Settings.Global.ERROR_LOGCAT_PREFIX + dropboxTag;
+-                int lines = Settings.Global.getInt(mContext.getContentResolver(), setting, 0);
+-                int maxDataFileSize = DROPBOX_MAX_SIZE - sb.length()
+-                        - lines * RESERVED_BYTES_PER_LOGCAT_LINE;
+-
+-                if (dataFile != null && maxDataFileSize > 0) {
+-                    try {
+-                        sb.append(FileUtils.readTextFile(dataFile, maxDataFileSize,
+-                                    "\n\n[[TRUNCATED]]"));
+-                    } catch (IOException e) {
+-                        Slog.e(TAG, "Error reading " + dataFile, e);
+-                    }
+-                }
+-                if (crashInfo != null && crashInfo.stackTrace != null) {
+-                    sb.append(crashInfo.stackTrace);
+-                }
+-
+-                if (lines > 0) {
+-                    sb.append("\n");
+-
+-                    // Merge several logcat streams, and take the last N lines
+-                    InputStreamReader input = null;
+-                    try {
+-                        java.lang.Process logcat = new ProcessBuilder(
+-                                "/system/bin/timeout", "-k", "15s", "10s",
+-                                "/system/bin/logcat", "-v", "threadtime", "-b", "events", "-b", "system",
+-                                "-b", "main", "-b", "crash", "-t", String.valueOf(lines))
+-                                        .redirectErrorStream(true).start();
+-
+-                        try { logcat.getOutputStream().close(); } catch (IOException e) {}
+-                        try { logcat.getErrorStream().close(); } catch (IOException e) {}
+-                        input = new InputStreamReader(logcat.getInputStream());
+-
+-                        int num;
+-                        char[] buf = new char[8192];
+-                        while ((num = input.read(buf)) > 0) sb.append(buf, 0, num);
+-                    } catch (IOException e) {
+-                        Slog.e(TAG, "Error running logcat", e);
+-                    } finally {
+-                        if (input != null) try { input.close(); } catch (IOException e) {}
+-                    }
+-                }
+-
+-                dbox.addText(dropboxTag, sb.toString());
+-            }
+-        };
+-
+-        if (process == null) {
+-            // If process is null, we are being called from some internal code
+-            // and may be about to die -- run this synchronously.
+-            final int oldMask = StrictMode.allowThreadDiskWritesMask();
+-            try {
+-                worker.run();
+-            } finally {
+-                StrictMode.setThreadPolicyMask(oldMask);
+-            }
+-        } else {
+-            worker.start();
+-        }
+-    }
+-
+     @Override
+     public List<ActivityManager.ProcessErrorStateInfo> getProcessesInErrorState() {
+         enforceNotIsolatedCaller("getProcessesInErrorState");
+@@ -13559,8 +13300,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+         }
+         dropBuilder.append(catSw.toString());
+         StatsLog.write(StatsLog.LOW_MEM_REPORTED);
+-        addErrorToDropBox("lowmem", null, "system_server", null,
+-                null, null, tag.toString(), dropBuilder.toString(), null, null);
+         //Slog.i(TAG, "Sent to dropbox:");
+         //Slog.i(TAG, dropBuilder.toString());
+         synchronized (ActivityManagerService.this) {
+
+diff --git a/services/core/java/com/android/server/am/ProcessRecord.java b/services/core/java/com/android/server/am/ProcessRecord.java
+index ea3084274ae..df24a871804 100644
+--- a/services/core/java/com/android/server/am/ProcessRecord.java
++++ b/services/core/java/com/android/server/am/ProcessRecord.java
+@@ -1558,8 +1558,6 @@ class ProcessRecord implements WindowProcessListener {
+                 (this.info != null) ? this.info.packageName : "");
+         final ProcessRecord parentPr = parentProcess != null
+                 ? (ProcessRecord) parentProcess.mOwner : null;
+-        mService.addErrorToDropBox("anr", this, processName, activityShortComponentName,
+-                parentShortComponentName, parentPr, annotation, cpuInfo, tracesFile, null);
+
+         if (mWindowProcessController.appNotResponding(info.toString(), () -> kill("anr", true),
+                 () -> {
+
+diff --git a/services/core/java/com/android/server/location/gps_debug.conf b/services/core/java/com/android/server/location/gps_debug.conf
+deleted file mode 100644
+index 34ce96f3c8b..00000000000
+--- a/services/core/java/com/android/server/location/gps_debug.conf
++++ /dev/null
+
+diff --git a/services/core/java/com/android/server/net/NetworkStatsRecorder.java b/services/core/java/com/android/server/net/NetworkStatsRecorder.java
+index 06ec341d9e4..9d2c02764f8 100644
+--- a/services/core/java/com/android/server/net/NetworkStatsRecorder.java
++++ b/services/core/java/com/android/server/net/NetworkStatsRecorder.java
+@@ -29,7 +29,6 @@ import android.net.NetworkStatsHistory;
+ import android.net.NetworkTemplate;
+ import android.net.TrafficStats;
+ import android.os.Binder;
+-import android.os.DropBoxManager;
+ import android.service.NetworkStatsRecorderProto;
+ import android.util.Log;
+ import android.util.MathUtils;
+@@ -74,8 +73,6 @@ public class NetworkStatsRecorder {
+     private static final boolean DUMP_BEFORE_DELETE = true;
+
+     private final FileRotator mRotator;
+-    private final NonMonotonicObserver<String> mObserver;
+-    private final DropBoxManager mDropBox;
+     private final String mCookie;
+
+     private final long mBucketDuration;
+@@ -96,8 +93,6 @@ public class NetworkStatsRecorder {
+      */
+     public NetworkStatsRecorder() {
+         mRotator = null;
+-        mObserver = null;
+-        mDropBox = null;
+         mCookie = null;
+
+         // set the bucket big enough to have all data in one bucket, but allow some
+@@ -114,11 +109,9 @@ public class NetworkStatsRecorder {
+     /**
+      * Persisted recorder.
+      */
+-    public NetworkStatsRecorder(FileRotator rotator, NonMonotonicObserver<String> observer,
+-            DropBoxManager dropBox, String cookie, long bucketDuration, boolean onlyTags) {
++    public NetworkStatsRecorder(FileRotator rotator,
++            String cookie, long bucketDuration, boolean onlyTags) {
+         mRotator = checkNotNull(rotator, "missing FileRotator");
+-        mObserver = checkNotNull(observer, "missing NonMonotonicObserver");
+-        mDropBox = checkNotNull(dropBox, "missing DropBoxManager");
+         mCookie = cookie;
+
+         mBucketDuration = bucketDuration;
+@@ -220,7 +213,7 @@ public class NetworkStatsRecorder {
+         final NetworkStatsCollection complete = mComplete != null ? mComplete.get() : null;
+
+         final NetworkStats delta = NetworkStats.subtract(
+-                snapshot, mLastSnapshot, mObserver, mCookie);
++                snapshot, mLastSnapshot, null, mCookie);
+         final long end = currentTimeMillis;
+         final long start = end - delta.getElapsedRealtime();
+
+@@ -231,9 +224,6 @@ public class NetworkStatsRecorder {
+             // As a last-ditch sanity check, report any negative values and
+             // clamp them so recording below doesn't croak.
+             if (entry.isNegative()) {
+-                if (mObserver != null) {
+-                    mObserver.foundNonMonotonic(delta, i, mCookie);
+-                }
+                 entry.rxBytes = Math.max(entry.rxBytes, 0);
+                 entry.rxPackets = Math.max(entry.rxPackets, 0);
+                 entry.txBytes = Math.max(entry.txBytes, 0);
+@@ -499,7 +489,6 @@ public class NetworkStatsRecorder {
+             } finally {
+                 IoUtils.closeQuietly(os);
+             }
+-            mDropBox.addData(TAG_NETSTATS_DUMP, os.toByteArray(), 0);
+         }
+
+         mRotator.deleteAll();
+
+diff --git a/services/core/java/com/android/server/net/NetworkStatsService.java b/services/core/java/com/android/server/net/NetworkStatsService.java
+index d1b5534e377..79f1aa1a5c2 100644
+--- a/services/core/java/com/android/server/net/NetworkStatsService.java
++++ b/services/core/java/com/android/server/net/NetworkStatsService.java
+@@ -99,7 +99,6 @@ import android.net.NetworkTemplate;
+ import android.net.TrafficStats;
+ import android.os.BestClock;
+ import android.os.Binder;
+-import android.os.DropBoxManager;
+ import android.os.Environment;
+ import android.os.Handler;
+ import android.os.HandlerThread;
+@@ -266,9 +265,6 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+     @GuardedBy("mStatsLock")
+     private Network[] mDefaultNetworks = new Network[0];
+
+-    private final DropBoxNonMonotonicObserver mNonMonotonicObserver =
+-            new DropBoxNonMonotonicObserver();
+-
+     @GuardedBy("mStatsLock")
+     private NetworkStatsRecorder mDevRecorder;
+     @GuardedBy("mStatsLock")
+@@ -439,11 +435,9 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+
+     private NetworkStatsRecorder buildRecorder(
+             String prefix, NetworkStatsSettings.Config config, boolean includeTags) {
+-        final DropBoxManager dropBox = (DropBoxManager) mContext.getSystemService(
+-                Context.DROPBOX_SERVICE);
+         return new NetworkStatsRecorder(new FileRotator(
+                 mBaseDir, prefix, config.rotateAgeMillis, config.deleteAgeMillis),
+-                mNonMonotonicObserver, dropBox, prefix, config.bucketDuration, includeTags);
++                prefix, config.bucketDuration, includeTags);
+     }
+
+     @GuardedBy("mStatsLock")
+@@ -1772,37 +1766,6 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
+         }
+     }
+
+-    private class DropBoxNonMonotonicObserver implements NonMonotonicObserver<String> {
+-        @Override
+-        public void foundNonMonotonic(NetworkStats left, int leftIndex, NetworkStats right,
+-                int rightIndex, String cookie) {
+-            Log.w(TAG, "Found non-monotonic values; saving to dropbox");
+-
+-            // record error for debugging
+-            final StringBuilder builder = new StringBuilder();
+-            builder.append("found non-monotonic " + cookie + " values at left[" + leftIndex
+-                    + "] - right[" + rightIndex + "]\n");
+-            builder.append("left=").append(left).append('\n');
+-            builder.append("right=").append(right).append('\n');
+-
+-            mContext.getSystemService(DropBoxManager.class).addText(TAG_NETSTATS_ERROR,
+-                    builder.toString());
+-        }
+-
+-        @Override
+-        public void foundNonMonotonic(
+-                NetworkStats stats, int statsIndex, String cookie) {
+-            Log.w(TAG, "Found non-monotonic values; saving to dropbox");
+-
+-            final StringBuilder builder = new StringBuilder();
+-            builder.append("Found non-monotonic " + cookie + " values at [" + statsIndex + "]\n");
+-            builder.append("stats=").append(stats).append('\n');
+-
+-            mContext.getSystemService(DropBoxManager.class).addText(TAG_NETSTATS_ERROR,
+-                    builder.toString());
+-        }
+-    }
+-
+     /**
+      * Default external settings that read from
+      * {@link android.provider.Settings.Global}.
+
+diff --git a/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java b/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
+index 3b3ee5876bc..6080626a15a 100644
+--- a/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
++++ b/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
+@@ -24,7 +24,6 @@ import android.content.pm.PackageManager;
+ import android.content.pm.PackageManager.NameNotFoundException;
+ import android.content.pm.UserInfo;
+ import android.os.Bundle;
+-import android.os.DropBoxManager;
+ import android.os.Handler;
+ import android.os.Looper;
+ import android.os.Message;
+@@ -66,10 +65,8 @@ class WatchlistLoggingHandler extends Handler {
+     static final int FORCE_REPORT_RECORDS_NOW_FOR_TEST_MSG = 3;
+
+     private static final long ONE_DAY_MS = TimeUnit.DAYS.toMillis(1);
+-    private static final String DROPBOX_TAG = "network_watchlist_report";
+
+     private final Context mContext;
+-    private final @Nullable DropBoxManager mDropBoxManager;
+     private final ContentResolver mResolver;
+     private final PackageManager mPm;
+     private final WatchlistReportDbHelper mDbHelper;
+@@ -97,7 +94,6 @@ class WatchlistLoggingHandler extends Handler {
+         mDbHelper = WatchlistReportDbHelper.getInstance(context);
+         mConfig = WatchlistConfig.getInstance();
+         mSettings = WatchlistSettings.getInstance();
+-        mDropBoxManager = mContext.getSystemService(DropBoxManager.class);
+         mPrimaryUserId = getPrimaryUserId();
+     }
+
+@@ -260,28 +256,7 @@ class WatchlistLoggingHandler extends Handler {
+                 return;
+             }
+             Slog.i(TAG, "Start aggregating watchlist records.");
+-            if (mDropBoxManager != null && mDropBoxManager.isTagEnabled(DROPBOX_TAG)) {
+-                Settings.Global.putLong(mResolver,
+-                        Settings.Global.NETWORK_WATCHLIST_LAST_REPORT_TIME,
+-                        lastRecordTime);
+-                final WatchlistReportDbHelper.AggregatedResult aggregatedResult =
+-                        mDbHelper.getAggregatedRecords(lastRecordTime);
+-                if (aggregatedResult == null) {
+-                    Slog.i(TAG, "Cannot get result from database");
+-                    return;
+-                }
+-                // Get all digests for watchlist report, it should include all installed
+-                // application digests and previously recorded app digests.
+-                final List<String> digestsForReport = getAllDigestsForReport(aggregatedResult);
+-                final byte[] secretKey = mSettings.getPrivacySecretKey();
+-                final byte[] encodedResult = ReportEncoder.encodeWatchlistReport(mConfig,
+-                        secretKey, digestsForReport, aggregatedResult);
+-                if (encodedResult != null) {
+-                    addEncodedReportToDropBox(encodedResult);
+-                }
+-            } else {
+-                Slog.w(TAG, "Network Watchlist dropbox tag is not enabled");
+-            }
++            Slog.w(TAG, "Network Watchlist dropbox tag is not enabled");
+             mDbHelper.cleanup(lastRecordTime);
+         } finally {
+             long endTime = System.currentTimeMillis();
+@@ -317,10 +292,6 @@ class WatchlistLoggingHandler extends Handler {
+         return new ArrayList<>(result);
+     }
+
+-    private void addEncodedReportToDropBox(byte[] encodedReport) {
+-        mDropBoxManager.addData(DROPBOX_TAG, encodedReport, 0);
+-    }
+-
+     /**
+      * Get app digest from app uid.
+      * Return null if system cannot get digest from uid.
+
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
 index 179abe958b1..ab54b9bc012 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
@@ -810,6 +1609,25 @@ index 179abe958b1..ab54b9bc012 100644
      @Override
      public void checkPackageStartable(String packageName, int userId) {
          final int callingUid = Binder.getCallingUid();
+
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index 844b79280b1..edfba58f703 100644
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -1004,13 +1004,6 @@ public final class SystemServer {
+             SQLiteCompatibilityWalFlags.reset();
+             traceEnd();
+
+-            // Records errors and logs, for example wtf()
+-            // Currently this service indirectly depends on SettingsProvider so do this after
+-            // InstallSystemProviders.
+-            traceBeginAndSlog("StartDropBoxManager");
+-            mSystemServiceManager.startService(DropBoxManagerService.class);
+-            traceEnd();
+-
+             traceBeginAndSlog("StartVibratorService");
+             vibrator = new VibratorService(context);
+             ServiceManager.addService("vibrator", vibrator);
 
 project hardware/qcom-caf/msm8994/audio/
 diff --git a/hal/Android.mk b/hal/Android.mk
@@ -1218,11 +2036,62 @@ index c4f7d34b2..8739e5698 100644
      -DWORLD_WRITABLE_KMSG=0 \
      -DDUMP_ON_UMOUNT_FAILURE=0
 
+diff --git a/libcutils/trace-dev.cpp b/libcutils/trace-dev.cpp
+index 4da821555..07afa2fcb 100644
+--- a/libcutils/trace-dev.cpp
++++ b/libcutils/trace-dev.cpp
+@@ -24,22 +24,14 @@ static pthread_once_t atrace_once_control = PTHREAD_ONCE_INIT;
+ // the Zygote process from tracing.
+ void atrace_set_tracing_enabled(bool enabled)
+ {
++    enabled = false;
+     atomic_store_explicit(&atrace_is_enabled, enabled, memory_order_release);
+     atrace_update_tags();
+ }
+
+ static void atrace_init_once()
+ {
+-    atrace_marker_fd = open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY | O_CLOEXEC);
+-    if (atrace_marker_fd == -1) {
+-        ALOGE("Error opening trace file: %s (%d)", strerror(errno), errno);
+-        atrace_enabled_tags = 0;
+-        goto done;
+-    }
+-
+-    atrace_enabled_tags = atrace_get_property();
+-
+-done:
++    atrace_enabled_tags = 0;
+     atomic_store_explicit(&atrace_is_ready, true, memory_order_release);
+ }
+
+diff --git a/libcutils/trace-dev.inc b/libcutils/trace-dev.inc
+index e3da77bec..33ae155e1 100644
+--- a/libcutils/trace-dev.inc
++++ b/libcutils/trace-dev.inc
+@@ -45,7 +45,7 @@ atomic_bool             atrace_is_ready      = ATOMIC_VAR_INIT(false);
+ int                     atrace_marker_fd     = -1;
+ uint64_t                atrace_enabled_tags  = ATRACE_TAG_NOT_READY;
+ static bool             atrace_is_debuggable = false;
+-static atomic_bool      atrace_is_enabled    = ATOMIC_VAR_INIT(true);
++static atomic_bool      atrace_is_enabled    = ATOMIC_VAR_INIT(false);
+ static pthread_mutex_t  atrace_tags_mutex    = PTHREAD_MUTEX_INITIALIZER;
+
+ // Set whether this process is debuggable, which determines whether
+@@ -53,6 +53,7 @@ static pthread_mutex_t  atrace_tags_mutex    = PTHREAD_MUTEX_INITIALIZER;
+ // is not set to '1'.
+ void atrace_set_debuggable(bool debuggable)
+ {
++    debuggable = false;
+     atrace_is_debuggable = debuggable;
+     atrace_update_tags();
+ }
+
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index d5afabce8..2c4870377 100644
+index d5afabce8..1184af5d9 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
-@@ -439,11 +438,6 @@ on post-fs-data
+@@ -439,11 +439,6 @@ on post-fs-data
      # Make sure we have the device encryption key.
      installkey /data
 
@@ -1234,7 +2103,7 @@ index d5afabce8..2c4870377 100644
      # Load fsverity keys. This needs to happen before apexd, as post-install of
      # APEXes may rely on keys.
      exec -- /system/bin/fsverity_init
-@@ -504,7 +498,6 @@ on post-fs-data
+@@ -504,7 +499,6 @@ on post-fs-data
      mkdir /data/misc/ethernet 0770 system system
      mkdir /data/misc/dhcp 0770 dhcp dhcp
      mkdir /data/misc/user 0771 root root
@@ -1242,7 +2111,7 @@ index d5afabce8..2c4870377 100644
      # give system access to wpa_supplicant.conf for backup and restore
      chmod 0660 /data/misc/wifi/wpa_supplicant.conf
      mkdir /data/local 0751 root root
-@@ -512,18 +505,10 @@ on post-fs-data
+@@ -512,18 +506,10 @@ on post-fs-data
      mkdir /data/misc/audioserver 0700 audioserver audioserver
      mkdir /data/misc/cameraserver 0700 cameraserver cameraserver
      mkdir /data/misc/vold 0700 root root
@@ -1261,7 +2130,7 @@ index d5afabce8..2c4870377 100644
 
      mkdir /data/preloads 0775 system system
 
-@@ -535,7 +520,6 @@ on post-fs-data
+@@ -535,7 +521,6 @@ on post-fs-data
      # For security reasons, /data/local/tmp should always be empty.
      # Do not place files or directories in /data/local/tmp
      mkdir /data/local/tmp 0771 shell shell
@@ -1269,7 +2138,7 @@ index d5afabce8..2c4870377 100644
      mkdir /data/data 0771 system system
      mkdir /data/app-private 0771 system system
      mkdir /data/app-ephemeral 0771 system system
-@@ -543,14 +527,9 @@ on post-fs-data
+@@ -543,14 +528,9 @@ on post-fs-data
      mkdir /data/app-lib 0771 system system
      mkdir /data/app 0771 system system
      mkdir /data/property 0700 root root
@@ -1284,7 +2153,7 @@ index d5afabce8..2c4870377 100644
 
      # create the OTA package directory. It will be accessed by GmsCore (cache
      # group), update_engine and update_verifier.
-@@ -572,20 +551,11 @@ on post-fs-data
+@@ -572,20 +552,11 @@ on post-fs-data
      # the following directory.
      mkdir /data/mediadrm 0770 mediadrm mediadrm
 
@@ -2141,7 +3010,8 @@ index 82502e7f..009adbfa 100644
 
  # Lineage packages
  PRODUCT_PACKAGES += \
-@@ -29,10 +26,8 @@ PRODUCT_PACKAGES += \
+-    AudioFX \
+     Backgrounds \
      Eleven \
      Etar \
      Jelly \
