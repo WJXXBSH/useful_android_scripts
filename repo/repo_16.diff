@@ -267,12 +267,17 @@ index 4c9100f15..82268553b 100644
 --- a/tools/libhost/Android.bp
 +++ b/tools/libhost/Android.bp
 @@ -3,7 +3,6 @@ cc_library_host_static {
+
      srcs: ["CopyFile.c"],
 
-     cflags: [
+-    cflags: [
 -        "-Werror",
-         "-Wall",
-     ],
+-        "-Wall",
+-    ],
++    cflags: ["-Wall",],
+
+     name: "libhost",
+     target: {
 
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
 index 898db6861..14be89ac2 100644

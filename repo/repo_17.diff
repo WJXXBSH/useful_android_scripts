@@ -15,15 +15,21 @@ index a5eef489f..4610e2aaa 100644
  endif
  BUILD_VERSION_TAGS += $(BUILD_KEYS)
  BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
-@@ -4281,7 +4281,7 @@ else
+@@ -4280,15 +4280,11 @@ else
+     OTA_SCRIPT_OVERRIDE_DEVICE := $(TARGET_OTA_ASSERT_DEVICE)
  endif
 
- ifeq ($(TARGET_BUILD_VARIANT),user)
+-ifeq ($(TARGET_BUILD_VARIANT),user)
 -    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
-+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
- else
+-else
  ifneq ($(LINEAGE_BUILD),)
      $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
+ else
+     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+ endif
+-endif
+
+ $(INTERNAL_OTA_PACKAGE_TARGET): .KATI_IMPLICIT_OUTPUTS := $(INTERNAL_OTA_METADATA)
 
 diff --git a/core/binary.mk b/core/binary.mk
 index d4f0476c8..2d6558e45 100644
@@ -38,12 +44,8 @@ index d4f0476c8..2d6558e45 100644
  renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
  # -m32 or -m64
  renderscript_flags += -m$(my_32_64_bit_suffix)
-@@ -1504,10 +1504,10 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
-       $(eval MODULES_USING_WNO_ERROR := $(MODULES_USING_WNO_ERROR) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
-     else
-       # Issue warning if -Werror is not used. Add it.
--      ifeq (,$(filter -Werror,$(my_all_cflags)))
-+      ifeq (,$(filter -Wall,$(my_all_cflags)))
+@@ -1507,7 +1507,7 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
+       ifeq (,$(filter -Werror,$(my_all_cflags)))
          # Add -Wall -Werror unless the project is in the WARNING_ALLOWED project list.
          ifeq (,$(strip $(call find_warning_allowed_projects,$(LOCAL_PATH))))
 -          my_cflags := -Wall -Werror $(my_cflags)
@@ -383,12 +385,17 @@ index 4c9100f15..82268553b 100644
 --- a/tools/libhost/Android.bp
 +++ b/tools/libhost/Android.bp
 @@ -3,7 +3,6 @@ cc_library_host_static {
+
      srcs: ["CopyFile.c"],
 
-     cflags: [
+-    cflags: [
 -        "-Werror",
-         "-Wall",
-     ],
+-        "-Wall",
+-    ],
++    cflags: ["-Wall",],
+
+     name: "libhost",
+     target: {
 
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
 index 898db6861..14be89ac2 100644
@@ -2413,34 +2420,11 @@ index fd15ab86..4514a531 100644
  </resources>
 
 diff --git a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-index 56031b7f..5c17b840 100644
+deleted file mode 100644
+index 56031b7f..00000000
 --- a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-+++ b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-@@ -18,5 +18,5 @@
-     <!-- Defaults for Secure -->
-
-     <!-- Default for LineageSettings.Secure.STATS_COLLECTION -->
--    <bool name="def_stats_collection">true</bool>
-+    <bool name="def_stats_collection">false</bool>
- </resources>
-
-diff --git a/overlay/common/packages/apps/Settings/res/values/config.xml b/overlay/common/packages/apps/Settings/res/values/config.xml
-index 651905da..3c220712 100644
---- a/overlay/common/packages/apps/Settings/res/values/config.xml
-+++ b/overlay/common/packages/apps/Settings/res/values/config.xml
-@@ -21,12 +21,6 @@
-     <!-- If the Storage Manager settings are enabled. -->
-     <bool name="config_storage_manager_settings_enabled">true</bool>
-
--    <!-- Whether to show a preference item for mobile plan -->
--    <bool name="config_show_mobile_plan">false</bool>
--
--    <!-- Whether wallpaper attribution should be shown or not. -->
--    <bool name="config_show_wallpaper_attribution">false</bool>
--
-     <!-- Package name and fully-qualified class name for the wallpaper picker activity. -->
-     <string name="config_wallpaper_picker_package" translatable="false">com.android.wallpaper</string>
-     <string name="config_wallpaper_picker_class" translatable="false">com.android.customization.picker.CustomizationPickerActivity</string>
++++ /dev/null
+@@ -1,22 +0,0 @@
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
 index 662b4673..3bdf07e9 100755
