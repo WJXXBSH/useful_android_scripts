@@ -1,6 +1,6 @@
 project build/make/
 diff --git a/core/Makefile b/core/Makefile
-index a5eef489f..4610e2aaa 100644
+index a5eef48..a075b92 100644
 --- a/core/Makefile
 +++ b/core/Makefile
 @@ -302,9 +302,9 @@ endif
@@ -15,6 +15,15 @@ index a5eef489f..4610e2aaa 100644
  endif
  BUILD_VERSION_TAGS += $(BUILD_KEYS)
  BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
+@@ -1797,7 +1797,7 @@ ifeq (,$(filter true, $(BOARD_USES_FULL_RECOVERY_IMAGE) $(BOARD_USES_RECOVERY_AS
+   $(BOARD_BUILD_SYSTEM_ROOT_IMAGE) $(BOARD_INCLUDE_RECOVERY_DTBO) $(BOARD_INCLUDE_RECOVERY_ACPIO) \
+   $(TARGET_NOT_USE_GZIP_RECOVERY_RAMDISK)))
+ # Named '.dat' so we don't attempt to use imgdiff for patching it.
+-RECOVERY_RESOURCE_ZIP := $(TARGET_OUT)/etc/recovery-resource.dat
++RECOVERY_RESOURCE_ZIP :=
+ else
+ RECOVERY_RESOURCE_ZIP :=
+ endif
 @@ -4280,15 +4280,11 @@ else
      OTA_SCRIPT_OVERRIDE_DEVICE := $(TARGET_OTA_ASSERT_DEVICE)
  endif
@@ -32,18 +41,9 @@ index a5eef489f..4610e2aaa 100644
  $(INTERNAL_OTA_PACKAGE_TARGET): .KATI_IMPLICIT_OUTPUTS := $(INTERNAL_OTA_METADATA)
 
 diff --git a/core/binary.mk b/core/binary.mk
-index d4f0476c8..2d6558e45 100644
+index d4f0476..b53cf0e 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
-@@ -627,7 +627,7 @@ endif
-
- # Turn on all warnings and warnings as errors for RS compiles.
- # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
--renderscript_flags := -Wall -Werror
-+renderscript_flags := -Wall
- renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
- # -m32 or -m64
- renderscript_flags += -m$(my_32_64_bit_suffix)
 @@ -1507,7 +1507,7 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
        ifeq (,$(filter -Werror,$(my_all_cflags)))
          # Add -Wall -Werror unless the project is in the WARNING_ALLOWED project list.
@@ -54,22 +54,8 @@ index d4f0476c8..2d6558e45 100644
            $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
            my_cflags := -Wall $(my_cflags)
 
-diff --git a/core/java_renderscript.mk b/core/java_renderscript.mk
-index 13a6f8e66..72801a92d 100644
---- a/core/java_renderscript.mk
-+++ b/core/java_renderscript.mk
-@@ -46,7 +46,7 @@ endif
-
- # Turn on all warnings and warnings as errors for RS compiles.
- # This can be disabled with LOCAL_RENDERSCRIPT_FLAGS := -Wno-error
--renderscript_flags := -Wall -Werror
-+renderscript_flags := -Wall
- renderscript_flags += $(LOCAL_RENDERSCRIPT_FLAGS)
-
- # prepend the RenderScript system include path
-
 diff --git a/core/main.mk b/core/main.mk
-index e8a1c4f8a..a86e7774a 100644
+index e8a1c4f..a86e777 100644
 --- a/core/main.mk
 +++ b/core/main.mk
 @@ -292,8 +292,6 @@ ifneq (,$(user_variant))
@@ -100,32 +86,42 @@ index e8a1c4f8a..a86e7774a 100644
  endif
 
 diff --git a/core/product.mk b/core/product.mk
-index da316cc42..226344344 100644
+index da316cc..05ab2e4 100644
 --- a/core/product.mk
 +++ b/core/product.mk
-@@ -493,10 +493,16 @@ _readonly_late_variables := \
+@@ -493,11 +493,17 @@ _readonly_late_variables := \
 
  # Modified internally in the build system
  _readonly_late_variables += \
 +  PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD \
    PRODUCT_CFI_INCLUDE_PATHS \
    PRODUCT_COPY_FILES \
-   PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
+-  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
    PRODUCT_DEX_PREOPT_BOOT_FLAGS \
-+  PRODUCT_DEX_PREOPT_DEFAULT_FLAGS \
+-  PRODUCT_SOONG_NAMESPACES
 +  PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER \
-+  PRODUCT_SYSTEM_SERVER_COMPILER_FILTER \
-+  PRODUCT_SYSTEM_SERVER_DEBUG_INFO \
++  PRODUCT_DEX_PREOPT_DEFAULT_FLAGS \
++  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
 +  PRODUCT_OTHER_JAVA_DEBUG_INFO \
-   PRODUCT_SOONG_NAMESPACES
++  PRODUCT_SOONG_NAMESPACES \
++  PRODUCT_SYSTEM_SERVER_COMPILER_FILTER \
++  PRODUCT_SYSTEM_SERVER_DEBUG_INFO
 
  _readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
 
 diff --git a/target/product/base_system.mk b/target/product/base_system.mk
-index 699b9c7a1..9071f7b54 100644
+index 699b9c7..23495b2 100644
 --- a/target/product/base_system.mk
 +++ b/target/product/base_system.mk
-@@ -45,8 +45,6 @@ PRODUCT_PACKAGES += \
+@@ -34,7 +34,6 @@ PRODUCT_PACKAGES += \
+     app_process \
+     appwidget \
+     ashmemd \
+-    atrace \
+     audioserver \
+     BackupRestoreConfirmation \
+     bcc \
+@@ -45,8 +44,6 @@ PRODUCT_PACKAGES += \
      bootstat \
      bpfloader \
      bu \
@@ -134,7 +130,7 @@ index 699b9c7a1..9071f7b54 100644
      cgroups.json \
      charger \
      cmd \
-@@ -58,10 +56,6 @@ PRODUCT_PACKAGES += \
+@@ -58,10 +55,6 @@ PRODUCT_PACKAGES += \
      com.android.tzdata \
      ContactsProvider \
      content \
@@ -145,7 +141,7 @@ index 699b9c7a1..9071f7b54 100644
      device_config \
      dmctl \
      dnsmasq \
-@@ -69,7 +63,6 @@ PRODUCT_PACKAGES += \
+@@ -69,7 +62,6 @@ PRODUCT_PACKAGES += \
      dpm \
      dumpstate \
      dumpsys \
@@ -153,7 +149,16 @@ index 699b9c7a1..9071f7b54 100644
      e2fsck \
      ExtServices \
      ExtShared \
-@@ -249,9 +242,6 @@ PRODUCT_PACKAGES += \
+@@ -82,8 +74,6 @@ PRODUCT_PACKAGES += \
+     fs_config_dirs_system \
+     gsid \
+     gsi_tool \
+-    heapprofd \
+-    heapprofd_client \
+     gatekeeperd \
+     gpuservice \
+     hid \
+@@ -249,9 +239,6 @@ PRODUCT_PACKAGES += \
      tc \
      telecom \
      telephony-common \
@@ -163,7 +168,7 @@ index 699b9c7a1..9071f7b54 100644
      tune2fs \
      tzdatacheck \
      uiautomator \
-@@ -261,7 +251,6 @@ PRODUCT_PACKAGES += \
+@@ -261,7 +248,6 @@ PRODUCT_PACKAGES += \
      viewcompiler \
      voip-common \
      vold \
@@ -171,7 +176,16 @@ index 699b9c7a1..9071f7b54 100644
      watchdogd \
      wificond \
      wifi-service \
-@@ -371,8 +360,7 @@ PRODUCT_PACKAGES_DEBUG := \
+@@ -344,8 +330,6 @@ endif
+ PRODUCT_COPY_FILES += system/core/rootdir/init.zygote32.rc:root/init.zygote32.rc
+ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote32
+
+-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += debug.atrace.tags.enableflags=0
+-
+ # Packages included only for eng or userdebug builds, previously debug tagged
+ PRODUCT_PACKAGES_DEBUG := \
+     adb_keys \
+@@ -371,8 +355,7 @@ PRODUCT_PACKAGES_DEBUG := \
 
  # The set of packages whose code can be loaded by the system server.
  PRODUCT_SYSTEM_SERVER_APPS += \
@@ -179,8 +193,11 @@ index 699b9c7a1..9071f7b54 100644
 -    WallpaperBackup
 +    SettingsProvider
 
+ # Packages included only for eng/userdebug builds, when building with SANITIZE_TARGET=address
+ PRODUCT_PACKAGES_DEBUG_ASAN := \
+
 diff --git a/target/product/full_base.mk b/target/product/full_base.mk
-index f3fb8c306..832a1c7c9 100644
+index f3fb8c3..832a1c7 100644
 --- a/target/product/full_base.mk
 +++ b/target/product/full_base.mk
 @@ -24,8 +24,7 @@ PRODUCT_PACKAGES := \
@@ -195,7 +212,7 @@ index f3fb8c306..832a1c7c9 100644
  #   audio.a2dp.default is a system module. Generic system image includes
 
 diff --git a/target/product/handheld_system.mk b/target/product/handheld_system.mk
-index e5771cc94..7cd703b86 100644
+index e5771cc..2824014 100644
 --- a/target/product/handheld_system.mk
 +++ b/target/product/handheld_system.mk
 @@ -32,11 +32,9 @@ $(call inherit-product-if-exists, frameworks/base/data/keyboards/keyboards.mk)
@@ -233,7 +250,7 @@ index e5771cc94..7cd703b86 100644
      vr \
 
 diff --git a/target/product/media_system.mk b/target/product/media_system.mk
-index 0489b28d9..d29350b96 100644
+index 0489b28..d29350b 100644
 --- a/target/product/media_system.mk
 +++ b/target/product/media_system.mk
 @@ -68,16 +68,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
@@ -255,7 +272,7 @@ index 0489b28d9..d29350b96 100644
  $(call inherit-product-if-exists, vendor/google/products/cfi-vendor.mk)
 
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
-index a88ba3c8d..ed19be911 100644
+index a88ba3c..ed19be9 100644
 --- a/target/product/runtime_libart.mk
 +++ b/target/product/runtime_libart.mk
 @@ -61,22 +61,22 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
@@ -303,10 +320,11 @@ index a88ba3c8d..ed19be911 100644
      ro.iorapd.enable=false
 
 diff --git a/target/product/telephony_system.mk b/target/product/telephony_system.mk
-index 584cf1ee6..a6fe9682e 100644
+index 584cf1e..d910c6b 100644
 --- a/target/product/telephony_system.mk
 +++ b/target/product/telephony_system.mk
-@@ -20,7 +20,6 @@
+@@ -19,8 +19,6 @@
+
  PRODUCT_PACKAGES := \
      ONS \
 -    CarrierDefaultApp \
@@ -314,8 +332,10 @@ index 584cf1ee6..a6fe9682e 100644
 -    CellBroadcastReceiver \
 +    CarrierDefaultApp
 
+ PRODUCT_COPY_FILES := \
+
 diff --git a/target/product/updatable_apex.mk b/target/product/updatable_apex.mk
-index 3d5e8e2a2..bdaf54517 100644
+index 3d5e8e2..bdaf545 100644
 --- a/target/product/updatable_apex.mk
 +++ b/target/product/updatable_apex.mk
 @@ -18,6 +18,5 @@
@@ -327,7 +347,7 @@ index 3d5e8e2a2..bdaf54517 100644
  endif
 
 diff --git a/tools/acp/Android.bp b/tools/acp/Android.bp
-index 64f5a1013..8b84418b3 100644
+index 64f5a10..8b84418 100644
 --- a/tools/acp/Android.bp
 +++ b/tools/acp/Android.bp
 @@ -5,7 +5,7 @@
@@ -341,7 +361,7 @@ index 64f5a1013..8b84418b3 100644
      name: "acp",
 
 diff --git a/tools/atree/Android.bp b/tools/atree/Android.bp
-index 5fbe042ea..fc8a8aada 100644
+index 5fbe042..fc8a8aa 100644
 --- a/tools/atree/Android.bp
 +++ b/tools/atree/Android.bp
 @@ -9,6 +9,6 @@ cc_binary_host {
@@ -354,7 +374,7 @@ index 5fbe042ea..fc8a8aada 100644
  }
 
 diff --git a/tools/fs_config/Android.bp b/tools/fs_config/Android.bp
-index d9a48d704..60bfe673f 100644
+index d9a48d7..60bfe67 100644
 --- a/tools/fs_config/Android.bp
 +++ b/tools/fs_config/Android.bp
 @@ -32,7 +32,6 @@ cc_binary_host {
@@ -367,7 +387,7 @@ index d9a48d704..60bfe673f 100644
  target_fs_config_gen_filegroup {
 
 diff --git a/tools/fs_get_stats/Android.bp b/tools/fs_get_stats/Android.bp
-index 67742b836..f710d506e 100644
+index 67742b8..f710d50 100644
 --- a/tools/fs_get_stats/Android.bp
 +++ b/tools/fs_get_stats/Android.bp
 @@ -1,7 +1,7 @@
@@ -381,10 +401,10 @@ index 67742b836..f710d506e 100644
          "liblog",
 
 diff --git a/tools/libhost/Android.bp b/tools/libhost/Android.bp
-index 4c9100f15..82268553b 100644
+index 4c9100f..7c35e00 100644
 --- a/tools/libhost/Android.bp
 +++ b/tools/libhost/Android.bp
-@@ -3,7 +3,6 @@ cc_library_host_static {
+@@ -2,10 +2,7 @@ cc_library_host_static {
 
      srcs: ["CopyFile.c"],
 
@@ -392,13 +412,13 @@ index 4c9100f15..82268553b 100644
 -        "-Werror",
 -        "-Wall",
 -    ],
-+    cflags: ["-Wall",],
++    cflags: ["-Wall"],
 
      name: "libhost",
      target: {
 
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
-index 898db6861..14be89ac2 100644
+index 898db68..14be89a 100644
 --- a/tools/makeparallel/Android.bp
 +++ b/tools/makeparallel/Android.bp
 @@ -17,5 +17,5 @@ cc_binary_host {
@@ -409,22 +429,8 @@ index 898db6861..14be89ac2 100644
 +    cflags: ["-Wall"],
  }
 
-diff --git a/tools/makeparallel/Makefile b/tools/makeparallel/Makefile
-index 82a4abfac..b2595d45e 100644
---- a/tools/makeparallel/Makefile
-+++ b/tools/makeparallel/Makefile
-@@ -27,7 +27,7 @@ MAKEPARALLEL_BIN_PATH ?= .
- MAKEPARALLEL_CXX_SRCS := \
- 	makeparallel.cpp
-
--MAKEPARALLEL_CXXFLAGS := -Wall -Werror -MMD -MP
-+MAKEPARALLEL_CXXFLAGS := -Wall -MMD -MP
-
- MAKEPARALLEL_CXX_SRCS := $(addprefix $(MAKEPARALLEL_SRC_PATH)/,\
- 	$(MAKEPARALLEL_CXX_SRCS))
-
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index b2afaf153..949b78f9e 100644
+index b2afaf1..b0bb291 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -2148,7 +2148,7 @@ class BlockDifference(object):
@@ -436,9 +442,156 @@ index b2afaf153..949b78f9e 100644
                      '--output={}.new.dat.br'.format(self.path),
                      '{}.new.dat'.format(self.path)]
        print("Compressing {}.new.dat with brotli".format(self.partition))
+@@ -2304,85 +2304,6 @@ def MakeRecoveryPatch(input_dir, output_sink, recovery_img, boot_img,
+   full_recovery_image = info_dict.get("full_recovery_image") == "true"
+   use_bsdiff = info_dict.get("no_gzip_recovery_ramdisk") == "true"
+
+-  if full_recovery_image:
+-    output_sink("etc/recovery.img", recovery_img.data)
+-
+-  else:
+-    system_root_image = info_dict.get("system_root_image") == "true"
+-    path = os.path.join(input_dir, "SYSTEM", "etc", "recovery-resource.dat")
+-    # With system-root-image, boot and recovery images will have mismatching
+-    # entries (only recovery has the ramdisk entry) (Bug: 72731506). Use bsdiff
+-    # to handle such a case.
+-    if system_root_image or use_bsdiff:
+-      diff_program = ["bsdiff"]
+-      bonus_args = ""
+-      assert not os.path.exists(path)
+-    else:
+-      diff_program = ["imgdiff"]
+-      if os.path.exists(path):
+-        diff_program.append("-b")
+-        diff_program.append(path)
+-        bonus_args = "--bonus /system/etc/recovery-resource.dat"
+-      else:
+-        bonus_args = ""
+-
+-    d = Difference(recovery_img, boot_img, diff_program=diff_program)
+-    _, _, patch = d.ComputePatch()
+-    output_sink("recovery-from-boot.p", patch)
+-
+-  try:
+-    # The following GetTypeAndDevice()s need to use the path in the target
+-    # info_dict instead of source_info_dict.
+-    boot_type, boot_device = GetTypeAndDevice("/boot", info_dict)
+-    recovery_type, recovery_device = GetTypeAndDevice("/recovery", info_dict)
+-  except KeyError:
+-    return
+-
+-  if full_recovery_image:
+-    sh = """#!/system/bin/sh
+-if ! applypatch --check %(type)s:%(device)s:%(size)d:%(sha1)s; then
+-  applypatch \\
+-          --flash /system/etc/recovery.img \\
+-          --target %(type)s:%(device)s:%(size)d:%(sha1)s && \\
+-      log -t recovery "Installing new recovery image: succeeded" || \\
+-      log -t recovery "Installing new recovery image: failed"
+-else
+-  log -t recovery "Recovery image already installed"
+-fi
+-""" % {'type': recovery_type,
+-       'device': recovery_device,
+-       'sha1': recovery_img.sha1,
+-       'size': recovery_img.size}
+-  else:
+-    sh = """#!/system/bin/sh
+-if ! applypatch --check %(recovery_type)s:%(recovery_device)s:%(recovery_size)d:%(recovery_sha1)s; then
+-  applypatch %(bonus_args)s \\
+-          --patch /system/recovery-from-boot.p \\
+-          --source %(boot_type)s:%(boot_device)s:%(boot_size)d:%(boot_sha1)s \\
+-          --target %(recovery_type)s:%(recovery_device)s:%(recovery_size)d:%(recovery_sha1)s && \\
+-      log -t recovery "Installing new recovery image: succeeded" || \\
+-      log -t recovery "Installing new recovery image: failed"
+-else
+-  log -t recovery "Recovery image already installed"
+-fi
+-""" % {'boot_size': boot_img.size,
+-       'boot_sha1': boot_img.sha1,
+-       'recovery_size': recovery_img.size,
+-       'recovery_sha1': recovery_img.sha1,
+-       'boot_type': boot_type,
+-       'boot_device': boot_device,
+-       'recovery_type': recovery_type,
+-       'recovery_device': recovery_device,
+-       'bonus_args': bonus_args}
+-
+-  # The install script location moved from /system/etc to /system/bin
+-  # in the L release.
+-  sh_location = "bin/install-recovery.sh"
+-
+-  logger.info("putting script in %s", sh_location)
+-
+-  output_sink(sh_location, sh.encode())
+-
+
+ class DynamicPartitionUpdate(object):
+   def __init__(self, src_group=None, tgt_group=None, progress=None,
+
+diff --git a/tools/releasetools/ota_from_target_files.py b/tools/releasetools/ota_from_target_files.py
+index 0cff60f..489345e 100755
+--- a/tools/releasetools/ota_from_target_files.py
++++ b/tools/releasetools/ota_from_target_files.py
+@@ -716,12 +716,6 @@ def _WriteRecoveryImageToBoot(script, output_zip):
+     script.WriteRawImage("/boot", "recovery.img")
+
+
+-def HasRecoveryPatch(target_files_zip):
+-  namelist = [name for name in target_files_zip.namelist()]
+-  return ("SYSTEM/recovery-from-boot.p" in namelist or
+-          "SYSTEM/etc/recovery.img" in namelist)
+-
+-
+ def HasPartition(target_files_zip, partition):
+   try:
+     target_files_zip.getinfo(partition.upper() + "/")
+@@ -993,8 +987,6 @@ def WriteFullOTAPackage(input_zip, output_file):
+       metadata=metadata,
+       info_dict=OPTIONS.info_dict)
+
+-  assert HasRecoveryPatch(input_zip)
+-
+   # Assertions (e.g. downgrade check, device properties check).
+   #ts = target_info.GetBuildProp("ro.build.date.utc")
+   #ts_text = target_info.GetBuildProp("ro.build.date")
+
+diff --git a/tools/releasetools/target_files_diff.py b/tools/releasetools/target_files_diff.py
+index 4402c8d..8a92885 100755
+--- a/tools/releasetools/target_files_diff.py
++++ b/tools/releasetools/target_files_diff.py
+@@ -41,10 +41,6 @@ def ignore(name):
+   # We're looking at the files that make the images, so no need to search them
+   if name in ['IMAGES']:
+     return True
+-  # These are packages of the recovery partition, which we're already diffing
+-  if name in ['SYSTEM/etc/recovery-resource.dat',
+-              'SYSTEM/recovery-from-boot.p']:
+-    return True
+
+   # These files are just the BUILD_NUMBER, and will always be different
+   if name in ['BOOT/RAMDISK/selinux_version',
+
+diff --git a/tools/releasetools/test_common.py b/tools/releasetools/test_common.py
+index 3a73253..6cb958e 100644
+--- a/tools/releasetools/test_common.py
++++ b/tools/releasetools/test_common.py
+@@ -1084,12 +1084,6 @@ class InstallRecoveryScriptFormatTest(test_utils.ReleaseToolsTestCase):
+                              recovery_image, boot_image, self._info)
+     validate_target_files.ValidateInstallRecoveryScript(self._tempdir,
+                                                         self._info)
+-    # Validate 'recovery-from-boot' with bonus argument.
+-    self._out_tmp_sink("etc/recovery-resource.dat", b"bonus", "SYSTEM")
+-    common.MakeRecoveryPatch(self._tempdir, self._out_tmp_sink,
+-                             recovery_image, boot_image, self._info)
+-    validate_target_files.ValidateInstallRecoveryScript(self._tempdir,
+-                                                        self._info)
+
+
+ class MockScriptWriter(object):
 
 diff --git a/tools/zipalign/Android.bp b/tools/zipalign/Android.bp
-index 8e6196d29..9e65a5cf9 100644
+index 8e6196d..9e65a5c 100644
 --- a/tools/zipalign/Android.bp
 +++ b/tools/zipalign/Android.bp
 @@ -13,7 +13,7 @@ cc_binary_host {
@@ -452,7 +605,7 @@ index 8e6196d29..9e65a5cf9 100644
      // static_sdk_tools target.
 
 diff --git a/tools/ziptime/Android.bp b/tools/ziptime/Android.bp
-index 5ef45ed40..7d882ae72 100644
+index 5ef45ed..7d882ae 100644
 --- a/tools/ziptime/Android.bp
 +++ b/tools/ziptime/Android.bp
 @@ -27,7 +27,7 @@ cc_binary_host {
@@ -494,50 +647,49 @@ index 1a23613..f5aea6a 100644
  # ========================================================
  include $(call all-makefiles-under,$(LOCAL_PATH))
 
-project external/mksh/
-diff --git a/mkshrc b/mkshrc
-index 256f20e..f7bab3a 100644
---- a/mkshrc
-+++ b/mkshrc
-@@ -6,15 +6,23 @@
- #
- # Support: https://launchpad.net/mksh
+project external/nano/
+diff --git a/Android.mk b/Android.mk
+index 4fcd436..78e27ff 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -44,30 +44,5 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+ LOCAL_MODULE_TAGS := optional
+ include $(BUILD_EXECUTABLE)
 
--set +o nohup
+-# ========================================================
+-# nano configs
+-# ========================================================
+-NANO_ETC := $(TARGET_OUT_ETC)/$(LOCAL_MODULE)
 -
-+: ${TERM:=xterm-256color} ${HOME:=/} ${MKSH:=/system/bin/sh} ${HOSTNAME:=android} ${SHELL:=$MKSH} ${USER:=$(getprop ro.product.device)}
- if (( USER_ID )); then PS1='$'; else PS1='#'; fi
--PS4='[$EPOCHREALTIME] '; PS1='${|
--	local e=$?
-
--	(( e )) && REPLY+="$e|"
-+PS1='$USER@$HOSTNAME:${PWD:-?} '"$PS1 "
-+
-+if [ -d "/sbin/.magisk/busybox" ]; then
-+  BUSYBOX="/sbin/.magisk/busybox"
-+elif [ -d "/sbin/.core/busybox" ]; then
-+  BUSYBOX="/sbin/.core/busybox"
-+fi
-+
-+PATH=$PATH:/sbin:$BUSYBOX:.
-+export TERM HOME MKSH HOSTNAME SHELL USER PATH
-
--	return $e
--}$HOSTNAME:${PWD:-?} '"$PS1 "
-+for p in ~/.bin; do
-+	[[ -d $p/. ]] || continue
-+	[[ :$PATH: = *:$p:* ]] || PATH=$p:$PATH
-+done
-
--export TERM=xterm-256color
-+unset p
+-syntax_files := $(wildcard $(LOCAL_PATH)/syntax/*.nanorc)
+-NANO_SYNTAX := $(addprefix $(NANO_ETC)/,$(notdir $(syntax_files)))
+-$(NANO_SYNTAX): $(NANO_ETC)/%: $(LOCAL_PATH)/syntax/% | $(LOCAL_BUILT_MODULE)
+-       @echo "Install: $@ -> $(NANO_ETC)"
+-       @mkdir -p $(dir $@)
+-       cp $< $@
+-
+-nanorc_file := $(LOCAL_PATH)/etc/nanorc
+-NANO_NANORC := $(addprefix $(NANO_ETC)/,$(notdir $(nanorc_file)))
+-$(NANO_NANORC): $(nanorc_file)
+-       @echo "Install: $@ -> $(NANO_ETC)"
+-       @mkdir -p $(dir $@)
+-       $(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(NANO_SYNTAX) $(NANO_NANORC)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-       $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_SYNTAX) \
+-       $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_NANORC)
+-
+ # ========================================================
+ include $(call all-makefiles-under,$(LOCAL_PATH))
 
 project external/noto-fonts/
 diff --git a/Android.mk b/Android.mk
-index 249c7ac..d39a9d3 100644
+index 249c7ac..442ba87 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -41,28 +41,13 @@ ifneq ($(MINIMAL_FONT_FOOTPRINT),true)
+@@ -41,7 +41,7 @@ ifneq ($(MINIMAL_FONT_FOOTPRINT),true)
  LOCAL_PATH := $(NOTO_DIR)/cjk
 
  font_src_files := \
@@ -546,43 +698,29 @@ index 249c7ac..d39a9d3 100644
 
  $(foreach f, $(font_src_files), $(call build-one-font-module, $(f)))
  font_src_files :=
-
- endif # !MINIMAL_FONT_FOOTPRINT
-
--#############################################################################
--# Similary "build" the Noto CJK fonts for serif family.
--# These are not included in SMALLER_FONT_FOOTPRINT builds.
--#############################################################################
--ifeq ($(filter true,$(EXCLUDE_SERIF_FONTS) $(SMALLER_FONT_FOOTPRINT)),)
--LOCAL_PATH := $(NOTO_DIR)/cjk
+@@ -343,7 +343,3 @@ endif # !SMALLER_FONT_FOOTPRINT
+ NOTO_DIR :=
+ build-one-font-module :=
+ font_src_files :=
 -
--font_src_files := \
--    NotoSerifCJK-Regular.ttc
 -
--$(foreach f, $(font_src_files), $(call build-one-font-module, $(f)))
--font_src_files :=
 -
--endif # !EXCLUDE_SERIF_FONTS && !SMALLER_FONT_FOOTPRINT
 -
- #############################################################################
- # Now "build" the Noto Color Emoji font, which is in its own directory. It is
- # not included in the MINIMAL_FONT_FOOTPRINT builds.
 
 diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
-index 5a324bf..4a274ce 100755
+index 5a324bf..499c366 100755
 --- a/cjk/subset_noto_cjk.py
 +++ b/cjk/subset_noto_cjk.py
-@@ -98,6 +98,6 @@ def remove_codepoints_from_ttc(ttc_name):
-         for f in otf_names:
+@@ -99,5 +99,6 @@ def remove_codepoints_from_ttc(ttc_name):
              os.remove(f)
 
--
+
 +remove_codepoints_from_ttc('NotoSansCJK.ttc')
  remove_codepoints_from_ttc('NotoSansCJK-Regular.ttc')
  remove_codepoints_from_ttc('NotoSerifCJK-Regular.ttc')
 
 diff --git a/fonts.mk b/fonts.mk
-index fee43e2..1e3cf5e 100644
+index fee43e2..be4cb3b 100644
 --- a/fonts.mk
 +++ b/fonts.mk
 @@ -49,7 +49,7 @@ PRODUCT_PACKAGES := \
@@ -594,29 +732,125 @@ index fee43e2..1e3cf5e 100644
      NotoSansCoptic-Regular.ttf \
      NotoSansCuneiform-Regular.ttf \
      NotoSansCypriot-Regular.ttf \
-@@ -205,7 +205,6 @@ PRODUCT_PACKAGES := \
-     NotoSerifArmenian-Regular.otf \
-     NotoSerifBengali-Bold.ttf \
-     NotoSerifBengali-Regular.ttf \
--    NotoSerifCJK-Regular.ttc \
-     NotoSerifDevanagari-Bold.ttf \
-     NotoSerifDevanagari-Regular.ttf \
-     NotoSerifEthiopic-Bold.otf \
 
-diff --git a/other/NotoSerif-Bold.ttf b/other/NotoSerif-Bold.ttf
-index 2ffdf8c..128288b 100644
-Binary files a/other/NotoSerif-Bold.ttf and b/other/NotoSerif-Bold.ttf differ
+project external/vim/
+diff --git a/Android.mk b/Android.mk
+index 858a4e8..c1e7d51 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -1,20 +1,5 @@
+ vim_src := $(call my-dir)
 
-diff --git a/other/NotoSerif-Regular.ttf b/other/NotoSerif-Regular.ttf
-index 9d9a347..78136ac 100644
-Binary files a/other/NotoSerif-Regular.ttf and b/other/NotoSerif-Regular.ttf differ
+-# ========================================================
+-# etc/vimrc
+-# ========================================================
+-
+-LOCAL_PATH := $(vim_src)
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE := vimrc
+-LOCAL_MODULE_TAGS := optional
+-LOCAL_MODULE_CLASS := ETC
+-
+-LOCAL_SRC_FILES := vimrc.android
+-
+-include $(BUILD_PREBUILT)
+-
+ # ========================================================
+ # vim
+ # ========================================================
+@@ -135,84 +120,3 @@ LOCAL_MODULE_TAGS := optional
+ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+ LOCAL_REQUIRED_MODULES := vimrc
+ include $(BUILD_EXECUTABLE)
+-
+-# ========================================================
+-# vim runtime files
+-# ========================================================
+-ifeq (vim,$(filter vim, $(ALL_MODULES)))
+-
+-vim_runtime_path := $(vim_src)/runtime
+-
+-vim_runtime_files := \
+-       scripts.vim \
+-       indent.vim \
+-       indoff.vim \
+-       filetype.vim \
+-       ftoff.vim
+-
+-vim_doc_files := \
+-       help.txt intro.txt tags \
+-       motion.txt editing.txt scroll.txt \
+-       options.txt term.txt
+-
+-vim_colors_files := \
+-       default.vim \
+-       desert.vim
+-
+-vim_syntax_files := \
+-       logcat.vim \
+-       awk.vim \
+-       config.vim \
+-       conf.vim \
+-       cpp.vim \
+-       c.vim \
+-       css.vim \
+-       diff.vim \
+-       doxygen.vim \
+-       html.vim vb.vim \
+-       xml.vim dtd.vim \
+-       context.vim \
+-       gitcommit.vim \
+-       help.vim \
+-       javascript.vim \
+-       java.vim \
+-       lua.vim \
+-       manual.vim \
+-       markdown.vim \
+-       pod.vim \
+-       sh.vim \
+-       syncolor.vim \
+-       synload.vim \
+-       syntax.vim \
+-       vim.vim
+-
+-vim_plugin_files := \
+-       matchparen.vim \
+-
+-vim_autoload_files := \
+-       dist/ft.vim \
+-       spacehi.vim
+-
+-VIM_SHARED := $(TARGET_OUT)/usr/share/vim
+-
+-vim_runtime_files := \
+-  $(vim_runtime_files) \
+-  $(addprefix doc/, $(vim_doc_files)) \
+-  $(addprefix colors/, $(vim_colors_files)) \
+-  $(addprefix syntax/, $(vim_syntax_files)) \
+-  $(addprefix plugin/, $(vim_plugin_files)) \
+-  $(addprefix autoload/, $(vim_autoload_files)) \
+-
+-vim_runtime_modules := $(addprefix $(VIM_SHARED)/, $(vim_runtime_files))
+-$(vim_runtime_modules): $(VIM_SHARED)/%: $(vim_runtime_path)/% | $(LOCAL_BUILT_MODULE)
+-       @echo "Install: $@"
+-       @mkdir -p $(dir $@)
+-       $(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(vim_runtime_modules)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-  $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) \
+-  $(vim_runtime_modules)
+-
+-endif
 
 project frameworks/base/
 diff --git a/Android.bp b/Android.bp
-index bdd88034655..5890b491d21 100644
+index e9ede0bd..560ab4f0 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -782,11 +782,6 @@ java_defaults {
+@@ -783,11 +783,6 @@ java_defaults {
          "devicepolicyprotosnano",
      ],
 
@@ -630,7 +864,7 @@ index bdd88034655..5890b491d21 100644
          "--multi-dex",
 
 diff --git a/core/java/android/app/SystemServiceRegistry.java b/core/java/android/app/SystemServiceRegistry.java
-index d1090a348e7..66e976c2972 100644
+index d1090a34..66e976c2 100644
 --- a/core/java/android/app/SystemServiceRegistry.java
 +++ b/core/java/android/app/SystemServiceRegistry.java
 @@ -131,7 +131,6 @@ import android.os.BatteryStats;
@@ -667,7 +901,7 @@ index d1090a348e7..66e976c2972 100644
              @Override
 
 diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
-index 7bcd7a048db..5f7fde41669 100644
+index 7bcd7a04..5f7fde41 100644
 --- a/core/res/AndroidManifest.xml
 +++ b/core/res/AndroidManifest.xml
 @@ -2655,6 +2655,13 @@
@@ -686,19 +920,26 @@ index 7bcd7a048db..5f7fde41669 100644
           for details. -->
 
 diff --git a/core/res/res/values-zh-rCN/strings.xml b/core/res/res/values-zh-rCN/strings.xml
-index aae5771e8b0..e6a17338b5d 100644
+index aae5771e..2982e6cc 100644
 --- a/core/res/res/values-zh-rCN/strings.xml
 +++ b/core/res/res/values-zh-rCN/strings.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<!--
++<!--
+ /* //device/apps/common/assets/res/any/strings.xml
+ **
+ ** Copyright 2006, The Android Open Source Project
 @@ -2050,4 +2050,6 @@
      </plurals>
      <string name="chooser_no_direct_share_targets" msgid="492542066060841139">"无法使用直接分享功能"</string>
      <string name="chooser_all_apps_button_label" msgid="3230427756238666328">"应用列表"</string>
 +    <string name="permlab_fakePackageSignature">模拟软件包签名</string>
-+    <string name="permdesc_fakePackageSignature">允许应用伪装成为其他应用</string>
++    <string name="permdesc_fakePackageSignature">允许当前应用伪装成为其他应用</string>
  </resources>
 
 diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
-index a84d23b624b..89754ba11ef 100644
+index a84d23b6..89754ba1 100644
 --- a/core/res/res/values/config.xml
 +++ b/core/res/res/values/config.xml
 @@ -1875,6 +1875,8 @@
@@ -712,7 +953,7 @@ index a84d23b624b..89754ba11ef 100644
      <!-- This string array can be overriden to enable test location providers initially. -->
 
 diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
-index 40270e62e11..7326786349e 100644
+index 7e975f68..bf539407 100644
 --- a/core/res/res/values/strings.xml
 +++ b/core/res/res/values/strings.xml
 @@ -830,6 +830,11 @@
@@ -729,82 +970,63 @@ index 40270e62e11..7326786349e 100644
      <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
 
 diff --git a/data/fonts/fonts.xml b/data/fonts/fonts.xml
-index c6920977f6b..b993005e015 100644
+index c6920977..a514ddaa 100644
 --- a/data/fonts/fonts.xml
 +++ b/data/fonts/fonts.xml
-@@ -546,20 +546,56 @@
+@@ -546,19 +546,43 @@
          <font weight="400" style="normal">NotoSansSymbols-Regular-Subsetted.ttf</font>
      </family>
      <family lang="zh-Hans">
 -        <font weight="400" style="normal" index="2">NotoSansCJK-Regular.ttc</font>
--        <font weight="400" style="normal" index="2" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
--    </family>
--    <family lang="zh-Hant,zh-Bopo">
--        <font weight="400" style="normal" index="3">NotoSansCJK-Regular.ttc</font>
--        <font weight="400" style="normal" index="3" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
 +        <font weight="100" style="normal" index="2">NotoSansCJK.ttc</font>
 +        <font weight="300" style="normal" index="7">NotoSansCJK.ttc</font>
 +        <font weight="350" style="normal" index="12">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="17">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="27">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="32">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="42">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
-+        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
-+        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
-+        <font weight="700" style="italic" fallbackFor="serif">NotoSerif-BoldItalic.ttf</font>
-+    </family>
-+    <family lang="zh-Hant zh-Bopo">
++        <font weight="400" style="normal" index="27">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="17">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="37">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="22">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="2" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
+     </family>
+     <family lang="zh-Hant,zh-Bopo">
+-        <font weight="400" style="normal" index="3">NotoSansCJK-Regular.ttc</font>
 +        <font weight="100" style="normal" index="3">NotoSansCJK.ttc</font>
 +        <font weight="300" style="normal" index="8">NotoSansCJK.ttc</font>
 +        <font weight="350" style="normal" index="13">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="18">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="28">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="33">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="43">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
-+        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
-+        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
-+        <font weight="700" style="italic" fallbackFor="serif">NotoSerif-BoldItalic.ttf</font>
++        <font weight="400" style="normal" index="28">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="18">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="38">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="23">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="3" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
      </family>
      <family lang="ja">
 -        <font weight="400" style="normal" index="0">NotoSansCJK-Regular.ttc</font>
--        <font weight="400" style="normal" index="0" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
 +        <font weight="100" style="normal" index="0">NotoSansCJK.ttc</font>
 +        <font weight="300" style="normal" index="5">NotoSansCJK.ttc</font>
 +        <font weight="350" style="normal" index="10">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="15">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="25">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="30">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="40">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
-+        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
-+        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
-+        <font weight="700" style="italic" fallbackFor="serif">NotoSerif-BoldItalic.ttf</font>
++        <font weight="400" style="normal" index="25">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="15">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="35">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="20">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="0" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
      </family>
      <family lang="ko">
 -        <font weight="400" style="normal" index="1">NotoSansCJK-Regular.ttc</font>
--        <font weight="400" style="normal" index="1" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
 +        <font weight="100" style="normal" index="1">NotoSansCJK.ttc</font>
 +        <font weight="300" style="normal" index="6">NotoSansCJK.ttc</font>
 +        <font weight="350" style="normal" index="11">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="16">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="26">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="31">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="41">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" fallbackFor="serif">NotoSerif-Regular.ttf</font>
-+        <font weight="700" style="normal" fallbackFor="serif">NotoSerif-Bold.ttf</font>
-+        <font weight="400" style="italic" fallbackFor="serif">NotoSerif-Italic.ttf</font>
-+        <font weight="700" style="italic" fallbackFor="serif">NotoSerif-BoldItalic.ttf</font>
++        <font weight="400" style="normal" index="26">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="16">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="36">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="21">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="1" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
      </family>
      <family lang="und-Zsye">
-         <font weight="400" style="normal">NotoColorEmoji.ttf</font>
 
 diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
-index eecc10158e8..c1f3f17d361 100644
+index eecc1015..1518017a 100644
 --- a/packages/overlays/Android.mk
 +++ b/packages/overlays/Android.mk
-@@ -17,16 +17,6 @@ include $(CLEAR_VARS)
+@@ -17,17 +17,6 @@ include $(CLEAR_VARS)
 
  LOCAL_MODULE := frameworks-base-overlays
  LOCAL_REQUIRED_MODULES := \
@@ -818,12 +1040,13 @@ index eecc10158e8..c1f3f17d361 100644
 -	DisplayCutoutEmulationCornerOverlay \
 -	DisplayCutoutEmulationDoubleOverlay \
 -	DisplayCutoutEmulationTallOverlay \
- 	FontNotoSerifSourceOverlay \
+-	FontNotoSerifSourceOverlay \
  	IconPackCircularAndroidOverlay \
  	IconPackCircularLauncherOverlay \
+ 	IconPackCircularSettingsOverlay \
 
 diff --git a/services/core/Android.bp b/services/core/Android.bp
-index 6edd33c8d35..74a15839588 100644
+index 6edd33c8..74a15839 100644
 --- a/services/core/Android.bp
 +++ b/services/core/Android.bp
 @@ -32,10 +32,6 @@ java_library_static {
@@ -849,7 +1072,7 @@ index 6edd33c8d35..74a15839588 100644
 -}
 
 diff --git a/services/core/java/com/android/server/BatteryService.java b/services/core/java/com/android/server/BatteryService.java
-index d041476a1d6..d2d30d00981 100644
+index d041476a..acb98e9c 100644
 --- a/services/core/java/com/android/server/BatteryService.java
 +++ b/services/core/java/com/android/server/BatteryService.java
 @@ -37,7 +37,6 @@ import android.os.BatteryProperty;
@@ -870,10 +1093,11 @@ index d041476a1d6..d2d30d00981 100644
          File dumpFile = null;
          FileOutputStream dumpStream = null;
          try {
-@@ -787,8 +783,6 @@ public final class BatteryService extends SystemService {
+@@ -786,9 +782,6 @@ public final class BatteryService extends SystemService {
+             dumpStream = new FileOutputStream(dumpFile);
              batteryInfoService.dump(dumpStream.getFD(), DUMPSYS_ARGS);
              FileUtils.sync(dumpStream);
-
+-
 -            // add dump file to drop box
 -            db.addFile("BATTERY_DISCHARGE_INFO", dumpFile, DropBoxManager.IS_TEXT);
          } catch (RemoteException e) {
@@ -882,12 +1106,13 @@ index d041476a1d6..d2d30d00981 100644
 
 diff --git a/services/core/java/com/android/server/DropBoxManagerService.java b/services/core/java/com/android/server/DropBoxManagerService.java
 deleted file mode 100644
-index 33b846f7bb5..00000000000
+index 33b846f7..00000000
 --- a/services/core/java/com/android/server/DropBoxManagerService.java
 +++ /dev/null
+@@ -1,1110 +0,0 @@
 
 diff --git a/services/core/java/com/android/server/StorageManagerService.java b/services/core/java/com/android/server/StorageManagerService.java
-index 263efacb097..9404aedfba4 100644
+index 263efacb..9404aedf 100644
 --- a/services/core/java/com/android/server/StorageManagerService.java
 +++ b/services/core/java/com/android/server/StorageManagerService.java
 @@ -70,7 +70,6 @@ import android.content.res.ObbInfo;
@@ -921,7 +1146,7 @@ index 263efacb097..9404aedfba4 100644
                              if (rec != null) {
 
 diff --git a/services/core/java/com/android/server/Watchdog.java b/services/core/java/com/android/server/Watchdog.java
-index 5b9c78f6e8e..289bdd31e12 100644
+index 5b9c78f6..289bdd31 100644
 --- a/services/core/java/com/android/server/Watchdog.java
 +++ b/services/core/java/com/android/server/Watchdog.java
 @@ -613,26 +613,6 @@ public class Watchdog extends Thread {
@@ -953,7 +1178,7 @@ index 5b9c78f6e8e..289bdd31e12 100644
                  controller = mController;
 
 diff --git a/services/core/java/com/android/server/am/ActivityManagerService.java b/services/core/java/com/android/server/am/ActivityManagerService.java
-index 3ad4954d33c..f1ea5772609 100644
+index c4edda37..d8a94bde 100644
 --- a/services/core/java/com/android/server/am/ActivityManagerService.java
 +++ b/services/core/java/com/android/server/am/ActivityManagerService.java
 @@ -241,7 +241,6 @@ import android.os.BinderProxy;
@@ -973,7 +1198,7 @@ index 3ad4954d33c..f1ea5772609 100644
      // Assumes logcat entries average around 100 bytes; that's not perfect stack traces count
      // as one line, but close enough for now.
      static final int RESERVED_BYTES_PER_LOGCAT_LINE = 100;
-@@ -9256,9 +9253,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9260,9 +9257,6 @@ public class ActivityManagerService extends IActivityManager.Stub
              crashInfo.crashTag = crashInfo.crashTag + " " + relaunchReasonString;
          }
 
@@ -983,7 +1208,7 @@ index 3ad4954d33c..f1ea5772609 100644
          mAppErrors.crashApplication(r, crashInfo);
      }
 
-@@ -9289,9 +9283,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9293,9 +9287,6 @@ public class ActivityManagerService extends IActivityManager.Stub
                      mAlreadyLoggedViolatedStacks.add(stackFingerprint);
                  }
              }
@@ -993,7 +1218,7 @@ index 3ad4954d33c..f1ea5772609 100644
          }
 
          if ((penaltyMask & StrictMode.PENALTY_DIALOG) != 0) {
-@@ -9315,68 +9306,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9319,68 +9310,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
      }
 
@@ -1062,7 +1287,7 @@ index 3ad4954d33c..f1ea5772609 100644
      /**
       * Used by {@link Log} via {@link com.android.internal.os.RuntimeInit} to report serious errors.
       * @param app object of the crashing app, null for the system server
-@@ -9429,8 +9358,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9433,8 +9362,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          StatsLog.write(StatsLog.WTF_OCCURRED, callingUid, tag, processName,
                  callingPid, (r != null) ? r.getProcessClassEnum() : 0);
 
@@ -1071,7 +1296,7 @@ index 3ad4954d33c..f1ea5772609 100644
          return r;
      }
 
-@@ -9448,54 +9375,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9452,54 +9379,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
      }
 
@@ -1126,7 +1351,7 @@ index 3ad4954d33c..f1ea5772609 100644
      private static String processClass(ProcessRecord process) {
          if (process == null || process.pid == MY_PID) {
              return "system_server";
-@@ -9509,144 +9388,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9513,144 +9392,6 @@ public class ActivityManagerService extends IActivityManager.Stub
      private volatile long mWtfClusterStart;
      private volatile int mWtfClusterCount;
 
@@ -1271,7 +1496,7 @@ index 3ad4954d33c..f1ea5772609 100644
      @Override
      public List<ActivityManager.ProcessErrorStateInfo> getProcessesInErrorState() {
          enforceNotIsolatedCaller("getProcessesInErrorState");
-@@ -13559,8 +13300,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -13563,8 +13304,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
          dropBuilder.append(catSw.toString());
          StatsLog.write(StatsLog.LOW_MEM_REPORTED);
@@ -1282,7 +1507,7 @@ index 3ad4954d33c..f1ea5772609 100644
          synchronized (ActivityManagerService.this) {
 
 diff --git a/services/core/java/com/android/server/am/ProcessRecord.java b/services/core/java/com/android/server/am/ProcessRecord.java
-index ea3084274ae..df24a871804 100644
+index ea308427..df24a871 100644
 --- a/services/core/java/com/android/server/am/ProcessRecord.java
 +++ b/services/core/java/com/android/server/am/ProcessRecord.java
 @@ -1558,8 +1558,6 @@ class ProcessRecord implements WindowProcessListener {
@@ -1297,12 +1522,13 @@ index ea3084274ae..df24a871804 100644
 
 diff --git a/services/core/java/com/android/server/location/gps_debug.conf b/services/core/java/com/android/server/location/gps_debug.conf
 deleted file mode 100644
-index 34ce96f3c8b..00000000000
+index 34ce96f3..00000000
 --- a/services/core/java/com/android/server/location/gps_debug.conf
 +++ /dev/null
+@@ -1,52 +0,0 @@
 
 diff --git a/services/core/java/com/android/server/net/NetworkStatsRecorder.java b/services/core/java/com/android/server/net/NetworkStatsRecorder.java
-index 06ec341d9e4..9d2c02764f8 100644
+index 06ec341d..9d2c0276 100644
 --- a/services/core/java/com/android/server/net/NetworkStatsRecorder.java
 +++ b/services/core/java/com/android/server/net/NetworkStatsRecorder.java
 @@ -29,7 +29,6 @@ import android.net.NetworkStatsHistory;
@@ -1374,7 +1600,7 @@ index 06ec341d9e4..9d2c02764f8 100644
          mRotator.deleteAll();
 
 diff --git a/services/core/java/com/android/server/net/NetworkStatsService.java b/services/core/java/com/android/server/net/NetworkStatsService.java
-index d1b5534e377..79f1aa1a5c2 100644
+index d1b5534e..79f1aa1a 100644
 --- a/services/core/java/com/android/server/net/NetworkStatsService.java
 +++ b/services/core/java/com/android/server/net/NetworkStatsService.java
 @@ -99,7 +99,6 @@ import android.net.NetworkTemplate;
@@ -1448,7 +1674,7 @@ index d1b5534e377..79f1aa1a5c2 100644
       * {@link android.provider.Settings.Global}.
 
 diff --git a/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java b/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
-index 3b3ee5876bc..6080626a15a 100644
+index 3b3ee587..ddd3a0fb 100644
 --- a/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
 +++ b/services/core/java/com/android/server/net/watchlist/WatchlistLoggingHandler.java
 @@ -24,7 +24,6 @@ import android.content.pm.PackageManager;
@@ -1478,10 +1704,11 @@ index 3b3ee5876bc..6080626a15a 100644
          mPrimaryUserId = getPrimaryUserId();
      }
 
-@@ -260,28 +256,7 @@ class WatchlistLoggingHandler extends Handler {
+@@ -259,29 +255,6 @@ class WatchlistLoggingHandler extends Handler {
+                 Slog.i(TAG, "No need to aggregate record yet.");
                  return;
              }
-             Slog.i(TAG, "Start aggregating watchlist records.");
+-            Slog.i(TAG, "Start aggregating watchlist records.");
 -            if (mDropBoxManager != null && mDropBoxManager.isTagEnabled(DROPBOX_TAG)) {
 -                Settings.Global.putLong(mResolver,
 -                        Settings.Global.NETWORK_WATCHLIST_LAST_REPORT_TIME,
@@ -1504,11 +1731,10 @@ index 3b3ee5876bc..6080626a15a 100644
 -            } else {
 -                Slog.w(TAG, "Network Watchlist dropbox tag is not enabled");
 -            }
-+            Slog.w(TAG, "Network Watchlist dropbox tag is not enabled");
              mDbHelper.cleanup(lastRecordTime);
          } finally {
              long endTime = System.currentTimeMillis();
-@@ -317,10 +292,6 @@ class WatchlistLoggingHandler extends Handler {
+@@ -317,10 +290,6 @@ class WatchlistLoggingHandler extends Handler {
          return new ArrayList<>(result);
      }
 
@@ -1521,12 +1747,12 @@ index 3b3ee5876bc..6080626a15a 100644
       * Return null if system cannot get digest from uid.
 
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
-index 179abe958b1..ab54b9bc012 100644
+index d3b5fa30..c9a8a5d6 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
 +++ b/services/core/java/com/android/server/pm/PackageManagerService.java
-@@ -4186,8 +4186,8 @@ public class PackageManagerService extends IPackageManager.Stub
-             final Set<String> permissions = ArrayUtils.isEmpty(p.requestedPermissions)
-                     ? Collections.emptySet() : permissionsState.getPermissions(userId);
+@@ -4191,8 +4191,8 @@ public class PackageManagerService extends IPackageManager.Stub
+                 });
+             }
 
 -            PackageInfo packageInfo = PackageParser.generatePackageInfo(p, gids, flags,
 -                    ps.firstInstallTime, ps.lastUpdateTime, permissions, state, userId);
@@ -1535,7 +1761,7 @@ index 179abe958b1..ab54b9bc012 100644
 
              if (packageInfo == null) {
                  return null;
-@@ -4223,6 +4223,24 @@ public class PackageManagerService extends IPackageManager.Stub
+@@ -4228,6 +4228,24 @@ public class PackageManagerService extends IPackageManager.Stub
          }
      }
 
@@ -1562,7 +1788,7 @@ index 179abe958b1..ab54b9bc012 100644
          final int callingUid = Binder.getCallingUid();
 
 diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
-index 844b79280b1..edfba58f703 100644
+index 844b7928..edfba58f 100644
 --- a/services/java/com/android/server/SystemServer.java
 +++ b/services/java/com/android/server/SystemServer.java
 @@ -1004,13 +1004,6 @@ public final class SystemServer {
@@ -1580,65 +1806,9 @@ index 844b79280b1..edfba58f703 100644
              vibrator = new VibratorService(context);
              ServiceManager.addService("vibrator", vibrator);
 
-project hardware/qcom-caf/msm8994/audio/
-diff --git a/hal/Android.mk b/hal/Android.mk
-index 7eca4aaf7..173213ee0 100644
---- a/hal/Android.mk
-+++ b/hal/Android.mk
-@@ -264,7 +264,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_AUXPCM_BT)),true)
-     LOCAL_CFLAGS += -DAUXPCM_BT_ENABLED
- endif
-
--LOCAL_CFLAGS += -Wall -Werror
-+LOCAL_CFLAGS += -Wall
-
- LOCAL_COPY_HEADERS_TO   := mm-audio
- LOCAL_COPY_HEADERS      := audio_extn/audio_defs.h
-
-project hardware/qcom-caf/msm8994/media/
-diff --git a/mm-video-v4l2/vidc/common/Android.mk b/mm-video-v4l2/vidc/common/Android.mk
-index 6f783c429..c14bdcffe 100644
---- a/mm-video-v4l2/vidc/common/Android.mk
-+++ b/mm-video-v4l2/vidc/common/Android.mk
-@@ -13,7 +13,6 @@ libmm-vidc-def += -D__alignx\(x\)=__attribute__\(\(__aligned__\(x\)\)\)
- libmm-vidc-def += -DT_ARM
- libmm-vidc-def += -Dinline=__inline
- libmm-vidc-def += -D_ANDROID_
--libmm-vidc-def += -Werror
- libmm-vidc-def += -D_ANDROID_ICS_
-
- # ---------------------------------------------------------------------------------
-
-diff --git a/mm-video-v4l2/vidc/vdec/Android.mk b/mm-video-v4l2/vidc/vdec/Android.mk
-index aedca2059..de931ab52 100644
---- a/mm-video-v4l2/vidc/vdec/Android.mk
-+++ b/mm-video-v4l2/vidc/vdec/Android.mk
-@@ -97,7 +97,7 @@ include $(CLEAR_VARS)
- LOCAL_MODULE                    := libOmxVdec
- LOCAL_MODULE_TAGS               := optional
- LOCAL_VENDOR_MODULE             := true
--LOCAL_CFLAGS                    := $(libmm-vdec-def) -Werror
-+LOCAL_CFLAGS                    := $(libmm-vdec-def)
- LOCAL_C_INCLUDES                += $(libmm-vdec-inc)
-
- LOCAL_HEADER_LIBRARIES := generated_kernel_headers
-
-diff --git a/mm-video-v4l2/vidc/venc/Android.mk b/mm-video-v4l2/vidc/venc/Android.mk
-index ff43abdcd..f1b15dfc3 100644
---- a/mm-video-v4l2/vidc/venc/Android.mk
-+++ b/mm-video-v4l2/vidc/venc/Android.mk
-@@ -17,7 +17,6 @@ libmm-venc-def += -DENABLE_DEBUG_ERROR
- libmm-venc-def += -UINPUT_BUFFER_LOG
- libmm-venc-def += -UOUTPUT_BUFFER_LOG
- libmm-venc-def += -USINGLE_ENCODER_INSTANCE
--libmm-venc-def += -Werror
- libmm-venc-def += -D_ANDROID_ICS_
- libmm-venc-def += -D_MSM8974_
-
-
 project packages/apps/Bluetooth/
 diff --git a/Android.mk b/Android.mk
-index 1f73091ad..2cee89737 100644
+index 1f73091..2cee897 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -59,8 +59,8 @@ include $(call all-makefiles-under,$(LOCAL_PATH))
@@ -1663,14 +1833,154 @@ index 1f73091ad..2cee89737 100644
 
 diff --git a/tests/Android.mk b/tests/Android.mk
 deleted file mode 100644
-index fd297e353..000000000
+index fd297e3..0000000
 --- a/tests/Android.mk
 +++ /dev/null
 @@ -1,5 +0,0 @@
 
+diff --git a/tests/robotests/Android.mk b/tests/robotests/Android.mk
+deleted file mode 100644
+index 0cb6917..0000000
+--- a/tests/robotests/Android.mk
++++ /dev/null
+@@ -1,47 +0,0 @@
+
+diff --git a/tests/unit/Android.mk b/tests/unit/Android.mk
+deleted file mode 100644
+index 0ba6f37..0000000
+--- a/tests/unit/Android.mk
++++ /dev/null
+@@ -1,31 +0,0 @@
+
+project packages/apps/LineageParts/
+diff --git a/res/values-zh-rCN/strings.xml b/res/values-zh-rCN/strings.xml
+index fa31646..7d6dc1d 100644
+--- a/res/values-zh-rCN/strings.xml
++++ b/res/values-zh-rCN/strings.xml
+@@ -179,6 +179,8 @@
+     <string name="home_answer_call_summary">按 Home 键接听来电</string>
+     <string name="extras_title">附加功能</string>
+     <string name="additional_buttons_title">附加按钮</string>
++    <string name="edge_gesture_title">边缘手势</string>
++    <string name="edge_gesture_summary">双击手机侧边可触发返回操作</string>
+     <string name="button_backlight_title">背光</string>
+     <string name="button_backlight_enabled">点亮按键</string>
+     <string name="button_backlight_only_when_pressed_title">仅在按下时照亮按钮</string>
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index c9d78b4..7502da8 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -213,6 +213,8 @@
+     <string name="home_answer_call_summary">Answer incoming calls by pressing the home button</string>
+     <string name="extras_title">Extras</string>
+     <string name="additional_buttons_title">Additional buttons</string>
++    <string name="edge_gesture_title">Edge gesture</string>
++    <string name="edge_gesture_summary">Double tap to phone\'s edge causes back</string>
+
+     <!-- Key backlight -->
+     <string name="button_backlight_title">Backlight</string>
+
+diff --git a/res/xml/button_settings.xml b/res/xml/button_settings.xml
+index 37adfed..37c477b 100644
+--- a/res/xml/button_settings.xml
++++ b/res/xml/button_settings.xml
+@@ -314,6 +314,10 @@
+                 android:action="org.lineageos.settings.device.ADDITIONAL_BUTTONS_SETTINGS" />
+         </lineageos.preference.RemotePreference>
+
++        <SwitchPreference
++            android:key="edge_gesture"
++            android:title="@string/edge_gesture_title"
++            android:summary="@string/edge_gesture_summary" />
+     </PreferenceCategory>
+
+ </PreferenceScreen>
+
+diff --git a/src/org/lineageos/lineageparts/input/ButtonSettings.java b/src/org/lineageos/lineageparts/input/ButtonSettings.java
+index 4b7dc11..268da6c 100644
+--- a/src/org/lineageos/lineageparts/input/ButtonSettings.java
++++ b/src/org/lineageos/lineageparts/input/ButtonSettings.java
+@@ -53,6 +53,9 @@ import org.lineageos.internal.util.ScreenType;
+
+ import static org.lineageos.internal.util.DeviceKeysConstants.*;
+
++import java.io.File;
++import java.io.FileReader;
++import java.io.FileWriter;
+ import java.util.List;
+ import java.util.Set;
+
+@@ -99,6 +102,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
+             "torch_long_press_power_gesture";
+     private static final String KEY_TORCH_LONG_PRESS_POWER_TIMEOUT =
+             "torch_long_press_power_timeout";
++    private static final String KEY_EDGE_GESTURE = "edge_gesture";
+
+     private static final String CATEGORY_POWER = "power_key";
+     private static final String CATEGORY_HOME = "home_key";
+@@ -137,6 +141,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
+     private SwitchPreference mHomeAnswerCall;
+     private SwitchPreference mTorchLongPressPowerGesture;
+     private ListPreference mTorchLongPressPowerTimeout;
++    private SwitchPreference mEdgeGesture;
+
+     private PreferenceCategory mNavigationPreferencesCat;
+
+@@ -420,6 +425,26 @@ public class ButtonSettings extends SettingsPreferenceFragment
+             }
+         }
+
++        // Edge gesture controller
++        int status = 0;
++        File file = new File("/proc/touchscreen/edge_touch_mode");
++        if (file.exists()) {
++            try {
++                FileReader filereader = new FileReader(file);
++                status = filereader.read() - 48; // (ASCII) 0 = 48, 1 = 49
++                filereader.close();
++            } catch (Exception e) {
++                Log.e(TAG, "Error getting edge gesture status");
++            }
++        } else {
++            Log.w(TAG, "File not found: /proc/touchscreen/edge_touch_mode");
++        }
++        mEdgeGesture = prefScreen.findPreference(KEY_EDGE_GESTURE);
++
++        if (mEdgeGesture != null) {
++            mEdgeGesture.setChecked(status > 0);
++        }
++
+         // Override key actions on Go devices in order to hide any unsupported features
+         if (ActivityManager.isLowRamDeviceStatic()) {
+             String[] actionEntriesGo = res.getStringArray(R.array.hardware_keys_action_entries_go);
+@@ -735,6 +760,22 @@ public class ButtonSettings extends SettingsPreferenceFragment
+         } else if (preference == mHomeAnswerCall) {
+             handleToggleHomeButtonAnswersCallPreferenceClick();
+             return true;
++        } else if (preference == mEdgeGesture) {
++            int status = mEdgeGesture.isChecked() ? 1 : 0;
++            File file = new File("/proc/touchscreen/edge_touch_mode");
++            if (file.exists()) {
++                try {
++                    FileWriter filewriter = new FileWriter(file);
++                    filewriter.write(String.valueOf(status));
++                    filewriter.flush();
++                    filewriter.close();
++                } catch (Exception e) {
++                    Log.e(TAG, String.format("Error setting edge gesture status to %d", status));
++                }
++            } else {
++                Log.e(TAG, "File not found: /proc/touchscreen/edge_touch_mode");
++            }
++            return true;
+         }
+
+         return super.onPreferenceTreeClick(preference);
+
 project packages/apps/Settings/
 diff --git a/res/values-zh-rCN/cm_strings.xml b/res/values-zh-rCN/cm_strings.xml
-index 48601ee426..c1cdfd4c31 100644
+index a841914..d8de425 100644
 --- a/res/values-zh-rCN/cm_strings.xml
 +++ b/res/values-zh-rCN/cm_strings.xml
 @@ -62,6 +62,9 @@
@@ -1685,10 +1995,10 @@ index 48601ee426..c1cdfd4c31 100644
      <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 0b13bf79b4..0c40ad8ba6 100644
+index 959d8be..6070006 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -142,6 +142,11 @@
+@@ -144,6 +144,11 @@
      <string name="proximity_wake_title">Prevent accidental wake-up</string>
      <string name="proximity_wake_summary">Check the proximity sensor prior to waking up screen</string>
 
@@ -1702,7 +2012,7 @@ index 0b13bf79b4..0c40ad8ba6 100644
      <string name="wake_when_plugged_or_unplugged_summary">Turn the screen on when connecting or disconnecting a power source</string>
 
 diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
-index 0262556d09..79323fb795 100644
+index 0262556..79323fb 100644
 --- a/res/xml/development_settings.xml
 +++ b/res/xml/development_settings.xml
 @@ -126,6 +126,11 @@
@@ -1719,21 +2029,37 @@ index 0262556d09..79323fb795 100644
          android:key="security_setting_trust_agents_extend_unlock"
 
 diff --git a/src/com/android/settings/development/AdbRootPreferenceController.java b/src/com/android/settings/development/AdbRootPreferenceController.java
-index 5f7d65da35..8cdc24ff8a 100644
+index 5f7d65d..a72770d 100644
 --- a/src/com/android/settings/development/AdbRootPreferenceController.java
 +++ b/src/com/android/settings/development/AdbRootPreferenceController.java
-@@ -53,7 +53,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
+@@ -20,6 +20,7 @@ import android.adb.ADBRootService;
+ import android.content.Context;
+ import android.os.Build;
+ import android.os.UserManager;
++import android.os.SystemProperties;
+
+ import androidx.preference.Preference;
+ import androidx.preference.PreferenceScreen;
+@@ -36,6 +37,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
+
+     private static final String TAG = "AdbRootPreferenceController";
+     private static final String PREF_KEY = "enable_adb_root";
++    private static final String ROOT_ACCESS_PROPERTY = "persist.sys.root_access";
+
+     private final ADBRootService mADBRootService;
+
+@@ -53,7 +55,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
 
      @Override
      public boolean isAvailable() {
 -        return Build.IS_DEBUGGABLE;
-+        return true;
++        return Integer.parseInt(SystemProperties.get(ROOT_ACCESS_PROPERTY, "0")) > 0 ? true : Build.IS_DEBUGGABLE;
      }
 
      @Override
 
 diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
-index f18225e8fb..ac5dd9b418 100644
+index f18225e..ac5dd9b 100644
 --- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 +++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 @@ -515,6 +515,7 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
@@ -1811,87 +2137,50 @@ index e8084b3..5cd8f5e 100644
 
      dex_preopt: {
 
-project system/apex/
-diff --git a/apexd/Android.bp b/apexd/Android.bp
-index 6c6f75d..e9aed38 100644
---- a/apexd/Android.bp
-+++ b/apexd/Android.bp
-@@ -13,7 +13,6 @@ cc_defaults {
-   cflags: [
-     "-Wall",
-     "-Wextra",
--    "-Werror",
-     "-Wno-unused-parameter",
-
-     // Some extra flags.
-@@ -287,49 +286,3 @@ genrule {
-        "$(genDir)/apex.apexd_test_corrupt_apex.apex"
- }
-
--cc_test {
--  name: "apexservice_test",
--  defaults: ["apex_defaults"],
--  cflags: [
--    // Otherwise libgmock won't compile.
--    "-Wno-used-but-marked-unused",
--  ],
--  data: [
--    ":apex.apexd_test",
--    ":apex.apexd_test_different_app",
--    ":apex.apexd_test_v2",
--    ":apex.apexd_test_no_inst_key",
--    ":apex.apexd_test_preinstall",
--    ":apex.apexd_test_postinstall",
--    ":apex.apexd_test_prepostinstall.fail",
--    ":gen_bad_apexes",
--    ":gen_corrupt_apex",
--    ":com.android.apex.cts.shim.v1_prebuilt",
--    ":com.android.apex.cts.shim.v2_prebuilt",
--    ":com.android.apex.cts.shim.v2_wrong_sha_prebuilt",
--    ":com.android.apex.cts.shim.v2_additional_file_prebuilt",
--    ":com.android.apex.cts.shim.v2_additional_folder_prebuilt",
--    ":com.android.apex.cts.shim.v2_with_pre_install_hook_prebuilt",
--    ":com.android.apex.cts.shim.v2_with_post_install_hook_prebuilt",
--  ],
--  srcs: ["apexservice_test.cpp"],
--  host_supported: false,
--  compile_multilib: "first",
--  static_libs: [
--    "apex_aidl_interface-cpp",
--    "libapex",
--    "libapexd",
--    "libavb",
--    "libdm",
--    "libgmock",
--    "libvold_binder",
--  ],
--  shared_libs: [
--    "libbinder",
--    "libselinux",
--    "libutils",
--  ],
--  test_suites: ["device-tests"],
--  test_config: "apexservice_test_config.xml",
--}
--
-
-diff --git a/shim/Android.bp b/shim/Android.bp
-deleted file mode 100644
-index 8573e1c..0000000
---- a/shim/Android.bp
-+++ /dev/null
-@@ -1,66 +0,0 @@
-
-diff --git a/shim/build/Android.bp b/shim/build/Android.bp
-deleted file mode 100644
-index 71f847c..0000000
---- a/shim/build/Android.bp
-+++ /dev/null
-@@ -1,202 +0,0 @@
-
 project system/core/
+diff --git a/adb/daemon/main.cpp b/adb/daemon/main.cpp
+index 8521b5f..828a5cb 100644
+--- a/adb/daemon/main.cpp
++++ b/adb/daemon/main.cpp
+@@ -69,6 +69,7 @@ static bool should_drop_privileges() {
+     //
+     // ro.secure:
+     //   Drop privileges by default. Set to 1 on userdebug and user builds.
++    bool persist_sys_root_access = android::base::GetBoolProperty("persist.sys.root_access", false);
+     bool ro_secure = android::base::GetBoolProperty("ro.secure", true);
+     bool ro_debuggable = __android_log_is_debuggable();
+
+@@ -79,7 +80,7 @@ static bool should_drop_privileges() {
+     std::string prop = android::base::GetProperty("service.adb.root", "");
+     bool adb_root = (prop == "1");
+     bool adb_unroot = (prop == "0");
+-    if (ro_debuggable && adb_root) {
++    if (ro_debuggable || (adb_root && persist_sys_root_access)) {
+         drop = false;
+     }
+     // ... and "adb unroot" lets you explicitly drop privileges.
+
+diff --git a/adb/root/adbroot_service.cpp b/adb/root/adbroot_service.cpp
+index b0c7ece..37a4987 100644
+--- a/adb/root/adbroot_service.cpp
++++ b/adb/root/adbroot_service.cpp
+@@ -66,8 +66,11 @@ binder::Status ADBRootService::setEnabled(bool enabled) {
+         enabled_ = enabled;
+         WriteStringToFile(std::to_string(enabled), kStoragePath + kEnabled);
+
+-        // Turning off adb root, restart adbd.
+-        if (!enabled) {
++        // Turning on/off adb root, restart adbd.
++        if (enabled) {
++            base::SetProperty("service.adb.root", "1");
++            base::SetProperty("ctl.restart", "adbd");
++        } else {
+             base::SetProperty("service.adb.root", "0");
+             base::SetProperty("ctl.restart", "adbd");
+         }
+
 diff --git a/healthd/Android.bp b/healthd/Android.bp
-index 2cf6be96d..b744e96b2 100644
+index 2cf6be9..04790bb 100644
 --- a/healthd/Android.bp
 +++ b/healthd/Android.bp
 @@ -10,7 +10,7 @@ cc_library_headers {
@@ -1903,25 +2192,33 @@ index 2cf6be96d..b744e96b2 100644
      vendor_available: true,
      recovery_available: true,
      export_include_dirs: ["include"],
-@@ -27,7 +27,6 @@ cc_defaults {
+@@ -25,10 +25,7 @@ cc_library_static {
+ cc_defaults {
+     name: "android.hardware.health@2.0-service_defaults",
 
-     cflags: [
-         "-Wall",
+-    cflags: [
+-        "-Wall",
 -        "-Werror",
-     ],
+-    ],
++    cflags: ["-Wall"],
 
      static_libs: [
-@@ -94,7 +93,6 @@ cc_library_static {
-
-     cflags: [
-         "-Wall",
--        "-Werror",
+         "android.hardware.health@2.0-impl",
+@@ -92,10 +89,7 @@ cc_library_static {
+         "healthd_mode_charger_nops.cpp",
      ],
 
+-    cflags: [
+-        "-Wall",
+-        "-Werror",
+-    ],
++    cflags: ["-Wall"],
+
      header_libs: [
+         "libhealthd_headers",
 
 diff --git a/healthd/Android.mk b/healthd/Android.mk
-index 4eb98dae0..fb50aad80 100644
+index 4eb98da..fb50aad 100644
 --- a/healthd/Android.mk
 +++ b/healthd/Android.mk
 @@ -31,7 +31,6 @@ include $(BUILD_STATIC_LIBRARY)
@@ -1960,7 +2257,7 @@ index 4eb98dae0..fb50aad80 100644
  LOCAL_SRC_FILES := \
 
 diff --git a/init/Android.bp b/init/Android.bp
-index 377a3740c..7ab7f3b15 100644
+index 377a374..7ab7f3b 100644
 --- a/init/Android.bp
 +++ b/init/Android.bp
 @@ -27,7 +27,7 @@ cc_defaults {
@@ -1974,7 +2271,7 @@ index 377a3740c..7ab7f3b15 100644
          "-DDUMP_ON_UMOUNT_FAILURE=0",
 
 diff --git a/init/Android.mk b/init/Android.mk
-index c4f7d34b2..8739e5698 100644
+index c4f7d34..8739e56 100644
 --- a/init/Android.mk
 +++ b/init/Android.mk
 @@ -16,7 +16,7 @@ init_options += \
@@ -1988,7 +2285,7 @@ index c4f7d34b2..8739e5698 100644
      -DDUMP_ON_UMOUNT_FAILURE=0
 
 diff --git a/libcutils/trace-dev.cpp b/libcutils/trace-dev.cpp
-index 4da821555..07afa2fcb 100644
+index 4da8215..07afa2f 100644
 --- a/libcutils/trace-dev.cpp
 +++ b/libcutils/trace-dev.cpp
 @@ -24,22 +24,14 @@ static pthread_once_t atrace_once_control = PTHREAD_ONCE_INIT;
@@ -2017,7 +2314,7 @@ index 4da821555..07afa2fcb 100644
  }
 
 diff --git a/libcutils/trace-dev.inc b/libcutils/trace-dev.inc
-index e3da77bec..33ae155e1 100644
+index e3da77b..33ae155 100644
 --- a/libcutils/trace-dev.inc
 +++ b/libcutils/trace-dev.inc
 @@ -45,7 +45,7 @@ atomic_bool             atrace_is_ready      = ATOMIC_VAR_INIT(false);
@@ -2039,7 +2336,7 @@ index e3da77bec..33ae155e1 100644
  }
 
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index d5afabce8..1184af5d9 100644
+index d5afabc..1184af5 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
 @@ -439,11 +439,6 @@ on post-fs-data
@@ -2128,7 +2425,7 @@ index d5afabce8..1184af5d9 100644
 
 project system/extras/
 diff --git a/su/Android.mk b/su/Android.mk
-index e3da4f21..4833d33a 100644
+index e3da4f2..4833d33 100644
 --- a/su/Android.mk
 +++ b/su/Android.mk
 @@ -1,12 +1,32 @@
@@ -2173,25 +2470,25 @@ index e3da4f21..4833d33a 100644
 
 diff --git a/su/MODULE_LICENSE_APACHE2 b/su/MODULE_LICENSE_APACHE2
 deleted file mode 100644
-index e69de29b..00000000
+index e69de29..0000000
 
 diff --git a/su/NOTICE b/su/NOTICE
 deleted file mode 100644
-index c5b1efa7..00000000
+index c5b1efa..0000000
 --- a/su/NOTICE
 +++ /dev/null
 @@ -1,190 +0,0 @@
 
 diff --git a/su/su.cpp b/su/su.cpp
 deleted file mode 100644
-index 1a1ab6bf..00000000
+index 1a1ab6b..0000000
 --- a/su/su.cpp
 +++ /dev/null
 @@ -1,144 +0,0 @@
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
-index dadd7b0a..1c922225 100644
+index dadd7b0..1c92222 100644
 --- a/Android.mk
 +++ b/Android.mk
 @@ -81,10 +81,12 @@ ifndef BOARD_SEPOLICY_VERS
@@ -2234,34 +2531,56 @@ index dadd7b0a..1c922225 100644
  	$(hide) mv $@.tmp $@
 
 project vendor/lineage/
-diff --git a/bootanimation/Android.mk b/bootanimation/Android.mk
-deleted file mode 100644
-index 2bc78ceb..00000000
---- a/bootanimation/Android.mk
-+++ /dev/null
-@@ -1,66 +0,0 @@
+diff --git a/build/tasks/kernel.mk b/build/tasks/kernel.mk
+index bdf264d..23806d9 100644
+--- a/build/tasks/kernel.mk
++++ b/build/tasks/kernel.mk
+@@ -89,10 +89,13 @@ KERNEL_DEFCONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_DEFCONFIG)
 
-diff --git a/bootanimation/CleanSpec.mk b/bootanimation/CleanSpec.mk
-deleted file mode 100644
-index a32a8837..00000000
---- a/bootanimation/CleanSpec.mk
-+++ /dev/null
-@@ -1,17 +0,0 @@
+ ifneq ($(TARGET_KERNEL_ADDITIONAL_CONFIG),)
+ KERNEL_ADDITIONAL_CONFIG := $(TARGET_KERNEL_ADDITIONAL_CONFIG)
++KERNEL_ADDITIONAL_CONFIG_DEPENDENCY :=
+ KERNEL_ADDITIONAL_CONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_ADDITIONAL_CONFIG)
+     ifeq ("$(wildcard $(KERNEL_ADDITIONAL_CONFIG_SRC))","")
+         $(warning TARGET_KERNEL_ADDITIONAL_CONFIG '$(TARGET_KERNEL_ADDITIONAL_CONFIG)' doesn't exist)
+         KERNEL_ADDITIONAL_CONFIG_SRC := /dev/null
++    else
++        KERNEL_ADDITIONAL_CONFIG_DEPENDENCY := $(KERNEL_ADDITIONAL_CONFIG_SRC)
+     endif
+ else
+     KERNEL_ADDITIONAL_CONFIG_SRC := /dev/null
+@@ -239,10 +242,8 @@ define make-dtb-target
+ $(call internal-make-kernel-target,$(DTB_OUT),$(1))
+ endef
 
-diff --git a/bootanimation/bootanimation.tar b/bootanimation/bootanimation.tar
-deleted file mode 100644
-index 7e4b0dc9..00000000
-Binary files a/bootanimation/bootanimation.tar and /dev/null differ
+-$(KERNEL_OUT):
++$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_ADDITIONAL_CONFIG_DEPENDENCY)
+        mkdir -p $(KERNEL_OUT)
+-
+-$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_OUT)
+        $(hide) cmp -s $(KERNEL_ADDITIONAL_CONFIG_SRC) $@ || cp $(KERNEL_ADDITIONAL_CONFIG_SRC) $@;
 
-diff --git a/bootanimation/desc.txt b/bootanimation/desc.txt
-deleted file mode 100644
-index 5ddacd6b..00000000
---- a/bootanimation/desc.txt
-+++ /dev/null
-@@ -1,5 +0,0 @@
+ $(KERNEL_CONFIG): $(KERNEL_DEFCONFIG_SRC) $(KERNEL_ADDITIONAL_CONFIG_OUT)
+@@ -288,13 +289,15 @@ kerneltags: $(KERNEL_CONFIG)
+
+ .PHONY: kernelsavedefconfig alldefconfig
+
+-kernelsavedefconfig: $(KERNEL_OUT)
++kernelsavedefconfig:
++       mkdir -p $(KERNEL_OUT)
+        $(call make-kernel-target,$(KERNEL_DEFCONFIG))
+        env KCONFIG_NOTIMESTAMP=true \
+                 $(call make-kernel-target,savedefconfig)
+        cp $(KERNEL_OUT)/defconfig $(KERNEL_DEFCONFIG_SRC)
+
+-alldefconfig: $(KERNEL_OUT)
++alldefconfig:
++       mkdir -p $(KERNEL_OUT)
+        env KCONFIG_NOTIMESTAMP=true \
+                 $(call make-kernel-target,alldefconfig)
 
 diff --git a/config/common.mk b/config/common.mk
-index 2fe9cb01..2e0f2ac3 100644
+index 2fe9cb0..ccf6a04 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -101,10 +101,6 @@ PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
@@ -2275,28 +2594,54 @@ index 2fe9cb01..2e0f2ac3 100644
  # AOSP packages
  PRODUCT_PACKAGES += \
      Terminal
-@@ -125,20 +121,17 @@ PRODUCT_PACKAGES += \
- PRODUCT_PACKAGES += \
-     7z \
-     awk \
--    bash \
-     bzip2 \
-     curl \
-     getcap \
-     htop \
-     lib7z \
-     libsepol \
--    nano \
-     pigz \
-     powertop \
-     setcap \
-     unrar \
-     unzip \
--    vim \
-     wget \
-     zip
+@@ -123,24 +119,8 @@ PRODUCT_PACKAGES += \
 
-@@ -175,13 +168,8 @@ PRODUCT_PACKAGES_DEBUG += \
+ # Extra tools in Lineage
+ PRODUCT_PACKAGES += \
+-    7z \
+-    awk \
+-    bash \
+-    bzip2 \
+     curl \
+-    getcap \
+-    htop \
+-    lib7z \
+-    libsepol \
+-    nano \
+-    pigz \
+-    powertop \
+-    setcap \
+-    unrar \
+-    unzip \
+-    vim \
+-    wget \
+-    zip
++    wget
+
+ # Filesystems tools
+ PRODUCT_PACKAGES += \
+@@ -151,20 +131,6 @@ PRODUCT_PACKAGES += \
+     mkfs.ntfs \
+     mount.ntfs
+
+-# Openssh
+-PRODUCT_PACKAGES += \
+-    scp \
+-    sftp \
+-    ssh \
+-    sshd \
+-    sshd_config \
+-    ssh-keygen \
+-    start-ssh
+-
+-# rsync
+-PRODUCT_PACKAGES += \
+-    rsync
+-
+ # Storage manager
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+     ro.storage_manager.enabled=true
+@@ -175,13 +141,8 @@ PRODUCT_PACKAGES_DEBUG += \
 
  # Root
  PRODUCT_PACKAGES += \
@@ -2313,7 +2658,7 @@ index 2fe9cb01..2e0f2ac3 100644
  PRODUCT_DEXPREOPT_SPEED_APPS += \
 
 diff --git a/config/common_full.mk b/config/common_full.mk
-index 91bf1984..67bfa73c 100644
+index 91bf198..67bfa73 100644
 --- a/config/common_full.mk
 +++ b/config/common_full.mk
 @@ -3,16 +3,6 @@ $(call inherit-product, vendor/lineage/config/common_mobile.mk)
@@ -2335,10 +2680,10 @@ index 91bf1984..67bfa73c 100644
      Recorder
 
 diff --git a/config/common_mobile.mk b/config/common_mobile.mk
-index 82502e7f..009adbfa 100644
+index e15120e..b33e8e1 100644
 --- a/config/common_mobile.mk
 +++ b/config/common_mobile.mk
-@@ -13,26 +13,20 @@ endif
+@@ -13,27 +13,21 @@ endif
 
  # Optional packages
  PRODUCT_PACKAGES += \
@@ -2362,6 +2707,7 @@ index 82502e7f..009adbfa 100644
      Jelly \
 -    LockClock \
      Profiles \
+     Seedvault \
 -    TrebuchetQuickStep \
 -    WeatherProvider
 +    TrebuchetQuickStep
@@ -2370,7 +2716,7 @@ index 82502e7f..009adbfa 100644
  PRODUCT_PACKAGES += \
 
 diff --git a/config/data_only.mk b/config/data_only.mk
-index e45a2d5c..ab70301b 100644
+index e45a2d5..ab70301 100644
 --- a/config/data_only.mk
 +++ b/config/data_only.mk
 @@ -1,8 +1,3 @@
@@ -2384,7 +2730,7 @@ index e45a2d5c..ab70301b 100644
 -    CellBroadcastReceiver
 
 diff --git a/config/telephony.mk b/config/telephony.mk
-index 43bbaa98..3e488db8 100644
+index 43bbaa9..3e488db 100644
 --- a/config/telephony.mk
 +++ b/config/telephony.mk
 @@ -8,9 +8,7 @@ PRODUCT_PACKAGES += \
@@ -2401,13 +2747,13 @@ index 43bbaa98..3e488db8 100644
 
 diff --git a/overlay/common/frameworks/base/core/res/res/values/colors.xml b/overlay/common/frameworks/base/core/res/res/values/colors.xml
 deleted file mode 100644
-index 27fd690c..00000000
+index 27fd690..0000000
 --- a/overlay/common/frameworks/base/core/res/res/values/colors.xml
 +++ /dev/null
 @@ -1,23 +0,0 @@
 
 diff --git a/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
-index fd15ab86..4514a531 100644
+index fd15ab8..4514a53 100644
 --- a/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
 +++ b/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
 @@ -17,7 +17,5 @@
@@ -2421,13 +2767,13 @@ index fd15ab86..4514a531 100644
 
 diff --git a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
 deleted file mode 100644
-index 56031b7f..00000000
+index 56031b7..0000000
 --- a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
 +++ /dev/null
 @@ -1,22 +0,0 @@
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
-index 662b4673..3bdf07e9 100755
+index 662b467..3bdf07e 100755
 --- a/prebuilt/common/bin/backuptool.sh
 +++ b/prebuilt/common/bin/backuptool.sh
 @@ -97,6 +97,7 @@ case "$1" in
@@ -2441,26 +2787,26 @@ index 662b4673..3bdf07e9 100755
 
 diff --git a/prebuilt/common/etc/fonts_customization.xml b/prebuilt/common/etc/fonts_customization.xml
 deleted file mode 100644
-index 0c9a7fb3..00000000
+index 0c9a7fb..0000000
 --- a/prebuilt/common/etc/fonts_customization.xml
 +++ /dev/null
 @@ -1,24 +0,0 @@
 
 diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
 deleted file mode 100644
-index edf38638..00000000
+index edf3863..0000000
 --- a/prebuilt/common/etc/init/lineage-ssh.rc
 +++ /dev/null
 @@ -1,3 +0,0 @@
 
 diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
-index 396ec73a..60f8f405 100644
+index 29e795f..deb4c99 100644
 --- a/prebuilt/common/etc/init/lineage-system.rc
 +++ b/prebuilt/common/etc/init/lineage-system.rc
-@@ -13,10 +13,3 @@ on post-fs-data
- on boot
-     # Persistent properties (only created if persist exists)
-     mkdir /persist/properties 0770 system system
+@@ -8,10 +8,3 @@ on post-fs-data
+     # Change permissions on fsck log so it can be added to the dropbox
+     chown root log /dev/fscklogs/log
+     chmod 0640 /dev/fscklogs/log
 -
 -# bugreport is triggered by holding down volume down, volume up and power
 -service bugreport /system/bin/dumpstate -d -p -B -z \
@@ -2471,7 +2817,7 @@ index 396ec73a..60f8f405 100644
 
 diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
 deleted file mode 100644
-index 3a9b4813..00000000
+index 3a9b481..0000000
 --- a/prebuilt/common/etc/init/lineage-updates.rc
 +++ /dev/null
 @@ -1,4 +0,0 @@
