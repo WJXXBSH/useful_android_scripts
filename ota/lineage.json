@@ -15,7 +15,7 @@
             "id": "1fff2dee72944c2f8333784f016b0845",
             "romtype": "unofficial",
             "size": 721124062,
-            "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200430-UNOFFICIAL-libra.zip",
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.04.30/lineage-17.1-20200430-UNOFFICIAL-libra.zip",
             "version": "17.1"
         },
         {
@@ -24,7 +24,7 @@
             "id": "2713003bf43e402284af6d9d1460b905",
             "romtype": "unofficial",
             "size": 721397520,
-            "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200514-UNOFFICIAL-libra.zip",
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.05.14/lineage-17.1-20200514-UNOFFICIAL-libra.zip",
             "version": "17.1"
         },
         {
@@ -33,7 +33,7 @@
             "id": "1ad701a778ca48ac97ec96fba79f945f",
             "romtype": "unofficial",
             "size": 724491797,
-            "url": "https://rom.kyoto44.com/libra/lineage/lineage-17.1-20200612-UNOFFICIAL-libra.zip",
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.06.12/lineage-17.1-20200612-UNOFFICIAL-libra.zip",
             "version": "17.1"
         },
         {
@@ -79,6 +79,15 @@
             "romtype": "unofficial",
             "size": 715913226,
             "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.11.12/lineage-17.1-20201112-UNOFFICIAL-libra.zip",
+            "version": "17.1"
+        },
+        {
+            "datetime": 1608084974,
+            "filename": "lineage-17.1-20201216-UNOFFICIAL-libra.zip",
+            "id": "ea93625919214278993dbfa5614aa7b3",
+            "romtype": "unofficial",
+            "size": 718663297,
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2020.12.16/lineage-17.1-20201216-UNOFFICIAL-libra.zip",
             "version": "17.1"
         }
     ]

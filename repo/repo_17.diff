@@ -430,18 +430,9 @@ index 898db68..14be89a 100644
  }
 
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index b2afaf1..b0bb291 100644
+index b2afaf1..99a9a0a 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
-@@ -2148,7 +2148,7 @@ class BlockDifference(object):
-     #   decompression_time: 15s  | 25s                | 25s
-
-     if not self.src:
--      brotli_cmd = ['brotli', '--quality=6',
-+      brotli_cmd = ['brotli', '--quality=9',
-                     '--output={}.new.dat.br'.format(self.path),
-                     '{}.new.dat'.format(self.path)]
-       print("Compressing {}.new.dat with brotli".format(self.partition))
 @@ -2304,85 +2304,6 @@ def MakeRecoveryPatch(input_dir, output_sink, recovery_img, boot_img,
    full_recovery_image = info_dict.get("full_recovery_image") == "true"
    use_bsdiff = info_dict.get("no_gzip_recovery_ramdisk") == "true"
@@ -635,9 +626,9 @@ index 1a23613..f5aea6a 100644
 -BASH_ETC := $(TARGET_OUT)/etc/$(LOCAL_MODULE)
 -BASH_CONFIGS := $(addprefix $(BASH_ETC)/,$(notdir $(etc_files)))
 -$(BASH_CONFIGS): $(BASH_ETC)/%: $(LOCAL_PATH)/etc/% | $(LOCAL_BUILT_MODULE)
--       @echo "Install: $@ -> $(BASH_ETC)"
--       @mkdir -p $(dir $@)
--       $(hide) cp $< $@
+-	@echo "Install: $@ -> $(BASH_ETC)"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
 -
 -ALL_DEFAULT_INSTALLED_MODULES += $(BASH_CONFIGS)
 -
@@ -664,22 +655,22 @@ index 4fcd436..78e27ff 100644
 -syntax_files := $(wildcard $(LOCAL_PATH)/syntax/*.nanorc)
 -NANO_SYNTAX := $(addprefix $(NANO_ETC)/,$(notdir $(syntax_files)))
 -$(NANO_SYNTAX): $(NANO_ETC)/%: $(LOCAL_PATH)/syntax/% | $(LOCAL_BUILT_MODULE)
--       @echo "Install: $@ -> $(NANO_ETC)"
--       @mkdir -p $(dir $@)
--       cp $< $@
+-	@echo "Install: $@ -> $(NANO_ETC)"
+-	@mkdir -p $(dir $@)
+-	cp $< $@
 -
 -nanorc_file := $(LOCAL_PATH)/etc/nanorc
 -NANO_NANORC := $(addprefix $(NANO_ETC)/,$(notdir $(nanorc_file)))
 -$(NANO_NANORC): $(nanorc_file)
--       @echo "Install: $@ -> $(NANO_ETC)"
--       @mkdir -p $(dir $@)
--       $(hide) cp $< $@
+-	@echo "Install: $@ -> $(NANO_ETC)"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
 -
 -ALL_DEFAULT_INSTALLED_MODULES += $(NANO_SYNTAX) $(NANO_NANORC)
 -
 -ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
--       $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_SYNTAX) \
--       $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_NANORC)
+-	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_SYNTAX) \
+-	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_NANORC)
 -
  # ========================================================
  include $(call all-makefiles-under,$(LOCAL_PATH))
@@ -772,54 +763,54 @@ index 858a4e8..c1e7d51 100644
 -vim_runtime_path := $(vim_src)/runtime
 -
 -vim_runtime_files := \
--       scripts.vim \
--       indent.vim \
--       indoff.vim \
--       filetype.vim \
--       ftoff.vim
+-	scripts.vim \
+-	indent.vim \
+-	indoff.vim \
+-	filetype.vim \
+-	ftoff.vim
 -
 -vim_doc_files := \
--       help.txt intro.txt tags \
--       motion.txt editing.txt scroll.txt \
--       options.txt term.txt
+-	help.txt intro.txt tags \
+-	motion.txt editing.txt scroll.txt \
+-	options.txt term.txt
 -
 -vim_colors_files := \
--       default.vim \
--       desert.vim
+-	default.vim \
+-	desert.vim
 -
 -vim_syntax_files := \
--       logcat.vim \
--       awk.vim \
--       config.vim \
--       conf.vim \
--       cpp.vim \
--       c.vim \
--       css.vim \
--       diff.vim \
--       doxygen.vim \
--       html.vim vb.vim \
--       xml.vim dtd.vim \
--       context.vim \
--       gitcommit.vim \
--       help.vim \
--       javascript.vim \
--       java.vim \
--       lua.vim \
--       manual.vim \
--       markdown.vim \
--       pod.vim \
--       sh.vim \
--       syncolor.vim \
--       synload.vim \
--       syntax.vim \
--       vim.vim
+-	logcat.vim \
+-	awk.vim \
+-	config.vim \
+-	conf.vim \
+-	cpp.vim \
+-	c.vim \
+-	css.vim \
+-	diff.vim \
+-	doxygen.vim \
+-	html.vim vb.vim \
+-	xml.vim dtd.vim \
+-	context.vim \
+-	gitcommit.vim \
+-	help.vim \
+-	javascript.vim \
+-	java.vim \
+-	lua.vim \
+-	manual.vim \
+-	markdown.vim \
+-	pod.vim \
+-	sh.vim \
+-	syncolor.vim \
+-	synload.vim \
+-	syntax.vim \
+-	vim.vim
 -
 -vim_plugin_files := \
--       matchparen.vim \
+-	matchparen.vim \
 -
 -vim_autoload_files := \
--       dist/ft.vim \
--       spacehi.vim
+-	dist/ft.vim \
+-	spacehi.vim
 -
 -VIM_SHARED := $(TARGET_OUT)/usr/share/vim
 -
@@ -833,9 +824,9 @@ index 858a4e8..c1e7d51 100644
 -
 -vim_runtime_modules := $(addprefix $(VIM_SHARED)/, $(vim_runtime_files))
 -$(vim_runtime_modules): $(VIM_SHARED)/%: $(vim_runtime_path)/% | $(LOCAL_BUILT_MODULE)
--       @echo "Install: $@"
--       @mkdir -p $(dir $@)
--       $(hide) cp $< $@
+-	@echo "Install: $@"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
 -
 -ALL_DEFAULT_INSTALLED_MODULES += $(vim_runtime_modules)
 -
@@ -1107,9 +1098,6 @@ index d041476a..acb98e9c 100644
 diff --git a/services/core/java/com/android/server/DropBoxManagerService.java b/services/core/java/com/android/server/DropBoxManagerService.java
 deleted file mode 100644
 index 33b846f7..00000000
---- a/services/core/java/com/android/server/DropBoxManagerService.java
-+++ /dev/null
-@@ -1,1110 +0,0 @@
 
 diff --git a/services/core/java/com/android/server/StorageManagerService.java b/services/core/java/com/android/server/StorageManagerService.java
 index 263efacb..9404aedf 100644
@@ -1523,9 +1511,6 @@ index ea308427..df24a871 100644
 diff --git a/services/core/java/com/android/server/location/gps_debug.conf b/services/core/java/com/android/server/location/gps_debug.conf
 deleted file mode 100644
 index 34ce96f3..00000000
---- a/services/core/java/com/android/server/location/gps_debug.conf
-+++ /dev/null
-@@ -1,52 +0,0 @@
 
 diff --git a/services/core/java/com/android/server/net/NetworkStatsRecorder.java b/services/core/java/com/android/server/net/NetworkStatsRecorder.java
 index 06ec341d..9d2c0276 100644
@@ -1834,41 +1819,42 @@ index 1f73091..2cee897 100644
 diff --git a/tests/Android.mk b/tests/Android.mk
 deleted file mode 100644
 index fd297e3..0000000
---- a/tests/Android.mk
-+++ /dev/null
-@@ -1,5 +0,0 @@
 
 diff --git a/tests/robotests/Android.mk b/tests/robotests/Android.mk
 deleted file mode 100644
 index 0cb6917..0000000
---- a/tests/robotests/Android.mk
-+++ /dev/null
-@@ -1,47 +0,0 @@
 
 diff --git a/tests/unit/Android.mk b/tests/unit/Android.mk
 deleted file mode 100644
 index 0ba6f37..0000000
---- a/tests/unit/Android.mk
-+++ /dev/null
-@@ -1,31 +0,0 @@
 
 project packages/apps/LineageParts/
 diff --git a/res/values-zh-rCN/strings.xml b/res/values-zh-rCN/strings.xml
-index fa31646..7d6dc1d 100644
+index fa31646..c675935 100644
 --- a/res/values-zh-rCN/strings.xml
 +++ b/res/values-zh-rCN/strings.xml
 @@ -179,6 +179,8 @@
      <string name="home_answer_call_summary">按 Home 键接听来电</string>
      <string name="extras_title">附加功能</string>
      <string name="additional_buttons_title">附加按钮</string>
-+    <string name="edge_gesture_title">边缘手势</string>
++    <string name="edge_gesture_title">边缘触控</string>
 +    <string name="edge_gesture_summary">双击手机侧边可触发返回操作</string>
      <string name="button_backlight_title">背光</string>
      <string name="button_backlight_enabled">点亮按键</string>
      <string name="button_backlight_only_when_pressed_title">仅在按下时照亮按钮</string>
+@@ -453,6 +455,9 @@
+     <string name="auto_power_save_summary_on">电量 %s 时自动启用省电</string>
+     <string name="auto_power_save_summary_off">不要自动启用省电</string>
+     <string name="auto_power_save_never">永不</string>
++    <string name="cpu_overclock_category_title">超频</string>
++    <string name="cpu_overclock_title">高性能模式</string>
++    <string name="cpu_overclock_summary">提升最大 CPU 功率以改善性能，但可能缩短续航时间</string>
+     <string name="long_screen_settings_title">全屏应用</string>
+     <string name="long_screen_settings_summary">强制旧式应用程序使用全屏长宽比</string>
+     <string name="long_screen_settings_no_apps">无应用</string>
 
 diff --git a/res/values/strings.xml b/res/values/strings.xml
-index c9d78b4..7502da8 100644
+index 1133d32..0d9dfe7 100644
 --- a/res/values/strings.xml
 +++ b/res/values/strings.xml
 @@ -213,6 +213,8 @@
@@ -1876,50 +1862,84 @@ index c9d78b4..7502da8 100644
      <string name="extras_title">Extras</string>
      <string name="additional_buttons_title">Additional buttons</string>
 +    <string name="edge_gesture_title">Edge gesture</string>
-+    <string name="edge_gesture_summary">Double tap to phone\'s edge causes back</string>
++    <string name="edge_gesture_summary">Double tap the phone\'s edge causes back</string>
+     <string name="click_partial_screenshot_title">Click to partial screenshot</string>
+     <string name="click_partial_screenshot_summary">Short click Volume Down and Power to take partial screenshot</string>
 
-     <!-- Key backlight -->
-     <string name="button_backlight_title">Backlight</string>
+@@ -583,6 +585,9 @@
+     <string name="auto_power_save_summary_on">Automatically enable power save mode at %s battery</string>
+     <string name="auto_power_save_summary_off">Do not enable power save mode automatically</string>
+     <string name="auto_power_save_never">Never</string>
++    <string name="cpu_overclock_category_title">Overclock</string>
++    <string name="cpu_overclock_title">High performance mode</string>
++    <string name="cpu_overclock_summary">Increase maximum CPU power to improve performance, at the cost of battery life</string>
+
+     <!-- Applications: Long screen -->
+     <string name="long_screen_settings_title">Full screen apps</string>
 
 diff --git a/res/xml/button_settings.xml b/res/xml/button_settings.xml
-index 37adfed..37c477b 100644
+index c57985c..eedfa7a 100644
 --- a/res/xml/button_settings.xml
 +++ b/res/xml/button_settings.xml
-@@ -314,6 +314,10 @@
+@@ -314,6 +314,12 @@
                  android:action="org.lineageos.settings.device.ADDITIONAL_BUTTONS_SETTINGS" />
          </lineageos.preference.RemotePreference>
 
 +        <SwitchPreference
 +            android:key="edge_gesture"
 +            android:title="@string/edge_gesture_title"
-+            android:summary="@string/edge_gesture_summary" />
++            android:summary="@string/edge_gesture_summary"
++            android:persistent="false" />
++
+         <lineageos.preference.LineageSystemSettingSwitchPreference
+             android:key="click_partial_screenshot"
+             android:title="@string/click_partial_screenshot_title"
+
+diff --git a/res/xml/perf_profile_settings.xml b/res/xml/perf_profile_settings.xml
+index 0b301a9..a373f5d 100644
+--- a/res/xml/perf_profile_settings.xml
++++ b/res/xml/perf_profile_settings.xml
+@@ -37,6 +37,18 @@
+
      </PreferenceCategory>
 
- </PreferenceScreen>
++    <PreferenceCategory
++        android:key="cpu_overclock_category"
++        android:title="@string/cpu_overclock_category_title">
++
++        <SwitchPreference
++            android:key="cpu_overclock"
++            android:title="@string/cpu_overclock_title"
++            android:summary="@string/cpu_overclock_summary"
++            android:persistent="false" />
++
++    </PreferenceCategory>
++
+     <PreferenceCategory
+         android:key="perf_profile_category"
+         android:title="@string/perf_profile_category_title">
 
 diff --git a/src/org/lineageos/lineageparts/input/ButtonSettings.java b/src/org/lineageos/lineageparts/input/ButtonSettings.java
-index 4b7dc11..268da6c 100644
+index 423dc60..a34485f 100644
 --- a/src/org/lineageos/lineageparts/input/ButtonSettings.java
 +++ b/src/org/lineageos/lineageparts/input/ButtonSettings.java
-@@ -53,6 +53,9 @@ import org.lineageos.internal.util.ScreenType;
-
- import static org.lineageos.internal.util.DeviceKeysConstants.*;
-
-+import java.io.File;
-+import java.io.FileReader;
-+import java.io.FileWriter;
- import java.util.List;
- import java.util.Set;
-
-@@ -99,6 +102,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
+@@ -28,6 +28,7 @@ import android.content.res.Resources;
+ import android.os.Bundle;
+ import android.os.Handler;
+ import android.os.RemoteException;
++import android.os.SystemProperties;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+ import android.util.ArraySet;
+@@ -99,6 +100,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
              "torch_long_press_power_gesture";
      private static final String KEY_TORCH_LONG_PRESS_POWER_TIMEOUT =
              "torch_long_press_power_timeout";
 +    private static final String KEY_EDGE_GESTURE = "edge_gesture";
+     private static final String KEY_CLICK_PARTIAL_SCREENSHOT =
+             "click_partial_screenshot";
 
-     private static final String CATEGORY_POWER = "power_key";
-     private static final String CATEGORY_HOME = "home_key";
-@@ -137,6 +141,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
+@@ -140,6 +142,7 @@ public class ButtonSettings extends SettingsPreferenceFragment
      private SwitchPreference mHomeAnswerCall;
      private SwitchPreference mTorchLongPressPowerGesture;
      private ListPreference mTorchLongPressPowerTimeout;
@@ -1927,101 +1947,161 @@ index 4b7dc11..268da6c 100644
 
      private PreferenceCategory mNavigationPreferencesCat;
 
-@@ -420,6 +425,26 @@ public class ButtonSettings extends SettingsPreferenceFragment
+@@ -425,6 +428,13 @@ public class ButtonSettings extends SettingsPreferenceFragment
              }
          }
 
 +        // Edge gesture controller
-+        int status = 0;
-+        File file = new File("/proc/touchscreen/edge_touch_mode");
-+        if (file.exists()) {
-+            try {
-+                FileReader filereader = new FileReader(file);
-+                status = filereader.read() - 48; // (ASCII) 0 = 48, 1 = 49
-+                filereader.close();
-+            } catch (Exception e) {
-+                Log.e(TAG, "Error getting edge gesture status");
-+            }
-+        } else {
-+            Log.w(TAG, "File not found: /proc/touchscreen/edge_touch_mode");
-+        }
 +        mEdgeGesture = prefScreen.findPreference(KEY_EDGE_GESTURE);
 +
 +        if (mEdgeGesture != null) {
-+            mEdgeGesture.setChecked(status > 0);
++            mEdgeGesture.setChecked(SystemProperties.getBoolean("persist.vendor.edge_touch_mode", false));
 +        }
 +
          // Override key actions on Go devices in order to hide any unsupported features
          if (ActivityManager.isLowRamDeviceStatic()) {
              String[] actionEntriesGo = res.getStringArray(R.array.hardware_keys_action_entries_go);
-@@ -735,6 +760,22 @@ public class ButtonSettings extends SettingsPreferenceFragment
+@@ -499,6 +509,11 @@ public class ButtonSettings extends SettingsPreferenceFragment
+                 (incallHomeBehavior == LineageSettings.Secure.RING_HOME_BUTTON_BEHAVIOR_ANSWER);
+             mHomeAnswerCall.setChecked(homeButtonAnswersCall);
+         }
++
++        // Get edge gesture status.
++        if (mEdgeGesture != null) {
++            mEdgeGesture.setChecked(SystemProperties.getBoolean("persist.vendor.edge_touch_mode", false));
++        }
+     }
+
+     private ListPreference initList(String key, Action value) {
+@@ -740,6 +755,9 @@ public class ButtonSettings extends SettingsPreferenceFragment
          } else if (preference == mHomeAnswerCall) {
              handleToggleHomeButtonAnswersCallPreferenceClick();
              return true;
 +        } else if (preference == mEdgeGesture) {
-+            int status = mEdgeGesture.isChecked() ? 1 : 0;
-+            File file = new File("/proc/touchscreen/edge_touch_mode");
-+            if (file.exists()) {
-+                try {
-+                    FileWriter filewriter = new FileWriter(file);
-+                    filewriter.write(String.valueOf(status));
-+                    filewriter.flush();
-+                    filewriter.close();
-+                } catch (Exception e) {
-+                    Log.e(TAG, String.format("Error setting edge gesture status to %d", status));
-+                }
-+            } else {
-+                Log.e(TAG, "File not found: /proc/touchscreen/edge_touch_mode");
-+            }
++            SystemProperties.set("persist.vendor.edge_touch_mode", mEdgeGesture.isChecked() ? "true" : "false");
 +            return true;
          }
 
          return super.onPreferenceTreeClick(preference);
 
+diff --git a/src/org/lineageos/lineageparts/power/PerfProfileSettings.java b/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
+index 949562f..de3868a 100644
+--- a/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
++++ b/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
+@@ -28,6 +28,7 @@ import android.graphics.drawable.AnimatedVectorDrawable;
+ import android.net.Uri;
+ import android.os.Bundle;
+ import android.os.PowerManager;
++import android.os.SystemProperties;
+ import android.provider.Settings.Global;
+ import android.util.ArraySet;
+ import android.util.TypedValue;
+@@ -65,10 +66,13 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+     private static final String KEY_AUTO_POWER_SAVE  = "auto_power_save";
+     private static final String KEY_POWER_SAVE       = "power_save";
+     private static final String KEY_PERF_SEEKBAR     = "perf_seekbar";
++    private static final String KEY_CPU_OVERCLOCK    = "cpu_overclock";
+
+     private ListPreference mAutoPowerSavePref;
+     private SwitchPreference   mPowerSavePref;
+
++    private SwitchPreference   mCPUOverclockPref;
++
+     private SeekBarPreference        mPerfSeekBar;
+     private StopMotionVectorDrawable mPerfDrawable;
+     private PerfIconAnimator         mAnimator;
+@@ -96,6 +100,7 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+         mPerfSeekBar = findPreference(KEY_PERF_SEEKBAR);
+         mAutoPowerSavePref = findPreference(KEY_AUTO_POWER_SAVE);
+         mPowerSavePref = findPreference(KEY_POWER_SAVE);
++        mCPUOverclockPref = findPreference(KEY_CPU_OVERCLOCK);
+
+         mPowerManager = getActivity().getSystemService(PowerManager.class);
+         mPerf = PerformanceManager.getInstance(getActivity());
+@@ -126,6 +131,8 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+         updateAutoPowerSaveValue();
+         mAutoPowerSavePref.setOnPreferenceChangeListener(this);
+         mPowerSavePref.setOnPreferenceChangeListener(this);
++        updateCPUOverclockValue();
++        mCPUOverclockPref.setOnPreferenceChangeListener(this);
+     }
+
+
+@@ -212,6 +219,10 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+             getActivity().registerReceiver(mPowerSaveReceiver,
+                     new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING));
+         }
++
++        if (mCPUOverclockPref != null) {
++            updateCPUOverclockValue();
++        }
+     }
+
+     @Override
+@@ -246,6 +257,8 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+             final int level = Integer.parseInt((String) newValue);
+             Global.putInt(getContentResolver(), Global.LOW_POWER_MODE_TRIGGER_LEVEL, level);
+             updateAutoPowerSaveSummary(level);
++        } else if (preference == mCPUOverclockPref) {
++            SystemProperties.set("persist.sys.cpu_overclock", SystemProperties.getBoolean("persist.sys.cpu_overclock", true) ? "false" : "true");
+         }
+         return true;
+     }
+@@ -263,6 +276,10 @@ public class PerfProfileSettings extends SettingsPreferenceFragment
+         PartsUpdater.notifyChanged(getActivity(), getPreferenceScreen().getKey());
+     }
+
++    private void updateCPUOverclockValue() {
++        mCPUOverclockPref.setChecked(SystemProperties.getBoolean("persist.sys.cpu_overclock", true));
++    }
++
+     private void updateAutoPowerSaveValue() {
+         final int level = Global.getInt(
+                 getContentResolver(), Global.LOW_POWER_MODE_TRIGGER_LEVEL, 0);
+
 project packages/apps/Settings/
 diff --git a/res/values-zh-rCN/cm_strings.xml b/res/values-zh-rCN/cm_strings.xml
-index a841914..d8de425 100644
+index d84f2db..a2b6754 100644
 --- a/res/values-zh-rCN/cm_strings.xml
 +++ b/res/values-zh-rCN/cm_strings.xml
-@@ -62,6 +62,9 @@
+@@ -62,6 +62,8 @@
      <string name="volume_link_notification_title">链接铃声和通知的音量</string>
      <string name="directly_show_lock">直接解锁</string>
      <string name="directly_show_lock_summary">跳过滑动解锁屏幕直接开始输入密码</string>
 +    <string name="root_access">Root 授权</string>
-+    <string name="root_access_none">已禁用</string>
-+    <string name="root_access_all">应用与 ADB</string>
++    <string name="root_access_summary">允许所有应用获取 Root 权限</string>
      <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="tablet">在您平板的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
      <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="device">在您设备的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
      <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 959d8be..6070006 100644
+index 959d8be..bb0c71b 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -144,6 +144,11 @@
+@@ -144,6 +144,10 @@
      <string name="proximity_wake_title">Prevent accidental wake-up</string>
      <string name="proximity_wake_summary">Check the proximity sensor prior to waking up screen</string>
 
 +    <!-- Setting checkbox title for root access -->
 +    <string name="root_access">Root access</string>
-+    <string name="root_access_none">Disabled</string>
-+    <string name="root_access_all">Apps and ADB</string>
++    <string name="root_access_summary">Allow all apps to get root access</string>
 +
      <!-- Wake on plug -->
      <string name="wake_when_plugged_or_unplugged_title">Wake on plug</string>
      <string name="wake_when_plugged_or_unplugged_summary">Turn the screen on when connecting or disconnecting a power source</string>
 
 diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
-index 0262556..79323fb 100644
+index 0262556..941c3f2 100644
 --- a/res/xml/development_settings.xml
 +++ b/res/xml/development_settings.xml
-@@ -126,6 +126,11 @@
+@@ -126,6 +126,12 @@
              android:fragment="com.android.settings.development.qstile.DevelopmentTileConfigFragment"
              settings:searchable="false" />
 
-+        <ListPreference
++        <SwitchPreference
 +            android:key="root_access"
 +            android:title="@string/root_access"
++            android:summary="@string/root_access_summary"
 +            android:persistent="false" />
 +
      <!-- Configure trust agent behavior -->
@@ -2029,31 +2109,15 @@ index 0262556..79323fb 100644
          android:key="security_setting_trust_agents_extend_unlock"
 
 diff --git a/src/com/android/settings/development/AdbRootPreferenceController.java b/src/com/android/settings/development/AdbRootPreferenceController.java
-index 5f7d65d..a72770d 100644
+index 5f7d65d..8cdc24f 100644
 --- a/src/com/android/settings/development/AdbRootPreferenceController.java
 +++ b/src/com/android/settings/development/AdbRootPreferenceController.java
-@@ -20,6 +20,7 @@ import android.adb.ADBRootService;
- import android.content.Context;
- import android.os.Build;
- import android.os.UserManager;
-+import android.os.SystemProperties;
-
- import androidx.preference.Preference;
- import androidx.preference.PreferenceScreen;
-@@ -36,6 +37,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
-
-     private static final String TAG = "AdbRootPreferenceController";
-     private static final String PREF_KEY = "enable_adb_root";
-+    private static final String ROOT_ACCESS_PROPERTY = "persist.sys.root_access";
-
-     private final ADBRootService mADBRootService;
-
-@@ -53,7 +55,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
+@@ -53,7 +53,7 @@ public class AdbRootPreferenceController extends DeveloperOptionsPreferenceContr
 
      @Override
      public boolean isAvailable() {
 -        return Build.IS_DEBUGGABLE;
-+        return Integer.parseInt(SystemProperties.get(ROOT_ACCESS_PROPERTY, "0")) > 0 ? true : Build.IS_DEBUGGABLE;
++        return true;
      }
 
      @Override
@@ -2139,23 +2203,23 @@ index e8084b3..5cd8f5e 100644
 
 project system/core/
 diff --git a/adb/daemon/main.cpp b/adb/daemon/main.cpp
-index 8521b5f..828a5cb 100644
+index 8521b5f..e03be6a 100644
 --- a/adb/daemon/main.cpp
 +++ b/adb/daemon/main.cpp
-@@ -69,6 +69,7 @@ static bool should_drop_privileges() {
-     //
+@@ -70,7 +70,6 @@ static bool should_drop_privileges() {
      // ro.secure:
      //   Drop privileges by default. Set to 1 on userdebug and user builds.
-+    bool persist_sys_root_access = android::base::GetBoolProperty("persist.sys.root_access", false);
      bool ro_secure = android::base::GetBoolProperty("ro.secure", true);
-     bool ro_debuggable = __android_log_is_debuggable();
+-    bool ro_debuggable = __android_log_is_debuggable();
 
-@@ -79,7 +80,7 @@ static bool should_drop_privileges() {
+     // Drop privileges if ro.secure is set...
+     bool drop = ro_secure;
+@@ -79,7 +78,7 @@ static bool should_drop_privileges() {
      std::string prop = android::base::GetProperty("service.adb.root", "");
      bool adb_root = (prop == "1");
      bool adb_unroot = (prop == "0");
 -    if (ro_debuggable && adb_root) {
-+    if (ro_debuggable || (adb_root && persist_sys_root_access)) {
++    if (adb_root) {
          drop = false;
      }
      // ... and "adb unroot" lets you explicitly drop privileges.
@@ -2336,7 +2400,7 @@ index e3da77b..33ae155 100644
  }
 
 diff --git a/rootdir/init.rc b/rootdir/init.rc
-index d5afabc..1184af5 100644
+index d5afabc..ab5906e 100644
 --- a/rootdir/init.rc
 +++ b/rootdir/init.rc
 @@ -439,11 +439,6 @@ on post-fs-data
@@ -2422,6 +2486,35 @@ index d5afabc..1184af5 100644
      mkdir /data/system/users 0775 system system
 
      mkdir /data/system_de 0770 system system
+@@ -809,9 +780,6 @@ on property:vold.decrypt=trigger_shutdown_framework
+
+ on property:sys.boot_completed=1
+     bootchart stop
+-    # Setup per_boot directory so other .rc could start to use it on boot_completed
+-    exec - system system -- /bin/rm -rf /data/per_boot
+-    mkdir /data/per_boot 0700 system system
+
+ # system server cannot write to /proc/sys files,
+ # and chown/chmod does not work for /proc/sys/ entries.
+@@ -854,18 +822,4 @@ service console /system/bin/sh
+     setenv HOSTNAME console
+
+ on property:ro.debuggable=1
+-    # Give writes to anyone for the trace folder on debug builds.
+-    # The folder is used to store method traces.
+-    chmod 0773 /data/misc/trace
+-    # Give reads to anyone for the window trace folder on debug builds.
+-    chmod 0775 /data/misc/wmtrace
+     start console
+-
+-service flash_recovery /system/bin/install-recovery.sh
+-    class main
+-    oneshot
+-    disabled
+-
+-# update recovery if enabled
+-on property:persist.sys.recovery_update=true
+-    start flash_recovery
 
 project system/extras/
 diff --git a/su/Android.mk b/su/Android.mk
@@ -2475,16 +2568,10 @@ index e69de29..0000000
 diff --git a/su/NOTICE b/su/NOTICE
 deleted file mode 100644
 index c5b1efa..0000000
---- a/su/NOTICE
-+++ /dev/null
-@@ -1,190 +0,0 @@
 
 diff --git a/su/su.cpp b/su/su.cpp
 deleted file mode 100644
 index 1a1ab6b..0000000
---- a/su/su.cpp
-+++ /dev/null
-@@ -1,144 +0,0 @@
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
@@ -2532,7 +2619,7 @@ index dadd7b0..1c92222 100644
 
 project vendor/lineage/
 diff --git a/build/tasks/kernel.mk b/build/tasks/kernel.mk
-index bdf264d..23806d9 100644
+index bdf264d..529ffb6 100644
 --- a/build/tasks/kernel.mk
 +++ b/build/tasks/kernel.mk
 @@ -89,10 +89,13 @@ KERNEL_DEFCONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_DEFCONFIG)
@@ -2555,32 +2642,30 @@ index bdf264d..23806d9 100644
 
 -$(KERNEL_OUT):
 +$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_ADDITIONAL_CONFIG_DEPENDENCY)
-        mkdir -p $(KERNEL_OUT)
+ 	mkdir -p $(KERNEL_OUT)
 -
 -$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_OUT)
-        $(hide) cmp -s $(KERNEL_ADDITIONAL_CONFIG_SRC) $@ || cp $(KERNEL_ADDITIONAL_CONFIG_SRC) $@;
+ 	$(hide) cmp -s $(KERNEL_ADDITIONAL_CONFIG_SRC) $@ || cp $(KERNEL_ADDITIONAL_CONFIG_SRC) $@;
 
  $(KERNEL_CONFIG): $(KERNEL_DEFCONFIG_SRC) $(KERNEL_ADDITIONAL_CONFIG_OUT)
-@@ -288,13 +289,15 @@ kerneltags: $(KERNEL_CONFIG)
+@@ -288,13 +289,13 @@ kerneltags: $(KERNEL_CONFIG)
 
  .PHONY: kernelsavedefconfig alldefconfig
 
 -kernelsavedefconfig: $(KERNEL_OUT)
-+kernelsavedefconfig:
-+       mkdir -p $(KERNEL_OUT)
-        $(call make-kernel-target,$(KERNEL_DEFCONFIG))
-        env KCONFIG_NOTIMESTAMP=true \
-                 $(call make-kernel-target,savedefconfig)
-        cp $(KERNEL_OUT)/defconfig $(KERNEL_DEFCONFIG_SRC)
++kernelsavedefconfig: mkdir -p $(KERNEL_OUT)
+ 	$(call make-kernel-target,$(KERNEL_DEFCONFIG))
+ 	env KCONFIG_NOTIMESTAMP=true \
+ 		 $(call make-kernel-target,savedefconfig)
+ 	cp $(KERNEL_OUT)/defconfig $(KERNEL_DEFCONFIG_SRC)
 
 -alldefconfig: $(KERNEL_OUT)
-+alldefconfig:
-+       mkdir -p $(KERNEL_OUT)
-        env KCONFIG_NOTIMESTAMP=true \
-                 $(call make-kernel-target,alldefconfig)
++alldefconfig: mkdir -p $(KERNEL_OUT)
+ 	env KCONFIG_NOTIMESTAMP=true \
+ 		 $(call make-kernel-target,alldefconfig)
 
 diff --git a/config/common.mk b/config/common.mk
-index 2fe9cb0..ccf6a04 100644
+index 2fe9cb0..27ca616 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -101,10 +101,6 @@ PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
@@ -2594,15 +2679,17 @@ index 2fe9cb0..ccf6a04 100644
  # AOSP packages
  PRODUCT_PACKAGES += \
      Terminal
-@@ -123,24 +119,8 @@ PRODUCT_PACKAGES += \
+@@ -121,27 +117,6 @@ PRODUCT_PACKAGES += \
+     LineageThemesStub \
+     ThemePicker
 
- # Extra tools in Lineage
- PRODUCT_PACKAGES += \
+-# Extra tools in Lineage
+-PRODUCT_PACKAGES += \
 -    7z \
 -    awk \
 -    bash \
 -    bzip2 \
-     curl \
+-    curl \
 -    getcap \
 -    htop \
 -    lib7z \
@@ -2616,11 +2703,11 @@ index 2fe9cb0..ccf6a04 100644
 -    vim \
 -    wget \
 -    zip
-+    wget
-
+-
  # Filesystems tools
  PRODUCT_PACKAGES += \
-@@ -151,20 +131,6 @@ PRODUCT_PACKAGES += \
+     fsck.exfat \
+@@ -151,20 +126,6 @@ PRODUCT_PACKAGES += \
      mkfs.ntfs \
      mount.ntfs
 
@@ -2641,7 +2728,7 @@ index 2fe9cb0..ccf6a04 100644
  # Storage manager
  PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
      ro.storage_manager.enabled=true
-@@ -175,13 +141,8 @@ PRODUCT_PACKAGES_DEBUG += \
+@@ -175,13 +136,8 @@ PRODUCT_PACKAGES_DEBUG += \
 
  # Root
  PRODUCT_PACKAGES += \
@@ -2748,9 +2835,6 @@ index 43bbaa9..3e488db 100644
 diff --git a/overlay/common/frameworks/base/core/res/res/values/colors.xml b/overlay/common/frameworks/base/core/res/res/values/colors.xml
 deleted file mode 100644
 index 27fd690..0000000
---- a/overlay/common/frameworks/base/core/res/res/values/colors.xml
-+++ /dev/null
-@@ -1,23 +0,0 @@
 
 diff --git a/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
 index fd15ab8..4514a53 100644
@@ -2768,19 +2852,16 @@ index fd15ab8..4514a53 100644
 diff --git a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
 deleted file mode 100644
 index 56031b7..0000000
---- a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-+++ /dev/null
-@@ -1,22 +0,0 @@
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
-index 662b467..3bdf07e 100755
+index 662b467..9d5d4cb 100755
 --- a/prebuilt/common/bin/backuptool.sh
 +++ b/prebuilt/common/bin/backuptool.sh
 @@ -97,6 +97,7 @@ case "$1" in
        run_stage restore
        run_stage post-restore
        restore_addon_d
-+      chmod 755 $S/xbin/su
++      chmod +rx $S/xbin/su
        rm -rf $C
        sync
      fi
@@ -2788,16 +2869,10 @@ index 662b467..3bdf07e 100755
 diff --git a/prebuilt/common/etc/fonts_customization.xml b/prebuilt/common/etc/fonts_customization.xml
 deleted file mode 100644
 index 0c9a7fb..0000000
---- a/prebuilt/common/etc/fonts_customization.xml
-+++ /dev/null
-@@ -1,24 +0,0 @@
 
 diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
 deleted file mode 100644
 index edf3863..0000000
---- a/prebuilt/common/etc/init/lineage-ssh.rc
-+++ /dev/null
-@@ -1,3 +0,0 @@
 
 diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
 index 29e795f..deb4c99 100644
@@ -2818,6 +2893,3 @@ index 29e795f..deb4c99 100644
 diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
 deleted file mode 100644
 index 3a9b481..0000000
---- a/prebuilt/common/etc/init/lineage-updates.rc
-+++ /dev/null
-@@ -1,4 +0,0 @@
