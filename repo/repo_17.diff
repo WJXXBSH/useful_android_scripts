@@ -1791,46 +1791,9 @@ index 844b7928..edfba58f 100644
              vibrator = new VibratorService(context);
              ServiceManager.addService("vibrator", vibrator);
 
-project packages/apps/Bluetooth/
-diff --git a/Android.mk b/Android.mk
-index 1f73091..2cee897 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -59,8 +59,8 @@ include $(call all-makefiles-under,$(LOCAL_PATH))
-
- include $(CLEAR_VARS)
-
--COMMON_LIBS_PATH := ../../../../../prebuilts/tools/common/m2/repository
--ROOM_LIBS_PATH := ../../lib/room
-+COMMON_LIBS_PATH := ../../../prebuilts/tools/common/m2/repository
-+ROOM_LIBS_PATH := ./lib/room
-
- LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
-         bt-androidx-annotation-nodeps:$(ROOM_LIBS_PATH)/annotation-1.0.0-beta01.jar \
-@@ -73,6 +73,6 @@ LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
-         bt-javapoet-nodeps:$(COMMON_LIBS_PATH)/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar \
-         bt-kotlin-metadata-nodeps:$(COMMON_LIBS_PATH)/me/eugeniomarletti/kotlin-metadata/1.2.1/kotlin-metadata-1.2.1.jar \
-         bt-sqlite-jdbc-nodeps:$(COMMON_LIBS_PATH)/org/xerial/sqlite-jdbc/3.20.1/sqlite-jdbc-3.20.1.jar \
--        bt-jetbrain-nodeps:../../../../../prebuilts/tools/common/m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar
-+        bt-jetbrain-nodeps:$(COMMON_LIBS_PATH)/org/jetbrains/annotations/13.0/annotations-13.0.jar
-
- include $(BUILD_HOST_PREBUILT)
-
-diff --git a/tests/Android.mk b/tests/Android.mk
-deleted file mode 100644
-index fd297e3..0000000
-
-diff --git a/tests/robotests/Android.mk b/tests/robotests/Android.mk
-deleted file mode 100644
-index 0cb6917..0000000
-
-diff --git a/tests/unit/Android.mk b/tests/unit/Android.mk
-deleted file mode 100644
-index 0ba6f37..0000000
-
 project packages/apps/LineageParts/
 diff --git a/res/values-zh-rCN/strings.xml b/res/values-zh-rCN/strings.xml
-index fa31646..c675935 100644
+index 4a42908..8a5ac97 100644
 --- a/res/values-zh-rCN/strings.xml
 +++ b/res/values-zh-rCN/strings.xml
 @@ -179,6 +179,8 @@
@@ -1839,10 +1802,10 @@ index fa31646..c675935 100644
      <string name="additional_buttons_title">附加按钮</string>
 +    <string name="edge_gesture_title">边缘触控</string>
 +    <string name="edge_gesture_summary">双击手机侧边可触发返回操作</string>
+     <string name="click_partial_screenshot_title">点击以进行局部截图</string>
+     <string name="click_partial_screenshot_summary">同时按音量下和电源键以截取局部截图</string>
      <string name="button_backlight_title">背光</string>
-     <string name="button_backlight_enabled">点亮按键</string>
-     <string name="button_backlight_only_when_pressed_title">仅在按下时照亮按钮</string>
-@@ -453,6 +455,9 @@
+@@ -455,6 +457,9 @@
      <string name="auto_power_save_summary_on">电量 %s 时自动启用省电</string>
      <string name="auto_power_save_summary_off">不要自动启用省电</string>
      <string name="auto_power_save_never">永不</string>
@@ -2061,7 +2024,7 @@ index 949562f..de3868a 100644
 
 project packages/apps/Settings/
 diff --git a/res/values-zh-rCN/cm_strings.xml b/res/values-zh-rCN/cm_strings.xml
-index d84f2db..a2b6754 100644
+index d84f2db..5a26514 100644
 --- a/res/values-zh-rCN/cm_strings.xml
 +++ b/res/values-zh-rCN/cm_strings.xml
 @@ -62,6 +62,8 @@
@@ -2070,15 +2033,74 @@ index d84f2db..a2b6754 100644
      <string name="directly_show_lock_summary">跳过滑动解锁屏幕直接开始输入密码</string>
 +    <string name="root_access">Root 授权</string>
 +    <string name="root_access_summary">允许所有应用获取 Root 权限</string>
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="tablet">在您平板的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="device">在您设备的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="tablet">在您平板的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到 >
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="device">在您设备的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到 >
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到>
+@@ -69,6 +71,9 @@
+     <string name="security_settings_fingerprint_sensor_location_front">前置</string>
+     <string name="security_settings_fingerprint_sensor_location_left">左侧</string>
+     <string name="security_settings_fingerprint_sensor_location_right">右侧</string>
++    <string name="screen_refresh_rate">屏幕刷新率</string>
++    <string name="screen_refresh_rate_title">屏幕刷新率</string>
++    <string name="keywords_screen_refresh_rate">屏幕，刷新率，Hz</string>
+     <string name="status_bar_double_tap_to_sleep_title">点按以睡眠</string>
+     <string name="status_bar_double_tap_to_sleep_summary">双击状态栏或锁屏以关闭屏幕</string>
+     <string name="touchscreen_gesture_settings_title">触摸屏手势</string>
+
+diff --git a/res/values/cm_arrays.xml b/res/values/cm_arrays.xml
+index bc509ad..09acc25 100644
+--- a/res/values/cm_arrays.xml
++++ b/res/values/cm_arrays.xml
+@@ -45,4 +45,27 @@
+         <item>@string/security_settings_fingerprint_sensor_location_left</item>
+         <item>@string/security_settings_fingerprint_sensor_location_right</item>
+     </string-array>
++
++    <!-- Display settings.  The minimum refresh rate of screen. These are shown in a list dialog. -->
++    <string-array name="screen_refresh_rate_entries">
++        <item>30 Hz</item>
++        <item>48 Hz</item>
++        <item>50 Hz</item>
++        <item>60 Hz</item>
++        <item>75 Hz</item>
++    </string-array>
++
++    <!-- Do not translate. -->
++    <string-array name="screen_refresh_rate_values" translatable="false">
++        <!-- Do not translate. -->
++        <item>30</item>
++        <!-- Do not translate. -->
++        <item>48</item>
++        <!-- Do not translate. -->
++        <item>50</item>
++        <!-- Do not translate. -->
++        <item>60</item>
++        <!-- Do not translate. -->
++        <item>75</item>
++    </string-array>
+ </resources>
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 959d8be..bb0c71b 100644
+index 959d8be..1719947 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -144,6 +144,10 @@
+@@ -122,6 +122,15 @@
+     <string name="security_settings_fingerprint_sensor_location_left">left side</string>
+     <string name="security_settings_fingerprint_sensor_location_right">right side</string>
+
++    <!-- Sound & display settings screen, setting option name to change screen refresh rate -->
++    <string name="screen_refresh_rate">Screen refresh rate</string>
++    <!-- Sound & display settings screen, setting option name to change screen refresh rate [CHAR LIMIT=30] -->
++    <string name="screen_refresh_rate_title">Screen refresh rate</string>
++    <!-- Sound & display settings screen, setting option summary to change screen refresh rate -->
++    <string name="screen_refresh_rate_summary"><xliff:g id="refresh_rate_description">%1$s</xliff:g></string>
++    <!-- List of synonyms for the screen refresh rate setting, used to match in settings search [CHAR LIMIT=NONE] -->
++    <string name="keywords_screen_refresh_rate">screen, refresh rate, Hz</string>
++
+     <!-- Double tap to sleep on status bar or lockscreen -->
+     <string name="status_bar_double_tap_to_sleep_title">Tap to sleep</string>
+     <string name="status_bar_double_tap_to_sleep_summary">Double-tap on the status bar or lockscreen to turn off the display</string>
+@@ -144,6 +153,10 @@
      <string name="proximity_wake_title">Prevent accidental wake-up</string>
      <string name="proximity_wake_summary">Check the proximity sensor prior to waking up screen</string>
 
@@ -2108,6 +2130,55 @@ index 0262556..941c3f2 100644
      <SwitchPreference
          android:key="security_setting_trust_agents_extend_unlock"
 
+diff --git a/res/xml/display_settings.xml b/res/xml/display_settings.xml
+index 1f4048e..5f2e0c6 100644
+--- a/res/xml/display_settings.xml
++++ b/res/xml/display_settings.xml
+@@ -77,6 +77,14 @@
+         android:entryValues="@array/screen_timeout_values"
+         settings:keywords="@string/keywords_screen_timeout" />
+
++    <com.android.settings.display.RefreshRateListPreference
++        android:key="screen_refresh_rate"
++        android:title="@string/screen_refresh_rate"
++        android:summary="@string/summary_placeholder"
++        android:entries="@array/screen_refresh_rate_entries"
++        android:entryValues="@array/screen_refresh_rate_values"
++        settings:keywords="@string/keywords_screen_refresh_rate" />
++
+     <Preference
+         android:key="adaptive_sleep_entry"
+         android:title="@string/adaptive_sleep_title"
+
+diff --git a/src/com/android/settings/DisplaySettings.java b/src/com/android/settings/DisplaySettings.java
+index 054a5e7..dde853a 100644
+--- a/src/com/android/settings/DisplaySettings.java
++++ b/src/com/android/settings/DisplaySettings.java
+@@ -32,6 +32,7 @@ import com.android.settings.display.ShowOperatorNamePreferenceController;
+ import com.android.settings.display.TapToWakePreferenceController;
+ import com.android.settings.display.ThemePreferenceController;
+ import com.android.settings.display.TimeoutPreferenceController;
++import com.android.settings.display.RefreshRatePreferenceController;
+ import com.android.settings.display.VrDisplayPreferenceController;
+ import com.android.settings.search.BaseSearchIndexProvider;
+ import com.android.settings.search.Indexable;
+@@ -51,6 +52,7 @@ public class DisplaySettings extends DashboardFragment {
+     public static final String KEY_PROXIMITY_ON_WAKE = "proximity_on_wake";
+
+     private static final String KEY_SCREEN_TIMEOUT = "screen_timeout";
++    private static final String KEY_SCREEN_REFRESH_RATE = "screen_refresh_rate";
+     private static final String KEY_HIGH_TOUCH_SENSITIVITY = "high_touch_sensitivity_enable";
+
+     @Override
+@@ -93,6 +95,7 @@ public class DisplaySettings extends DashboardFragment {
+         controllers.add(new ScreenSaverPreferenceController(context));
+         controllers.add(new TapToWakePreferenceController(context));
+         controllers.add(new TimeoutPreferenceController(context, KEY_SCREEN_TIMEOUT));
++        controllers.add(new RefreshRatePreferenceController(context, KEY_SCREEN_REFRESH_RATE));
+         controllers.add(new VrDisplayPreferenceController(context));
+         controllers.add(new ShowOperatorNamePreferenceController(context));
+         controllers.add(new ThemePreferenceController(context));
+
 diff --git a/src/com/android/settings/development/AdbRootPreferenceController.java b/src/com/android/settings/development/AdbRootPreferenceController.java
 index 5f7d65d..8cdc24f 100644
 --- a/src/com/android/settings/development/AdbRootPreferenceController.java
@@ -2122,15 +2193,15 @@ index 5f7d65d..8cdc24f 100644
 
      @Override
 
-diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
-index f18225e..ac5dd9b 100644
+diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboar>
+index f18225e..d22e7d0 100644
 --- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 +++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 @@ -515,6 +515,7 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
          controllers.add(new ShortcutManagerThrottlingPreferenceController(context));
          controllers.add(new BubbleGlobalPreferenceController(context));
          controllers.add(new EnableGnssRawMeasFullTrackingPreferenceController(context));
-+        controllers.add(new RootAccessPreferenceController(context, fragment));
++        controllers.add(new RootAccessPreferenceController(context));
          controllers.add(new DefaultLaunchPreferenceController(context, "running_apps"));
          controllers.add(new DefaultLaunchPreferenceController(context, "demo_mode"));
          controllers.add(new DefaultLaunchPreferenceController(context, "quick_settings_tiles"));
@@ -2516,63 +2587,6 @@ index d5afabc..ab5906e 100644
 -on property:persist.sys.recovery_update=true
 -    start flash_recovery
 
-project system/extras/
-diff --git a/su/Android.mk b/su/Android.mk
-index e3da4f2..4833d33 100644
---- a/su/Android.mk
-+++ b/su/Android.mk
-@@ -1,12 +1,32 @@
--LOCAL_PATH:= $(call my-dir)
--include $(CLEAR_VARS)
--
--LOCAL_CFLAGS := -Wall -Werror
-+# Root AOSP source makefile
-+# su is built here, and
-+LOCAL_PATH := $(call my-dir)
-
--LOCAL_SRC_FILES:= su.cpp
-+include $(CLEAR_VARS)
-
--LOCAL_MODULE:= su
-+LOCAL_MODULE := su
-+LOCAL_MODULE_TAGS := optional
-+LOCAL_SHARED_LIBRARIES := \
-+    libbinder \
-+    libcutils \
-+    liblog \
-+    libutils \
-
-+LOCAL_SRC_FILES := su.c daemon.c utils.c pts.c
- LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-
-+LOCAL_INIT_RC := superuser.rc
-+
- include $(BUILD_EXECUTABLE)
-+
-+SYMLINKS := $(addprefix $(TARGET_OUT)/bin/,su)
-+$(SYMLINKS):
-+	@echo "Symlink: $@ -> /system/xbin/su"
-+	@mkdir -p $(dir $@)
-+	@rm -rf $@
-+	$(hide) ln -sf ../xbin/su $@
-+
-+# We need this so that the installed files could be picked up based on the
-+# local module name
-+ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
-+    $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(SYMLINKS)
-
-diff --git a/su/MODULE_LICENSE_APACHE2 b/su/MODULE_LICENSE_APACHE2
-deleted file mode 100644
-index e69de29..0000000
-
-diff --git a/su/NOTICE b/su/NOTICE
-deleted file mode 100644
-index c5b1efa..0000000
-
-diff --git a/su/su.cpp b/su/su.cpp
-deleted file mode 100644
-index 1a1ab6b..0000000
-
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
 index dadd7b0..1c92222 100644
@@ -2835,23 +2849,6 @@ index 43bbaa9..3e488db 100644
 diff --git a/overlay/common/frameworks/base/core/res/res/values/colors.xml b/overlay/common/frameworks/base/core/res/res/values/colors.xml
 deleted file mode 100644
 index 27fd690..0000000
-
-diff --git a/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
-index fd15ab8..4514a53 100644
---- a/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
-+++ b/overlay/common/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
-@@ -17,7 +17,5 @@
-  */
- -->
- <resources>
--    <bool name="def_wifi_on">true</bool>
--
-     <string name="def_backup_transport">com.google.android.gms/.backup.BackupTransportService</string>
- </resources>
-
-diff --git a/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml b/overlay/common/lineage-sdk/packages/LineageSettingsProvider/res/values/defaults.xml
-deleted file mode 100644
-index 56031b7..0000000
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
 index 662b467..9d5d4cb 100755

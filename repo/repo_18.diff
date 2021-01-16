@@ -1,0 +1,1550 @@
+project build/make/
+diff --git a/core/Makefile b/core/Makefile
+index 4f047bd..2fda7dc 100644
+--- a/core/Makefile
++++ b/core/Makefile
+@@ -325,9 +325,9 @@ endif
+ # Both of these tags will be removed and replaced with "release-keys"
+ # when the target-files is signed in a post-build step.
+ ifeq ($(DEFAULT_SYSTEM_DEV_CERTIFICATE),build/make/target/product/security/testkey)
+-BUILD_KEYS := test-keys
++BUILD_KEYS := release-keys
+ else
+-BUILD_KEYS := dev-keys
++BUILD_KEYS := release-keys
+ endif
+ BUILD_VERSION_TAGS += $(BUILD_KEYS)
+ BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
+@@ -2109,8 +2109,7 @@ ifeq (,$(filter true, $(BOARD_USES_FULL_RECOVERY_IMAGE) $(BOARD_USES_RECOVERY_AS
+   $(BOARD_BUILD_SYSTEM_ROOT_IMAGE) $(BOARD_INCLUDE_RECOVERY_DTBO) $(BOARD_INCLUDE_RECOVERY_ACPIO) \
+   $(BOARD_RAMDISK_USE_LZ4) $(BOARD_RAMDISK_USE_XZ)))
+ # Named '.dat' so we don't attempt to use imgdiff for patching it.
+-RECOVERY_RESOURCE_ZIP := $(TARGET_OUT_VENDOR)/etc/recovery-resource.dat
+-ALL_DEFAULT_INSTALLED_MODULES += $(RECOVERY_RESOURCE_ZIP)
++RECOVERY_RESOURCE_ZIP :=
+ else
+ RECOVERY_RESOURCE_ZIP :=
+ endif
+@@ -4991,15 +4990,11 @@ name := $(name)-ota-$(FILE_NAME_TAG)
+ INTERNAL_OTA_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
+ INTERNAL_OTA_METADATA := $(PRODUCT_OUT)/ota_metadata
+
+-ifeq ($(TARGET_BUILD_VARIANT),user)
+-    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+-else
+ ifneq ($(LINEAGE_BUILD),)
+     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
+ else
+     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
+ endif
+-endif
+
+ $(INTERNAL_OTA_PACKAGE_TARGET): KEY_CERT_PAIR := $(DEFAULT_KEY_CERT_PAIR)
+ $(INTERNAL_OTA_PACKAGE_TARGET): .KATI_IMPLICIT_OUTPUTS := $(INTERNAL_OTA_METADATA)
+
+diff --git a/core/binary.mk b/core/binary.mk
+index 99250c0..8137aa6 100644
+--- a/core/binary.mk
++++ b/core/binary.mk
+@@ -1571,7 +1571,7 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
+       ifeq (,$(filter -Werror,$(my_all_cflags)))
+         # Add -Wall -Werror unless the project is in the WARNING_ALLOWED project list.
+         ifeq (,$(strip $(call find_warning_allowed_projects,$(LOCAL_PATH))))
+-          my_cflags := -Wall -Werror $(my_cflags)
++          my_cflags := -Wall $(my_cflags)
+         else
+           $(eval MODULES_ADDED_WALL := $(MODULES_ADDED_WALL) $(LOCAL_MODULE_MAKEFILE):$(LOCAL_MODULE))
+           my_cflags := -Wall $(my_cflags)
+
+diff --git a/core/main.mk b/core/main.mk
+index b91c51a..cacb128 100644
+--- a/core/main.mk
++++ b/core/main.mk
+@@ -282,8 +282,6 @@ ifneq (,$(user_variant))
+   ADDITIONAL_DEFAULT_PROPERTIES += ro.allow.mock.location=0
+
+ else # !user_variant
+-  # Turn on checkjni for non-user builds.
+-  ADDITIONAL_BUILD_PROPERTIES += ro.kernel.android.checkjni=1
+   # Set device insecure for non-user builds.
+   ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+   # Allow mock locations by default for non user builds
+@@ -293,8 +291,6 @@ endif # !user_variant
+ ifeq (true,$(strip $(enable_target_debugging)))
+   # Target is more debuggable and adbd is on by default
+   ADDITIONAL_DEFAULT_PROPERTIES += ro.debuggable=1
+-  # Enable Dalvik lock contention logging.
+-  ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.lockprof.threshold=500
+ else # !enable_target_debugging
+   # Target is less debuggable and adbd is off by default
+   ADDITIONAL_DEFAULT_PROPERTIES += ro.debuggable=0
+@@ -312,7 +308,7 @@ ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL
+ endif
+ ifndef is_sdk_build
+   # To speedup startup of non-preopted builds, don't verify or compile the boot image.
+-  ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.image-dex2oat-filter=extract
++  ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.image-dex2oat-filter=speed
+ endif
+ endif
+
+diff --git a/core/product.mk b/core/product.mk
+index 13a182a..a85cd59 100644
+--- a/core/product.mk
++++ b/core/product.mk
+@@ -556,11 +556,17 @@ _readonly_late_variables := \
+
+ # Modified internally in the build system
+ _readonly_late_variables += \
++  PRODUCT_ART_TARGET_INCLUDE_DEBUG_BUILD \
+   PRODUCT_CFI_INCLUDE_PATHS \
+   PRODUCT_COPY_FILES \
+-  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
+   PRODUCT_DEX_PREOPT_BOOT_FLAGS \
+-  PRODUCT_SOONG_NAMESPACES
++  PRODUCT_DEX_PREOPT_DEFAULT_COMPILER_FILTER \
++  PRODUCT_DEX_PREOPT_DEFAULT_FLAGS \
++  PRODUCT_DEX_PREOPT_NEVER_ALLOW_STRIPPING \
++  PRODUCT_OTHER_JAVA_DEBUG_INFO \
++  PRODUCT_SOONG_NAMESPACES \
++  PRODUCT_SYSTEM_SERVER_COMPILER_FILTER \
++  PRODUCT_SYSTEM_SERVER_DEBUG_INFO
+
+ _readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
+
+diff --git a/target/product/base_system.mk b/target/product/base_system.mk
+index 5b118ee..b299fb0 100644
+--- a/target/product/base_system.mk
++++ b/target/product/base_system.mk
+@@ -31,7 +31,6 @@ PRODUCT_PACKAGES += \
+     appops \
+     app_process \
+     appwidget \
+-    atrace \
+     audioserver \
+     BackupRestoreConfirmation \
+     bcc \
+@@ -44,8 +43,6 @@ PRODUCT_PACKAGES += \
+     boringssl_self_test \
+     bpfloader \
+     bu \
+-    bugreport \
+-    bugreportz \
+     cgroups.json \
+     charger \
+     cmd \
+@@ -68,10 +65,6 @@ PRODUCT_PACKAGES += \
+     com.android.wifi \
+     ContactsProvider \
+     content \
+-    crash_dump \
+-    CtsShimPrebuilt \
+-    CtsShimPrivPrebuilt \
+-    debuggerd\
+     device_config \
+     dmctl \
+     dnsmasq \
+@@ -79,7 +72,6 @@ PRODUCT_PACKAGES += \
+     dpm \
+     dumpstate \
+     dumpsys \
+-    DynamicSystemInstallationService \
+     e2fsck \
+     ExtShared \
+     flags_health_check \
+@@ -93,8 +85,6 @@ PRODUCT_PACKAGES += \
+     group_system \
+     gsid \
+     gsi_tool \
+-    heapprofd \
+-    heapprofd_client \
+     gatekeeperd \
+     gpuservice \
+     hid \
+@@ -256,9 +246,6 @@ PRODUCT_PACKAGES += \
+     tc \
+     telecom \
+     telephony-common \
+-    tombstoned \
+-    traced \
+-    traced_probes \
+     tune2fs \
+     tzdatacheck \
+     uiautomator \
+@@ -268,7 +255,6 @@ PRODUCT_PACKAGES += \
+     viewcompiler \
+     voip-common \
+     vold \
+-    WallpaperBackup \
+     watchdogd \
+     wificond \
+     wifi.rc \
+@@ -356,9 +342,6 @@ endif
+ PRODUCT_COPY_FILES += system/core/rootdir/init.zygote32.rc:system/etc/init/hw/init.zygote32.rc
+ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote32
+
+-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += debug.atrace.tags.enableflags=0
+-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += persist.traced.enable=1
+-
+ # Packages included only for eng or userdebug builds, previously debug tagged
+ PRODUCT_PACKAGES_DEBUG := \
+     adb_keys \
+@@ -393,8 +376,7 @@ endif
+
+ # The set of packages whose code can be loaded by the system server.
+ PRODUCT_SYSTEM_SERVER_APPS += \
+-    SettingsProvider \
+-    WallpaperBackup
++    SettingsProvider
+
+ # Packages included only for eng/userdebug builds, when building with SANITIZE_TARGET=address
+ PRODUCT_PACKAGES_DEBUG_ASAN := \
+
+diff --git a/target/product/full_base.mk b/target/product/full_base.mk
+index 267859a..31bfedf 100644
+--- a/target/product/full_base.mk
++++ b/target/product/full_base.mk
+@@ -25,7 +25,6 @@ PRODUCT_PACKAGES := \
+
+ PRODUCT_PACKAGES += \
+     LiveWallpapersPicker \
+-    PhotoTable \
+     preinstalled-packages-platform-full-base.xml
+
+ # Bluetooth:
+
+diff --git a/target/product/handheld_system.mk b/target/product/handheld_system.mk
+index f6c92b5..5c240e7 100644
+--- a/target/product/handheld_system.mk
++++ b/target/product/handheld_system.mk
+@@ -32,11 +32,9 @@ $(call inherit-product-if-exists, frameworks/base/data/keyboards/keyboards.mk)
+ $(call inherit-product-if-exists, frameworks/webview/chromium/chromium.mk)
+
+ PRODUCT_PACKAGES += \
+-    BasicDreams \
+     BlockedNumberProvider \
+     Bluetooth \
+     BluetoothMidiService \
+-    BookmarkProvider \
+     BuiltInPrintService \
+     CalendarProvider \
+     cameraserver \
+@@ -46,7 +44,6 @@ PRODUCT_PACKAGES += \
+     clatd.conf \
+     DocumentsUI \
+     DownloadProviderUi \
+-    EasterEgg \
+     ExternalStorageProvider \
+     FusedLocation \
+     InputDevices \
+@@ -62,12 +59,10 @@ PRODUCT_PACKAGES += \
+     ProxyHandler \
+     screenrecord \
+     SecureElement \
+-    SharedStorageBackup \
+     SimAppDialog \
+     Telecom \
+     TelephonyProvider \
+     TeleService \
+-    Traceur \
+     UserDictionaryProvider \
+     VpnDialogs \
+     vr \
+
+diff --git a/target/product/media_system.mk b/target/product/media_system.mk
+index f42491e..c5790ed 100644
+--- a/target/product/media_system.mk
++++ b/target/product/media_system.mk
+@@ -72,16 +72,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
+ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
+     frameworks/base/dirty-image-objects-phone:system/etc/dirty-image-objects)
+
+-# On userdebug builds, collect more tombstones by default.
+-ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
+-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+-    tombstoned.max_tombstone_count=50
+-endif
+-
+-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+-    ro.logd.size.stats=64K \
+-    log.tag.stats_log=I
+-
+ # Enable CFI for security-sensitive components
+ $(call inherit-product, $(SRC_TARGET_DIR)/product/cfi-common.mk)
+ $(call inherit-product-if-exists, vendor/google/products/cfi-vendor.mk)
+
+diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
+index ad361dc..d232c9b 100644
+--- a/target/product/runtime_libart.mk
++++ b/target/product/runtime_libart.mk
+@@ -57,22 +57,22 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+ # On eng builds, make "boot" reasons only extract for faster turnaround.
+ ifeq (eng,$(TARGET_BUILD_VARIANT))
+     PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+-        pm.dexopt.first-boot=extract \
+-        pm.dexopt.boot=extract
++        pm.dexopt.first-boot=speed \
++        pm.dexopt.boot=speed
+ else
+     PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+-        pm.dexopt.first-boot=quicken \
+-        pm.dexopt.boot=verify
++        pm.dexopt.first-boot=speed \
++        pm.dexopt.boot=speed
+ endif
+
+ # The install filter is speed-profile in order to enable the use of
+ # profiles from the dex metadata files. Note that if a profile is not provided
+ # or if it is empty speed-profile is equivalent to (quicken + empty app image).
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+-    pm.dexopt.install=speed-profile \
+-    pm.dexopt.bg-dexopt=speed-profile \
+-    pm.dexopt.ab-ota=speed-profile \
+-    pm.dexopt.inactive=verify \
++    pm.dexopt.install=speed \
++    pm.dexopt.bg-dexopt=speed \
++    pm.dexopt.ab-ota=speed \
++    pm.dexopt.inactive=speed \
+     pm.dexopt.shared=speed
+
+ # Pass file with the list of updatable boot class path packages to dex2oat.
+@@ -87,11 +87,6 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+     dalvik.vm.dex2oat-max-image-block-size=524288
+
+-# Enable minidebuginfo generation unless overridden.
+-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+-    dalvik.vm.minidebuginfo=true \
+-    dalvik.vm.dex2oat-minidebuginfo=true
+-
+ # Enable iorapd by default
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+     ro.iorapd.enable=true
+
+diff --git a/target/product/telephony_system.mk b/target/product/telephony_system.mk
+index ef48719..d910c6b 100644
+--- a/target/product/telephony_system.mk
++++ b/target/product/telephony_system.mk
+@@ -19,9 +19,6 @@
+
+ PRODUCT_PACKAGES := \
+     ONS \
+-    CarrierDefaultApp \
+-    CallLogBackup \
+-    com.android.cellbroadcast \
+-    CellBroadcastLegacyApp \
++    CarrierDefaultApp
+
+ PRODUCT_COPY_FILES := \
+
+diff --git a/target/product/updatable_apex.mk b/target/product/updatable_apex.mk
+index a84a0d2..3c2a224 100644
+--- a/target/product/updatable_apex.mk
++++ b/target/product/updatable_apex.mk
+@@ -19,7 +19,6 @@
+ ifneq ($(OVERRIDE_TARGET_FLATTEN_APEX),true)
+   # com.android.apex.cts.shim.v1_prebuilt overrides CtsShimPrebuilt
+   # and CtsShimPrivPrebuilt since they are packaged inside the APEX.
+-  PRODUCT_PACKAGES += com.android.apex.cts.shim.v1_prebuilt
+   PRODUCT_PROPERTY_OVERRIDES := ro.apex.updatable=true
+   TARGET_FLATTEN_APEX := false
+ endif
+
+diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
+index 6e28c7a..5fc2ce4 100644
+--- a/tools/releasetools/common.py
++++ b/tools/releasetools/common.py
+@@ -3047,89 +3047,6 @@ def MakeRecoveryPatch(input_dir, output_sink, recovery_img, boot_img,
+     recovery_img_path = "vendor/etc/recovery.img"
+     recovery_resource_dat_path = "SYSTEM/vendor/etc/recovery-resource.dat"
+
+-  if full_recovery_image:
+-    output_sink(recovery_img_path, recovery_img.data)
+-
+-  else:
+-    system_root_image = info_dict.get("system_root_image") == "true"
+-    path = os.path.join(input_dir, recovery_resource_dat_path)
+-    # With system-root-image, boot and recovery images will have mismatching
+-    # entries (only recovery has the ramdisk entry) (Bug: 72731506). Use bsdiff
+-    # to handle such a case.
+-    if system_root_image:
+-      diff_program = ["bsdiff"]
+-      bonus_args = ""
+-      assert not os.path.exists(path)
+-    else:
+-      diff_program = ["imgdiff"]
+-      if os.path.exists(path):
+-        diff_program.append("-b")
+-        diff_program.append(path)
+-        bonus_args = "--bonus /vendor/etc/recovery-resource.dat"
+-      else:
+-        bonus_args = ""
+-
+-    d = Difference(recovery_img, boot_img, diff_program=diff_program)
+-    _, _, patch = d.ComputePatch()
+-    output_sink("recovery-from-boot.p", patch)
+-
+-  try:
+-    # The following GetTypeAndDevice()s need to use the path in the target
+-    # info_dict instead of source_info_dict.
+-    boot_type, boot_device = GetTypeAndDevice("/boot", info_dict,
+-                                              check_no_slot=False)
+-    recovery_type, recovery_device = GetTypeAndDevice("/recovery", info_dict,
+-                                                      check_no_slot=False)
+-  except KeyError:
+-    return
+-
+-  if full_recovery_image:
+-
+-    # Note that we use /vendor to refer to the recovery resources. This will
+-    # work for a separate vendor partition mounted at /vendor or a
+-    # /system/vendor subdirectory on the system partition, for which init will
+-    # create a symlink from /vendor to /system/vendor.
+-
+-    sh = """#!/vendor/bin/sh
+-if ! applypatch --check %(type)s:%(device)s:%(size)d:%(sha1)s; then
+-  applypatch \\
+-          --flash /vendor/etc/recovery.img \\
+-          --target %(type)s:%(device)s:%(size)d:%(sha1)s && \\
+-      log -t recovery "Installing new recovery image: succeeded" || \\
+-      log -t recovery "Installing new recovery image: failed"
+-else
+-  log -t recovery "Recovery image already installed"
+-fi
+-""" % {'type': recovery_type,
+-       'device': recovery_device,
+-       'sha1': recovery_img.sha1,
+-       'size': recovery_img.size}
+-  else:
+-    sh = """#!/vendor/bin/sh
+-if ! applypatch --check %(recovery_type)s:%(recovery_device)s:%(recovery_size)d:%(recovery_sha1)s; then
+-  applypatch %(bonus_args)s \\
+-          --patch /vendor/recovery-from-boot.p \\
+-          --source %(boot_type)s:%(boot_device)s:%(boot_size)d:%(boot_sha1)s \\
+-          --target %(recovery_type)s:%(recovery_device)s:%(recovery_size)d:%(recovery_sha1)s && \\
+-      log -t recovery "Installing new recovery image: succeeded" || \\
+-      log -t recovery "Installing new recovery image: failed"
+-else
+-  log -t recovery "Recovery image already installed"
+-fi
+-""" % {'boot_size': boot_img.size,
+-       'boot_sha1': boot_img.sha1,
+-       'recovery_size': recovery_img.size,
+-       'recovery_sha1': recovery_img.sha1,
+-       'boot_type': boot_type,
+-       'boot_device': boot_device + '$(getprop ro.boot.slot_suffix)',
+-       'recovery_type': recovery_type,
+-       'recovery_device': recovery_device + '$(getprop ro.boot.slot_suffix)',
+-       'bonus_args': bonus_args}
+-
+-  # The install script location moved from /system/etc to /system/bin in the L
+-  # release. In the R release it is in VENDOR/bin or SYSTEM/vendor/bin.
+-  output_sink("bin/install-recovery.sh", sh.encode())
+-
+
+ class DynamicPartitionUpdate(object):
+   def __init__(self, src_group=None, tgt_group=None, progress=None,
+
+diff --git a/tools/releasetools/ota_from_target_files.py b/tools/releasetools/ota_from_target_files.py
+index 2ec6d41..aafde88 100755
+--- a/tools/releasetools/ota_from_target_files.py
++++ b/tools/releasetools/ota_from_target_files.py
+@@ -541,26 +541,6 @@ def _WriteRecoveryImageToBoot(script, output_zip):
+     script.WriteRawImage("/boot", "recovery.img")
+
+
+-def HasRecoveryPatch(target_files_zip, info_dict):
+-  board_uses_vendorimage = info_dict.get("board_uses_vendorimage") == "true"
+-  board_builds_vendorimage = info_dict.get("board_builds_vendorimage") == "true"
+-  target_files_dir = None
+-
+-  if board_builds_vendorimage:
+-    target_files_dir = "VENDOR"
+-  elif not board_uses_vendorimage:
+-    target_files_dir = "SYSTEM/vendor"
+-
+-  if target_files_dir is None:
+-    return True
+-
+-  patch = "%s/recovery-from-boot.p" % target_files_dir
+-  img = "%s/etc/recovery.img" %target_files_dir
+-
+-  namelist = [name for name in target_files_zip.namelist()]
+-  return (patch in namelist or img in namelist)
+-
+-
+ def HasPartition(target_files_zip, partition):
+   try:
+     target_files_zip.getinfo(partition.upper() + "/")
+@@ -758,8 +738,6 @@ def WriteFullOTAPackage(input_zip, output_file):
+       metadata=metadata,
+       info_dict=OPTIONS.info_dict)
+
+-  assert HasRecoveryPatch(input_zip, info_dict=OPTIONS.info_dict)
+-
+   # Assertions (e.g. downgrade check, device properties check).
+   #ts = target_info.GetBuildProp("ro.build.date.utc")
+   #ts_text = target_info.GetBuildProp("ro.build.date")
+
+diff --git a/tools/releasetools/target_files_diff.py b/tools/releasetools/target_files_diff.py
+index 4402c8d..8a92885 100755
+--- a/tools/releasetools/target_files_diff.py
++++ b/tools/releasetools/target_files_diff.py
+@@ -41,10 +41,6 @@ def ignore(name):
+   # We're looking at the files that make the images, so no need to search them
+   if name in ['IMAGES']:
+     return True
+-  # These are packages of the recovery partition, which we're already diffing
+-  if name in ['SYSTEM/etc/recovery-resource.dat',
+-              'SYSTEM/recovery-from-boot.p']:
+-    return True
+
+   # These files are just the BUILD_NUMBER, and will always be different
+   if name in ['BOOT/RAMDISK/selinux_version',
+
+diff --git a/tools/releasetools/test_common.py b/tools/releasetools/test_common.py
+index e4f0812..aee23c5 100644
+--- a/tools/releasetools/test_common.py
++++ b/tools/releasetools/test_common.py
+@@ -1582,12 +1582,6 @@ class InstallRecoveryScriptFormatTest(test_utils.ReleaseToolsTestCase):
+                              recovery_image, boot_image, self._info)
+     validate_target_files.ValidateInstallRecoveryScript(self._tempdir,
+                                                         self._info)
+-    # Validate 'recovery-from-boot' with bonus argument.
+-    self._out_tmp_sink("etc/recovery-resource.dat", b"bonus", "SYSTEM")
+-    common.MakeRecoveryPatch(self._tempdir, self._out_tmp_sink,
+-                             recovery_image, boot_image, self._info)
+-    validate_target_files.ValidateInstallRecoveryScript(self._tempdir,
+-                                                        self._info)
+
+
+ class MockBlockDifference(object):
+
+project device/qcom/sepolicy-legacy/
+diff --git a/legacy-common/file_contexts b/legacy-common/file_contexts
+index dac8c84..e0758ce 100644
+--- a/legacy-common/file_contexts
++++ b/legacy-common/file_contexts
+@@ -83,10 +83,6 @@
+ /sys/devices/bt_qca6174\.[0-9]+/extldo                                        u:object_r:sysfs_bluetooth_writable:s0
+ /sys/devices/bt_qca6174\.[0-9]+/rfkill/rfkill0/state                          u:object_r:sysfs_bluetooth_writable:s0
+
+-# Block/storage
+-/sys/devices/msm_sdcc\.[0-9]/mmc_host/mmc[0-9]/mmc[0-9]:[0-9]+/block/mmcblk[0-9]/stat  u:object_r:sysfs_disk_stat:s0
+-/sys/devices(/platform)?/soc(\.[0-9])?/[a-f0-9]+\.sdhci/mmc_host/mmc[0-9]/mmc[0-9]:[a-f0-9]+/block/mmcblk[0-9]/stat u:object_r:sysfs_disk_stat:s0
+-
+ # USB
+ /sys/devices/msm_dwc3/[a-f0-9]+\.dwc3/gadget/lun[0-9]+(/.*)?                  u:object_r:sysfs_android_usb:s0
+ /sys/devices(/platform)?/msm_hsusb/gadget/lun[0-9]+(/.*)?                     u:object_r:sysfs_android_usb:s0
+
+project external/bash/
+diff --git a/Android.mk b/Android.mk
+index 69b2a11..85f84c2 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -98,22 +98,5 @@ LOCAL_MODULE_TAGS := optional
+
+ include $(BUILD_EXECUTABLE)
+
+-# ========================================================
+-# bash configs
+-# ========================================================
+-etc_files := $(wildcard $(LOCAL_PATH)/etc/*)
+-
+-BASH_ETC := $(TARGET_OUT)/etc/$(LOCAL_MODULE)
+-BASH_CONFIGS := $(addprefix $(BASH_ETC)/,$(notdir $(etc_files)))
+-$(BASH_CONFIGS): $(BASH_ETC)/%: $(LOCAL_PATH)/etc/% | $(LOCAL_BUILT_MODULE)
+-	@echo "Install: $@ -> $(BASH_ETC)"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(BASH_CONFIGS)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-    $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(BASH_CONFIGS)
+-
+ # ========================================================
+ include $(call all-makefiles-under,$(LOCAL_PATH))
+
+project external/nano/
+diff --git a/Android.mk b/Android.mk
+index 4fcd436..78e27ff 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -44,30 +44,5 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+ LOCAL_MODULE_TAGS := optional
+ include $(BUILD_EXECUTABLE)
+
+-# ========================================================
+-# nano configs
+-# ========================================================
+-NANO_ETC := $(TARGET_OUT_ETC)/$(LOCAL_MODULE)
+-
+-syntax_files := $(wildcard $(LOCAL_PATH)/syntax/*.nanorc)
+-NANO_SYNTAX := $(addprefix $(NANO_ETC)/,$(notdir $(syntax_files)))
+-$(NANO_SYNTAX): $(NANO_ETC)/%: $(LOCAL_PATH)/syntax/% | $(LOCAL_BUILT_MODULE)
+-	@echo "Install: $@ -> $(NANO_ETC)"
+-	@mkdir -p $(dir $@)
+-	cp $< $@
+-
+-nanorc_file := $(LOCAL_PATH)/etc/nanorc
+-NANO_NANORC := $(addprefix $(NANO_ETC)/,$(notdir $(nanorc_file)))
+-$(NANO_NANORC): $(nanorc_file)
+-	@echo "Install: $@ -> $(NANO_ETC)"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(NANO_SYNTAX) $(NANO_NANORC)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_SYNTAX) \
+-	$(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) $(NANO_NANORC)
+-
+ # ========================================================
+ include $(call all-makefiles-under,$(LOCAL_PATH))
+
+project external/noto-fonts/
+diff --git a/cjk/Android.bp b/cjk/Android.bp
+index 5ff7204..34a3c1a 100644
+--- a/cjk/Android.bp
++++ b/cjk/Android.bp
+@@ -13,8 +13,8 @@
+ // limitations under the License.
+
+ prebuilt_font {
+-    name: "NotoSansCJK-Regular.ttc",
+-    src: "NotoSansCJK-Regular.ttc",
++    name: "NotoSansCJK.ttc",
++    src: "NotoSansCJK.ttc",
+ }
+
+ prebuilt_font {
+diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
+index 5a324bf..499c366 100755
+--- a/cjk/subset_noto_cjk.py
++++ b/cjk/subset_noto_cjk.py
+@@ -99,5 +99,6 @@ def remove_codepoints_from_ttc(ttc_name):
+             os.remove(f)
+
+
++remove_codepoints_from_ttc('NotoSansCJK.ttc')
+ remove_codepoints_from_ttc('NotoSansCJK-Regular.ttc')
+ remove_codepoints_from_ttc('NotoSerifCJK-Regular.ttc')
+
+diff --git a/fonts.mk b/fonts.mk
+index 13bfbfb..761a328 100644
+--- a/fonts.mk
++++ b/fonts.mk
+@@ -49,7 +49,7 @@ PRODUCT_PACKAGES := \
+     NotoSansCham-Bold.ttf \
+     NotoSansCham-Regular.ttf \
+     NotoSansCherokee-Regular.ttf \
+-    NotoSansCJK-Regular.ttc \
++    NotoSansCJK.ttc \
+     NotoSansCoptic-Regular.ttf \
+     NotoSansCuneiform-Regular.ttf \
+     NotoSansCypriot-Regular.ttf \
+
+project external/vim/
+diff --git a/Android.mk b/Android.mk
+index c7e2f3c..041f014 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -1,20 +1,5 @@
+ vim_src := $(call my-dir)
+
+-# ========================================================
+-# etc/vimrc
+-# ========================================================
+-
+-LOCAL_PATH := $(vim_src)
+-include $(CLEAR_VARS)
+-
+-LOCAL_MODULE := vimrc
+-LOCAL_MODULE_TAGS := optional
+-LOCAL_MODULE_CLASS := ETC
+-
+-LOCAL_SRC_FILES := vimrc.android
+-
+-include $(BUILD_PREBUILT)
+-
+ # ========================================================
+ # vim
+ # ========================================================
+@@ -159,84 +144,3 @@ LOCAL_MODULE_TAGS := optional
+ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
+ LOCAL_REQUIRED_MODULES := vimrc
+ include $(BUILD_EXECUTABLE)
+-
+-# ========================================================
+-# vim runtime files
+-# ========================================================
+-ifeq (vim,$(filter vim, $(ALL_MODULES)))
+-
+-vim_runtime_path := $(vim_src)/runtime
+-
+-vim_runtime_files := \
+-	scripts.vim \
+-	indent.vim \
+-	indoff.vim \
+-	filetype.vim \
+-	ftoff.vim
+-
+-vim_doc_files := \
+-	help.txt intro.txt tags \
+-	motion.txt editing.txt scroll.txt \
+-	options.txt term.txt version8.txt
+-
+-vim_colors_files := \
+-	default.vim \
+-	desert.vim
+-
+-vim_syntax_files := \
+-	logcat.vim \
+-	awk.vim \
+-	config.vim \
+-	conf.vim \
+-	cpp.vim \
+-	c.vim \
+-	css.vim \
+-	diff.vim \
+-	doxygen.vim \
+-	html.vim vb.vim \
+-	xml.vim dtd.vim \
+-	context.vim \
+-	gitcommit.vim \
+-	help.vim \
+-	javascript.vim \
+-	java.vim \
+-	lua.vim \
+-	manual.vim \
+-	markdown.vim \
+-	pod.vim \
+-	sh.vim \
+-	syncolor.vim \
+-	synload.vim \
+-	syntax.vim \
+-	vim.vim
+-
+-vim_plugin_files := \
+-	matchparen.vim \
+-
+-vim_autoload_files := \
+-	dist/ft.vim \
+-	spacehi.vim
+-
+-VIM_SHARED := $(TARGET_OUT)/usr/share/vim
+-
+-vim_runtime_files := \
+-  $(vim_runtime_files) \
+-  $(addprefix doc/, $(vim_doc_files)) \
+-  $(addprefix colors/, $(vim_colors_files)) \
+-  $(addprefix syntax/, $(vim_syntax_files)) \
+-  $(addprefix plugin/, $(vim_plugin_files)) \
+-  $(addprefix autoload/, $(vim_autoload_files)) \
+-
+-vim_runtime_modules := $(addprefix $(VIM_SHARED)/, $(vim_runtime_files))
+-$(vim_runtime_modules): $(VIM_SHARED)/%: $(vim_runtime_path)/% | $(LOCAL_BUILT_MODULE)
+-	@echo "Install: $@"
+-	@mkdir -p $(dir $@)
+-	$(hide) cp $< $@
+-
+-ALL_DEFAULT_INSTALLED_MODULES += $(vim_runtime_modules)
+-
+-ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
+-  $(ALL_MODULES.$(LOCAL_MODULE).INSTALLED) \
+-  $(vim_runtime_modules)
+-
+-endif
+
+project frameworks/base/
+diff --git a/Android.bp b/Android.bp
+index fc64efd9..57c380c8 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -433,12 +433,6 @@ java_defaults {
+         "view-inspector-annotation-processor",
+         "staledataclass-annotation-processor",
+     ],
+-
+-    required: [
+-        // TODO: remove gps_debug and protolog.conf.json when the build system propagates "required" properly.
+-        "gps_debug.conf",
+-        "protolog.conf.json.gz",
+-    ],
+ }
+
+ filegroup {
+
+diff --git a/data/fonts/fonts.xml b/data/fonts/fonts.xml
+index 4c214b52..c939ec8d 100644
+--- a/data/fonts/fonts.xml
++++ b/data/fonts/fonts.xml
+@@ -576,19 +576,43 @@
+         <font weight="400" style="normal">NotoSansSymbols-Regular-Subsetted.ttf</font>
+     </family>
+     <family lang="zh-Hans">
+-        <font weight="400" style="normal" index="2">NotoSansCJK-Regular.ttc</font>
++        <font weight="100" style="normal" index="2">NotoSansCJK.ttc</font>
++        <font weight="300" style="normal" index="7">NotoSansCJK.ttc</font>
++        <font weight="350" style="normal" index="12">NotoSansCJK.ttc</font>
++        <font weight="400" style="normal" index="27">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="17">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="37">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="22">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="2" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
+     </family>
+     <family lang="zh-Hant,zh-Bopo">
+-        <font weight="400" style="normal" index="3">NotoSansCJK-Regular.ttc</font>
++        <font weight="100" style="normal" index="3">NotoSansCJK.ttc</font>
++        <font weight="300" style="normal" index="8">NotoSansCJK.ttc</font>
++        <font weight="350" style="normal" index="13">NotoSansCJK.ttc</font>
++        <font weight="400" style="normal" index="28">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="18">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="38">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="23">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="3" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
+     </family>
+     <family lang="ja">
+-        <font weight="400" style="normal" index="0">NotoSansCJK-Regular.ttc</font>
++        <font weight="100" style="normal" index="0">NotoSansCJK.ttc</font>
++        <font weight="300" style="normal" index="5">NotoSansCJK.ttc</font>
++        <font weight="350" style="normal" index="10">NotoSansCJK.ttc</font>
++        <font weight="400" style="normal" index="25">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="15">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="35">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="20">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="0" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
+     </family>
+     <family lang="ko">
+-        <font weight="400" style="normal" index="1">NotoSansCJK-Regular.ttc</font>
++        <font weight="100" style="normal" index="1">NotoSansCJK.ttc</font>
++        <font weight="300" style="normal" index="6">NotoSansCJK.ttc</font>
++        <font weight="350" style="normal" index="11">NotoSansCJK.ttc</font>
++        <font weight="400" style="normal" index="26">NotoSansCJK.ttc</font>
++        <font weight="500" style="normal" index="16">NotoSansCJK.ttc</font>
++        <font weight="700" style="normal" index="36">NotoSansCJK.ttc</font>
++        <font weight="900" style="normal" index="21">NotoSansCJK.ttc</font>
+         <font weight="400" style="normal" index="1" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
+     </family>
+     <family lang="und-Zsye">
+
+diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
+index 999ab080..6b98ac7f 100644
+--- a/packages/overlays/Android.mk
++++ b/packages/overlays/Android.mk
+@@ -17,25 +17,6 @@ include $(CLEAR_VARS)
+
+ LOCAL_MODULE := frameworks-base-overlays
+ LOCAL_REQUIRED_MODULES := \
+-	AccentColorBlackOverlay \
+-	AccentColorCinnamonOverlay \
+-	AccentColorOceanOverlay \
+-	AccentColorOrchidOverlay \
+-	AccentColorSpaceOverlay \
+-	AccentColorGreenOverlay \
+-	AccentColorPurpleOverlay \
+-	AccentColorPaletteOverlay \
+-	AccentColorCarbonOverlay \
+-	AccentColorSandOverlay \
+-	AccentColorAmethystOverlay \
+-	AccentColorAquamarineOverlay \
+-	AccentColorTangerineOverlay \
+-	DisplayCutoutEmulationCornerOverlay \
+-	DisplayCutoutEmulationDoubleOverlay \
+-    DisplayCutoutEmulationHoleOverlay \
+-	DisplayCutoutEmulationTallOverlay \
+-	DisplayCutoutEmulationWaterfallOverlay \
+-	FontNotoSerifSourceOverlay \
+ 	IconPackCircularAndroidOverlay \
+ 	IconPackCircularLauncherOverlay \
+ 	IconPackCircularSettingsOverlay \
+
+diff --git a/services/core/Android.bp b/services/core/Android.bp
+index 2510f678..4ae11258 100644
+--- a/services/core/Android.bp
++++ b/services/core/Android.bp
+@@ -103,11 +103,6 @@ java_library_static {
+         "org.lineageos.platform.internal",
+     ],
+
+-    required: [
+-        "gps_debug.conf",
+-        "protolog.conf.json.gz",
+-    ],
+-
+     static_libs: [
+         "time_zone_distro",
+         "time_zone_distro_installer",
+@@ -161,11 +156,6 @@ java_library_host {
+     srcs: ["java/com/android/server/notification/SmallHash.java"]
+ }
+
+-prebuilt_etc {
+-    name: "gps_debug.conf",
+-    src: "java/com/android/server/location/gps_debug.conf",
+-}
+-
+ genrule {
+     name: "services.core.json.gz",
+     srcs: [":checked-protolog.json"],
+@@ -173,8 +163,3 @@ genrule {
+     cmd: "$(location minigzip) -c < $(in) > $(out)",
+     tools: ["minigzip"],
+ }
+-
+-prebuilt_etc {
+-    name: "protolog.conf.json.gz",
+-    src: ":services.core.json.gz",
+-}
+
+diff --git a/services/core/java/com/android/server/location/gps_debug.conf b/services/core/java/com/android/server/location/gps_debug.conf
+deleted file mode 100644
+index 34ce96f3..00000000
+
+project packages/apps/Updater/
+diff --git a/push-update.sh b/push-update.sh
+index 8d4de88..c1f5716 100755
+--- a/push-update.sh
++++ b/push-update.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+
+-updates_dir=/data/lineageos_updates
++updates_dir=/data/ota_package
+
+ if [ ! -f "$1" ]; then
+    echo "Usage: $0 ZIP [UNVERIFIED]"
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index a94e8a3..eef86ce 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -20,11 +20,11 @@
+
+     <!-- Directory where the update files will be downloaded and stored.
+          WARNING: The application can and will delete any unknown file. -->
+-    <string name="download_path" translatable="false">/data/lineageos_updates/</string>
++    <string name="download_path" translatable="false">/data/ota_package/</string>
+
+     <!-- Directory where the downloads will be exported to.
+          The path is relative to the root of the external storage.-->
+-    <string name="export_path" translatable="false">LineageOS updates/</string>
++    <string name="export_path" translatable="false">Download/</string>
+
+     <!--
+         Optional placeholders replaced at runtime:
+@@ -32,7 +32,7 @@
+           {type} - Build type
+           {incr} - Incremental version
+     -->
+-    <string name="updater_server_url" translatable="false">https://download.lineageos.org/api/v1/{device}/{type}/{incr}</string>
++    <string name="updater_server_url" translatable="false">https://raw.githubusercontent.com/WJXXBSH/useful_android_scripts/master/ota/lineage.json</string>
+
+     <string name="verification_failed_notification">Verification failed</string>
+     <string name="verifying_download_notification">Verifying update</string>
+@@ -75,7 +75,7 @@
+     <string name="menu_copy_url">Copy URL</string>
+     <string name="menu_export_update">Export update</string>
+     <string name="menu_show_changelog">Show changelog</string>
+-    <string name="menu_changelog_url" translatable="false">https://download.lineageos.org/<xliff:g id="device_name">%1$s</xliff:g>/changes</string>
++    <string name="menu_changelog_url" translatable="false">https://github.com/WJXXBSH/android_device_xiaomi_libra/releases</string>
+     <string name="menu_ab_perf_mode">Prioritize update process</string>
+     <string name="menu_update_recovery">Update recovery</string>
+     <string name="toast_forced_update_recovery">It is impossible to disable Lineage Recovery updates on this device.</string>
+
+project packages/modules/ModuleMetadata/
+diff --git a/Android.bp b/Android.bp
+index e8084b3..5cd8f5e 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -20,7 +20,7 @@ android_app {
+
+     product_specific: true,
+     optimize: {
+-        enabled: false,
++        enabled: true,
+     },
+
+     dex_preopt: {
+
+project system/core/
+diff --git a/adb/daemon/main.cpp b/adb/daemon/main.cpp
+index 1e33128..8cb9f46 100644
+--- a/adb/daemon/main.cpp
++++ b/adb/daemon/main.cpp
+@@ -74,7 +74,6 @@ static bool should_drop_privileges() {
+     // ro.secure:
+     //   Drop privileges by default. Set to 1 on userdebug and user builds.
+     bool ro_secure = android::base::GetBoolProperty("ro.secure", true);
+-    bool ro_debuggable = __android_log_is_debuggable();
+
+     // Drop privileges if ro.secure is set...
+     bool drop = ro_secure;
+@@ -83,7 +82,7 @@ static bool should_drop_privileges() {
+     std::string prop = android::base::GetProperty("service.adb.root", "");
+     bool adb_root = (prop == "1");
+     bool adb_unroot = (prop == "0");
+-    if (ro_debuggable && adb_root) {
++    if (adb_root) {
+         drop = false;
+     }
+     // ... and "adb unroot" lets you explicitly drop privileges.
+
+diff --git a/adb/root/adbroot_service.cpp b/adb/root/adbroot_service.cpp
+index 0cd9825..90a6c0a 100644
+--- a/adb/root/adbroot_service.cpp
++++ b/adb/root/adbroot_service.cpp
+@@ -72,8 +72,11 @@ ndk::ScopedAStatus ADBRootService::setEnabled(bool enabled) {
+         enabled_ = enabled;
+         WriteStringToFile(std::to_string(enabled), kStoragePath + kEnabled);
+
+-        // Turning off adb root, restart adbd.
+-        if (!enabled) {
++        // Turning on/off adb root, restart adbd.
++        if (enabled) {
++            SetProperty("service.adb.root", "1");
++            SetProperty("ctl.restart", "adbd");
++        } else {
+             SetProperty("service.adb.root", "0");
+             SetProperty("ctl.restart", "adbd");
+         }
+
+diff --git a/healthd/Android.bp b/healthd/Android.bp
+index 14d46b3..eaa43dd 100644
+--- a/healthd/Android.bp
++++ b/healthd/Android.bp
+@@ -10,7 +10,7 @@ cc_library_headers {
+ cc_library_static {
+     name: "libbatterymonitor",
+     srcs: ["BatteryMonitor.cpp"],
+-    cflags: ["-Wall", "-Werror"],
++    cflags: ["-Wall"],
+     vendor_available: true,
+     recovery_available: true,
+     export_include_dirs: ["include"],
+@@ -29,10 +29,7 @@ cc_library_static {
+ cc_defaults {
+     name: "android.hardware.health@2.0-service_defaults",
+
+-    cflags: [
+-        "-Wall",
+-        "-Werror",
+-    ],
++    cflags: ["-Wall"],
+
+     static_libs: [
+         "android.hardware.health@2.0-impl",
+@@ -95,10 +92,7 @@ cc_library_static {
+         "healthd_mode_charger_nops.cpp",
+     ],
+
+-    cflags: [
+-        "-Wall",
+-        "-Werror",
+-    ],
++    cflags: ["-Wall"],
+
+     header_libs: [
+         "libhealthd_headers",
+@@ -171,10 +165,7 @@ cc_library_static {
+ cc_defaults {
+     name: "charger_defaults",
+
+-    cflags: [
+-        "-Wall",
+-        "-Werror",
+-    ],
++    cflags: ["-Wall"],
+
+     shared_libs: [
+         // common
+
+diff --git a/init/Android.bp b/init/Android.bp
+index e28d9f0..20874d0 100644
+--- a/init/Android.bp
++++ b/init/Android.bp
+@@ -94,7 +94,7 @@ cc_defaults {
+         "-Wthread-safety",
+         "-DALLOW_FIRST_STAGE_CONSOLE=0",
+         "-DALLOW_LOCAL_PROP_OVERRIDE=0",
+-        "-DALLOW_PERMISSIVE_SELINUX=0",
++        "-DALLOW_PERMISSIVE_SELINUX=1",
+         "-DREBOOT_BOOTLOADER_ON_PANIC=0",
+         "-DWORLD_WRITABLE_KMSG=0",
+         "-DDUMP_ON_UMOUNT_FAILURE=0",
+
+diff --git a/init/Android.mk b/init/Android.mk
+index 416b732..56a2478 100644
+--- a/init/Android.mk
++++ b/init/Android.mk
+@@ -18,7 +18,7 @@ else
+ init_options += \
+     -DALLOW_FIRST_STAGE_CONSOLE=0 \
+     -DALLOW_LOCAL_PROP_OVERRIDE=0 \
+-    -DALLOW_PERMISSIVE_SELINUX=0 \
++    -DALLOW_PERMISSIVE_SELINUX=1 \
+     -DREBOOT_BOOTLOADER_ON_PANIC=0 \
+     -DWORLD_WRITABLE_KMSG=0 \
+     -DDUMP_ON_UMOUNT_FAILURE=0
+
+diff --git a/libcutils/trace-dev.cpp b/libcutils/trace-dev.cpp
+index 5a09a2d..080e671 100644
+--- a/libcutils/trace-dev.cpp
++++ b/libcutils/trace-dev.cpp
+@@ -24,23 +24,14 @@ static pthread_once_t atrace_once_control = PTHREAD_ONCE_INIT;
+ // the Zygote process from tracing.
+ void atrace_set_tracing_enabled(bool enabled)
+ {
++    enabled = false;
+     atomic_store_explicit(&atrace_is_enabled, enabled, memory_order_release);
+     atrace_update_tags();
+ }
+
+ static void atrace_init_once()
+ {
+-    atrace_marker_fd = open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY | O_CLOEXEC);
+-    if (atrace_marker_fd == -1) {
+-        atrace_marker_fd = open("/sys/kernel/tracing/trace_marker", O_WRONLY | O_CLOEXEC);
+-    }
+-
+-    if (atrace_marker_fd == -1) {
+-        ALOGE("Error opening trace file: %s (%d)", strerror(errno), errno);
+-        atrace_enabled_tags = 0;
+-    } else {
+-      atrace_enabled_tags = atrace_get_property();
+-    }
++    atrace_enabled_tags = 0;
+ }
+
+ static void atrace_seq_number_changed(uint32_t prev_seq_no, uint32_t seq_no) {
+
+diff --git a/libcutils/trace-dev.inc b/libcutils/trace-dev.inc
+index 6543426..a8fc338 100644
+--- a/libcutils/trace-dev.inc
++++ b/libcutils/trace-dev.inc
+@@ -52,7 +52,7 @@ atomic_bool              atrace_is_ready      = ATOMIC_VAR_INIT(false);
+ int                      atrace_marker_fd     = -1;
+ uint64_t                 atrace_enabled_tags  = ATRACE_TAG_NOT_READY;
+ static bool              atrace_is_debuggable = false;
+-static atomic_bool       atrace_is_enabled    = ATOMIC_VAR_INIT(true);
++static atomic_bool       atrace_is_enabled    = ATOMIC_VAR_INIT(false);
+ static pthread_mutex_t   atrace_tags_mutex    = PTHREAD_MUTEX_INITIALIZER;
+
+ /**
+@@ -100,6 +100,7 @@ uint64_t atrace_get_enabled_tags()
+ // is not set to '1'.
+ void atrace_set_debuggable(bool debuggable)
+ {
++    debuggable = false;
+     atrace_is_debuggable = debuggable;
+     atrace_update_tags();
+ }
+
+diff --git a/rootdir/init.rc b/rootdir/init.rc
+index a9af0b0..9170cc8 100644
+--- a/rootdir/init.rc
++++ b/rootdir/init.rc
+@@ -540,11 +540,6 @@ on post-fs-data
+     # Make sure we have the device encryption key.
+     installkey /data
+
+-    # Start bootcharting as soon as possible after the data partition is
+-    # mounted to collect more data.
+-    mkdir /data/bootchart 0755 shell shell encryption=Require
+-    bootchart start
+-
+     # Make sure that apexd is started in the default namespace
+     enter_default_mount_ns
+
+@@ -611,22 +606,13 @@ on post-fs-data
+     mkdir /data/misc/audioserver 0700 audioserver audioserver
+     mkdir /data/misc/cameraserver 0700 cameraserver cameraserver
+     mkdir /data/misc/vold 0700 root root
+-    mkdir /data/misc/boottrace 0771 system shell
+-    mkdir /data/misc/update_engine 0700 root root
+-    mkdir /data/misc/update_engine_log 02750 root log
+-    mkdir /data/misc/trace 0700 root root
+-    # create location to store surface and window trace files
+-    mkdir /data/misc/wmtrace 0700 system system
+     # profile file layout
+     mkdir /data/misc/profiles 0771 system system
+     mkdir /data/misc/profiles/cur 0771 system system
+     mkdir /data/misc/profiles/ref 0770 system system
+-    mkdir /data/misc/profman 0770 system shell
+-    mkdir /data/misc/gcov 0770 root root
+     mkdir /data/misc/installd 0700 root root
+     mkdir /data/misc/apexdata 0711 root root
+     mkdir /data/misc/apexrollback 0700 root root
+-    mkdir /data/misc/snapshotctl_log 0755 root root
+     # create location to store pre-reboot information
+     mkdir /data/misc/prereboot 0700 system system
+
+@@ -640,7 +626,6 @@ on post-fs-data
+     # For security reasons, /data/local/tmp should always be empty.
+     # Do not place files or directories in /data/local/tmp
+     mkdir /data/local/tmp 0771 shell shell
+-    mkdir /data/local/traces 0777 shell shell
+     mkdir /data/data 0771 system system encryption=None
+     mkdir /data/app-private 0771 system system encryption=Require
+     mkdir /data/app-ephemeral 0771 system system encryption=Require
+@@ -648,14 +633,9 @@ on post-fs-data
+     mkdir /data/app-lib 0771 system system encryption=Require
+     mkdir /data/app 0771 system system encryption=Require
+     mkdir /data/property 0700 root root encryption=Require
+-    mkdir /data/tombstones 0771 system system encryption=Require
+-    mkdir /data/vendor/tombstones 0771 root root
+-    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
+
+     # create dalvik-cache, so as to enforce our permissions
+     mkdir /data/dalvik-cache 0771 root root encryption=Require
+-    # create the A/B OTA directory, so as to enforce our permissions
+-    mkdir /data/ota 0771 root root encryption=Require
+
+     # create the OTA package directory. It will be accessed by GmsCore (cache
+     # group), update_engine and update_verifier.
+@@ -677,20 +657,11 @@ on post-fs-data
+     # the following directory.
+     mkdir /data/mediadrm 0770 mediadrm mediadrm encryption=Require
+
+-    mkdir /data/anr 0775 system system encryption=Require
+-
+-    # NFC: create data/nfc for nv storage
+-    mkdir /data/nfc 0770 nfc nfc encryption=Require
+-    mkdir /data/nfc/param 0770 nfc nfc
+-
+     # Create all remaining /data root dirs so that they are made through init
+     # and get proper encryption policy installed
+     mkdir /data/backup 0700 system system encryption=Require
+-    mkdir /data/ss 0700 system system encryption=Require
+
+     mkdir /data/system 0775 system system encryption=Require
+-    mkdir /data/system/dropbox 0700 system system
+-    mkdir /data/system/heapdump 0700 system system
+     mkdir /data/system/users 0775 system system
+
+     mkdir /data/system_de 0770 system system encryption=None
+@@ -733,10 +704,6 @@ on post-fs-data
+     mkdir /data/cache/backup_stage 0700 system system
+     mkdir /data/cache/backup 0700 system system
+
+-    # Delete these if need be, per b/139193659
+-    mkdir /data/rollback 0700 system system encryption=DeleteIfNecessary
+-    mkdir /data/rollback-observer 0700 system system encryption=DeleteIfNecessary
+-
+     # Create root dir for Incremental Service
+     mkdir /data/incremental 0771 system system encryption=Require
+
+@@ -980,9 +947,6 @@ on property:vold.decrypt=trigger_shutdown_framework
+
+ on property:sys.boot_completed=1
+     bootchart stop
+-    # Setup per_boot directory so other .rc could start to use it on boot_completed
+-    exec - system system -- /bin/rm -rf /data/per_boot
+-    mkdir /data/per_boot 0700 system system encryption=Require key=per_boot_ref
+
+ # system server cannot write to /proc/sys files,
+ # and chown/chmod does not work for /proc/sys/ entries.
+@@ -1043,13 +1007,6 @@ service console /system/bin/sh
+     seclabel u:r:shell:s0
+     setenv HOSTNAME console
+
+-on property:ro.debuggable=1
+-    # Give writes to anyone for the trace folder on debug builds.
+-    # The folder is used to store method traces.
+-    chmod 0773 /data/misc/trace
+-    # Give reads to anyone for the window trace folder on debug builds.
+-    chmod 0775 /data/misc/wmtrace
+-
+ on init && property:ro.debuggable=1
+     start console
+
+project system/sepolicy/
+diff --git a/Android.mk b/Android.mk
+index e8b9be8..c9eee71 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -81,10 +81,12 @@ ifndef BOARD_SEPOLICY_VERS
+ BOARD_SEPOLICY_VERS := $(PLATFORM_SEPOLICY_VERSION)
+ endif
+
+-NEVERALLOW_ARG :=
++# Hacks to keep SELinux permissive in user builds
++SELINUX_IGNORE_NEVERALLOWS := true
++
+ ifeq ($(SELINUX_IGNORE_NEVERALLOWS),true)
+ ifeq ($(TARGET_BUILD_VARIANT),user)
+-$(error SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds)
++$(warning SELINUX_IGNORE_NEVERALLOWS := true cannot be used in user builds)
+ endif
+ $(warning Be careful when using the SELINUX_IGNORE_NEVERALLOWS flag. \
+           It does not work in user builds and using it will \
+@@ -1292,10 +1294,9 @@ $(built_sepolicy_neverallows)
+ 	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
+ 	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
+ 		echo "==========" 1>&2; \
+-		echo "ERROR: permissive domains not allowed in user builds" 1>&2; \
++		echo "WARNING: permissive domains not allowed in user builds" 1>&2; \
+ 		echo "List of invalid domains:" 1>&2; \
+ 		cat $@.permissivedomains 1>&2; \
+-		exit 1; \
+ 		fi
+ 	$(hide) mv $@.tmp $@
+
+@@ -1349,10 +1350,9 @@ $(LOCAL_BUILT_MODULE): $(sepolicy.recovery.conf) $(HOST_OUT_EXECUTABLES)/checkpo
+ 	$(hide) $(HOST_OUT_EXECUTABLES)/sepolicy-analyze $@.tmp permissive > $@.permissivedomains
+ 	$(hide) if [ "$(TARGET_BUILD_VARIANT)" = "user" -a -s $@.permissivedomains ]; then \
+ 		echo "==========" 1>&2; \
+-		echo "ERROR: permissive domains not allowed in user builds" 1>&2; \
++		echo "WARNING: permissive domains not allowed in user builds" 1>&2; \
+ 		echo "List of invalid domains:" 1>&2; \
+ 		cat $@.permissivedomains 1>&2; \
+-		exit 1; \
+ 		fi
+ 	$(hide) mv $@.tmp $@
+
+project vendor/lineage/
+diff --git a/build/tasks/kernel.mk b/build/tasks/kernel.mk
+index 979c8b2..fa00b95 100644
+--- a/build/tasks/kernel.mk
++++ b/build/tasks/kernel.mk
+@@ -90,10 +90,13 @@ KERNEL_DEFCONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_DEFCONFIG)
+
+ ifneq ($(TARGET_KERNEL_ADDITIONAL_CONFIG),)
+ KERNEL_ADDITIONAL_CONFIG := $(TARGET_KERNEL_ADDITIONAL_CONFIG)
++KERNEL_ADDITIONAL_CONFIG_DEPENDENCY :=
+ KERNEL_ADDITIONAL_CONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_ADDITIONAL_CONFIG)
+     ifeq ("$(wildcard $(KERNEL_ADDITIONAL_CONFIG_SRC))","")
+         $(warning TARGET_KERNEL_ADDITIONAL_CONFIG '$(TARGET_KERNEL_ADDITIONAL_CONFIG)' doesn't exist)
+         KERNEL_ADDITIONAL_CONFIG_SRC := /dev/null
++    else
++        KERNEL_ADDITIONAL_CONFIG_DEPENDENCY := $(KERNEL_ADDITIONAL_CONFIG_SRC)
+     endif
+ else
+     KERNEL_ADDITIONAL_CONFIG_SRC := /dev/null
+@@ -261,10 +264,8 @@ define build-image-kernel-modules-lineage
+     cp $(4)/lib/modules/0.0/modules.alias $(2)/lib/modules
+ endef
+
+-$(KERNEL_OUT):
++$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_ADDITIONAL_CONFIG_DEPENDENCY)
+ 	mkdir -p $(KERNEL_OUT)
+-
+-$(KERNEL_ADDITIONAL_CONFIG_OUT): $(KERNEL_OUT)
+ 	$(hide) cmp -s $(KERNEL_ADDITIONAL_CONFIG_SRC) $@ || cp $(KERNEL_ADDITIONAL_CONFIG_SRC) $@;
+
+ $(KERNEL_CONFIG): $(KERNEL_DEFCONFIG_SRC) $(KERNEL_ADDITIONAL_CONFIG_OUT)
+@@ -310,13 +311,13 @@ kerneltags: $(KERNEL_CONFIG)
+
+ .PHONY: kernelsavedefconfig alldefconfig
+
+-kernelsavedefconfig: $(KERNEL_OUT)
++kernelsavedefconfig: mkdir -p $(KERNEL_OUT)
+ 	$(call make-kernel-target,$(KERNEL_DEFCONFIG))
+ 	env KCONFIG_NOTIMESTAMP=true \
+ 		 $(call make-kernel-target,savedefconfig)
+ 	cp $(KERNEL_OUT)/defconfig $(KERNEL_DEFCONFIG_SRC)
+
+-alldefconfig: $(KERNEL_OUT)
++alldefconfig: mkdir -p $(KERNEL_OUT)
+ 	env KCONFIG_NOTIMESTAMP=true \
+ 		 $(call make-kernel-target,alldefconfig)
+
+diff --git a/config/common.mk b/config/common.mk
+index 89a25f9..e2f49ea 100644
+--- a/config/common.mk
++++ b/config/common.mk
+@@ -97,10 +97,6 @@ PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
+ # Disable vendor restrictions
+ PRODUCT_RESTRICT_VENDOR_FILES := false
+
+-# Bootanimation
+-PRODUCT_PACKAGES += \
+-    bootanimation.zip
+-
+ # AOSP packages
+ PRODUCT_PACKAGES += \
+     Terminal
+@@ -121,25 +117,6 @@ PRODUCT_PACKAGES += \
+ PRODUCT_PACKAGES += \
+     SimpleDeviceConfig
+
+-# Extra tools in Lineage
+-PRODUCT_PACKAGES += \
+-    7z \
+-    awk \
+-    bash \
+-    bzip2 \
+-    curl \
+-    getcap \
+-    htop \
+-    lib7z \
+-    libsepol \
+-    nano \
+-    pigz \
+-    setcap \
+-    unrar \
+-    vim \
+-    wget \
+-    zip
+-
+ # Filesystems tools
+ PRODUCT_PACKAGES += \
+     fsck.exfat \
+@@ -149,20 +126,6 @@ PRODUCT_PACKAGES += \
+     mkfs.ntfs \
+     mount.ntfs
+
+-# Openssh
+-PRODUCT_PACKAGES += \
+-    scp \
+-    sftp \
+-    ssh \
+-    sshd \
+-    sshd_config \
+-    ssh-keygen \
+-    start-ssh
+-
+-# rsync
+-PRODUCT_PACKAGES += \
+-    rsync
+-
+ # Storage manager
+ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+     ro.storage_manager.enabled=true
+@@ -173,13 +136,8 @@ PRODUCT_PACKAGES_DEBUG += \
+
+ # Root
+ PRODUCT_PACKAGES += \
+-    adb_root
+-ifneq ($(TARGET_BUILD_VARIANT),user)
+-ifeq ($(WITH_SU),true)
+-PRODUCT_PACKAGES += \
++    adb_root \
+     su
+-endif
+-endif
+
+ # Dex preopt
+ PRODUCT_DEXPREOPT_SPEED_APPS += \
+
+diff --git a/config/common_full.mk b/config/common_full.mk
+index 91bf198..67bfa73 100644
+--- a/config/common_full.mk
++++ b/config/common_full.mk
+@@ -3,16 +3,6 @@ $(call inherit-product, vendor/lineage/config/common_mobile.mk)
+
+ PRODUCT_SIZE := full
+
+-# Include {Lato,Rubik} fonts
+-$(call inherit-product-if-exists, external/google-fonts/lato/fonts.mk)
+-$(call inherit-product-if-exists, external/google-fonts/rubik/fonts.mk)
+-
+-# Fonts
+-PRODUCT_PACKAGES += \
+-    fonts_customization.xml \
+-    LineageLatoFont \
+-    LineageRubikFont
+-
+ # Recorder
+ PRODUCT_PACKAGES += \
+     Recorder
+
+diff --git a/config/common_mobile.mk b/config/common_mobile.mk
+index 2077d1a..af4ef9b 100644
+--- a/config/common_mobile.mk
++++ b/config/common_mobile.mk
+@@ -13,9 +13,7 @@ endif
+
+ # AOSP packages
+ PRODUCT_PACKAGES += \
+-    Email \
+-    ExactCalculator \
+-    Exchange2
++    ExactCalculator
+
+ # Lineage packages
+ PRODUCT_PACKAGES += \
+@@ -26,11 +24,6 @@ PRODUCT_PACKAGES += \
+     Profiles \
+     Seedvault
+
+-ifneq ($(TARGET_EXCLUDES_AUDIOFX),true)
+-PRODUCT_PACKAGES += \
+-    AudioFX
+-endif
+-
+ ifeq ($(PRODUCT_TYPE), go)
+ PRODUCT_PACKAGES += \
+     TrebuchetQuickStepGo
+
+diff --git a/config/data_only.mk b/config/data_only.mk
+index 5ff877c..ab70301 100644
+--- a/config/data_only.mk
++++ b/config/data_only.mk
+@@ -1,7 +1,3 @@
+ # World APN list
+ PRODUCT_PACKAGES += \
+     apns-conf.xml
+-
+-# Telephony packages
+-PRODUCT_PACKAGES += \
+-    Stk
+
+diff --git a/config/telephony.mk b/config/telephony.mk
+index 67e190f..3e488db 100644
+--- a/config/telephony.mk
++++ b/config/telephony.mk
+@@ -8,8 +8,7 @@ PRODUCT_PACKAGES += \
+
+ # Telephony packages
+ PRODUCT_PACKAGES += \
+-    messaging \
+-    Stk
++    messaging
+
+ # Default ringtone
+ PRODUCT_PRODUCT_PROPERTIES += \
+
+diff --git a/overlay/common/frameworks/base/core/res/res/values/colors.xml b/overlay/common/frameworks/base/core/res/res/values/colors.xml
+deleted file mode 100644
+index 27fd690..0000000
+
+diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
+index e002092..de40a3e 100755
+--- a/prebuilt/common/bin/backuptool.sh
++++ b/prebuilt/common/bin/backuptool.sh
+@@ -97,6 +97,7 @@ case "$1" in
+       run_stage restore
+       run_stage post-restore
+       restore_addon_d
++      chmod +rx $S/xbin/su
+       rm -rf $C
+       sync
+     fi
+
+diff --git a/prebuilt/common/etc/fonts_customization.xml b/prebuilt/common/etc/fonts_customization.xml
+deleted file mode 100644
+index 0c9a7fb..0000000
+
+diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
+deleted file mode 100644
+index edf3863..0000000
+
+diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
+index f26a64b..deb4c99 100644
+--- a/prebuilt/common/etc/init/lineage-system.rc
++++ b/prebuilt/common/etc/init/lineage-system.rc
+@@ -8,9 +8,3 @@ on post-fs-data
+     # Change permissions on fsck log so it can be added to the dropbox
+     chown root log /dev/fscklogs/log
+     chmod 0640 /dev/fscklogs/log
+-
+-# bugreport is triggered by holding down volume down, volume up and power
+-service bugreport /system/bin/dumpstate -d -p -z
+-    oneshot
+-    disabled
+-    keycodes 114 115 116
+
+diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
+deleted file mode 100644
+index 3a9b481..0000000
