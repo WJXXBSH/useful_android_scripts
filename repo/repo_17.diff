@@ -1,6 +1,6 @@
 project build/make/
 diff --git a/core/Makefile b/core/Makefile
-index a5eef48..a075b92 100644
+index a5eef489f..a075b92bb 100644
 --- a/core/Makefile
 +++ b/core/Makefile
 @@ -302,9 +302,9 @@ endif
@@ -41,7 +41,7 @@ index a5eef48..a075b92 100644
  $(INTERNAL_OTA_PACKAGE_TARGET): .KATI_IMPLICIT_OUTPUTS := $(INTERNAL_OTA_METADATA)
 
 diff --git a/core/binary.mk b/core/binary.mk
-index d4f0476..b53cf0e 100644
+index d4f0476c8..b53cf0e23 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
 @@ -1507,7 +1507,7 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
@@ -55,7 +55,7 @@ index d4f0476..b53cf0e 100644
            my_cflags := -Wall $(my_cflags)
 
 diff --git a/core/main.mk b/core/main.mk
-index e8a1c4f..a86e777 100644
+index e8a1c4f8a..a86e7774a 100644
 --- a/core/main.mk
 +++ b/core/main.mk
 @@ -292,8 +292,6 @@ ifneq (,$(user_variant))
@@ -86,7 +86,7 @@ index e8a1c4f..a86e777 100644
  endif
 
 diff --git a/core/product.mk b/core/product.mk
-index da316cc..05ab2e4 100644
+index da316cc42..05ab2e4cb 100644
 --- a/core/product.mk
 +++ b/core/product.mk
 @@ -493,11 +493,17 @@ _readonly_late_variables := \
@@ -110,7 +110,7 @@ index da316cc..05ab2e4 100644
  _readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
 
 diff --git a/target/product/base_system.mk b/target/product/base_system.mk
-index 699b9c7..23495b2 100644
+index 699b9c7a1..23495b2ea 100644
 --- a/target/product/base_system.mk
 +++ b/target/product/base_system.mk
 @@ -34,7 +34,6 @@ PRODUCT_PACKAGES += \
@@ -197,7 +197,7 @@ index 699b9c7..23495b2 100644
  PRODUCT_PACKAGES_DEBUG_ASAN := \
 
 diff --git a/target/product/full_base.mk b/target/product/full_base.mk
-index f3fb8c3..832a1c7 100644
+index f3fb8c306..832a1c7c9 100644
 --- a/target/product/full_base.mk
 +++ b/target/product/full_base.mk
 @@ -24,8 +24,7 @@ PRODUCT_PACKAGES := \
@@ -212,7 +212,7 @@ index f3fb8c3..832a1c7 100644
  #   audio.a2dp.default is a system module. Generic system image includes
 
 diff --git a/target/product/handheld_system.mk b/target/product/handheld_system.mk
-index e5771cc..2824014 100644
+index e5771cc94..2824014f2 100644
 --- a/target/product/handheld_system.mk
 +++ b/target/product/handheld_system.mk
 @@ -32,11 +32,9 @@ $(call inherit-product-if-exists, frameworks/base/data/keyboards/keyboards.mk)
@@ -250,7 +250,7 @@ index e5771cc..2824014 100644
      vr \
 
 diff --git a/target/product/media_system.mk b/target/product/media_system.mk
-index 0489b28..d29350b 100644
+index 0489b28d9..d29350b96 100644
 --- a/target/product/media_system.mk
 +++ b/target/product/media_system.mk
 @@ -68,16 +68,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
@@ -272,7 +272,7 @@ index 0489b28..d29350b 100644
  $(call inherit-product-if-exists, vendor/google/products/cfi-vendor.mk)
 
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
-index a88ba3c..ed19be9 100644
+index a88ba3c8d..ed19be911 100644
 --- a/target/product/runtime_libart.mk
 +++ b/target/product/runtime_libart.mk
 @@ -61,22 +61,22 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
@@ -320,7 +320,7 @@ index a88ba3c..ed19be9 100644
      ro.iorapd.enable=false
 
 diff --git a/target/product/telephony_system.mk b/target/product/telephony_system.mk
-index 584cf1e..d910c6b 100644
+index 584cf1ee6..d910c6b7c 100644
 --- a/target/product/telephony_system.mk
 +++ b/target/product/telephony_system.mk
 @@ -19,8 +19,6 @@
@@ -335,7 +335,7 @@ index 584cf1e..d910c6b 100644
  PRODUCT_COPY_FILES := \
 
 diff --git a/target/product/updatable_apex.mk b/target/product/updatable_apex.mk
-index 3d5e8e2..bdaf545 100644
+index 3d5e8e2a2..bdaf54517 100644
 --- a/target/product/updatable_apex.mk
 +++ b/target/product/updatable_apex.mk
 @@ -18,6 +18,5 @@
@@ -347,7 +347,7 @@ index 3d5e8e2..bdaf545 100644
  endif
 
 diff --git a/tools/acp/Android.bp b/tools/acp/Android.bp
-index 64f5a10..8b84418 100644
+index 64f5a1013..8b84418b3 100644
 --- a/tools/acp/Android.bp
 +++ b/tools/acp/Android.bp
 @@ -5,7 +5,7 @@
@@ -361,7 +361,7 @@ index 64f5a10..8b84418 100644
      name: "acp",
 
 diff --git a/tools/atree/Android.bp b/tools/atree/Android.bp
-index 5fbe042..fc8a8aa 100644
+index 5fbe042ea..fc8a8aada 100644
 --- a/tools/atree/Android.bp
 +++ b/tools/atree/Android.bp
 @@ -9,6 +9,6 @@ cc_binary_host {
@@ -374,7 +374,7 @@ index 5fbe042..fc8a8aa 100644
  }
 
 diff --git a/tools/fs_config/Android.bp b/tools/fs_config/Android.bp
-index d9a48d7..60bfe67 100644
+index d9a48d704..60bfe673f 100644
 --- a/tools/fs_config/Android.bp
 +++ b/tools/fs_config/Android.bp
 @@ -32,7 +32,6 @@ cc_binary_host {
@@ -387,7 +387,7 @@ index d9a48d7..60bfe67 100644
  target_fs_config_gen_filegroup {
 
 diff --git a/tools/fs_get_stats/Android.bp b/tools/fs_get_stats/Android.bp
-index 67742b8..f710d50 100644
+index 67742b836..f710d506e 100644
 --- a/tools/fs_get_stats/Android.bp
 +++ b/tools/fs_get_stats/Android.bp
 @@ -1,7 +1,7 @@
@@ -401,7 +401,7 @@ index 67742b8..f710d50 100644
          "liblog",
 
 diff --git a/tools/libhost/Android.bp b/tools/libhost/Android.bp
-index 4c9100f..7c35e00 100644
+index 4c9100f15..7c35e00c4 100644
 --- a/tools/libhost/Android.bp
 +++ b/tools/libhost/Android.bp
 @@ -2,10 +2,7 @@ cc_library_host_static {
@@ -418,7 +418,7 @@ index 4c9100f..7c35e00 100644
      target: {
 
 diff --git a/tools/makeparallel/Android.bp b/tools/makeparallel/Android.bp
-index 898db68..14be89a 100644
+index 898db6861..14be89ac2 100644
 --- a/tools/makeparallel/Android.bp
 +++ b/tools/makeparallel/Android.bp
 @@ -17,5 +17,5 @@ cc_binary_host {
@@ -430,9 +430,18 @@ index 898db68..14be89a 100644
  }
 
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index b2afaf1..99a9a0a 100644
+index 71679e8cb..5cf9e2be0 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
+@@ -2148,7 +2148,7 @@ class BlockDifference(object):
+     #   decompression_time: 15s  | 25s                | 25s
+
+     if not self.src:
+-      brotli_cmd = ['brotli', '--quality=6',
++      brotli_cmd = ['brotli', '--quality=9',
+                     '--output={}.new.dat.br'.format(self.path),
+                     '{}.new.dat'.format(self.path)]
+       print("Compressing {}.new.dat with brotli".format(self.partition))
 @@ -2304,85 +2304,6 @@ def MakeRecoveryPatch(input_dir, output_sink, recovery_img, boot_img,
    full_recovery_image = info_dict.get("full_recovery_image") == "true"
    use_bsdiff = info_dict.get("no_gzip_recovery_ramdisk") == "true"
@@ -521,7 +530,7 @@ index b2afaf1..99a9a0a 100644
    def __init__(self, src_group=None, tgt_group=None, progress=None,
 
 diff --git a/tools/releasetools/ota_from_target_files.py b/tools/releasetools/ota_from_target_files.py
-index 0cff60f..489345e 100755
+index 0cff60f1a..489345ed5 100755
 --- a/tools/releasetools/ota_from_target_files.py
 +++ b/tools/releasetools/ota_from_target_files.py
 @@ -716,12 +716,6 @@ def _WriteRecoveryImageToBoot(script, output_zip):
@@ -548,7 +557,7 @@ index 0cff60f..489345e 100755
    #ts_text = target_info.GetBuildProp("ro.build.date")
 
 diff --git a/tools/releasetools/target_files_diff.py b/tools/releasetools/target_files_diff.py
-index 4402c8d..8a92885 100755
+index 4402c8d20..8a928852c 100755
 --- a/tools/releasetools/target_files_diff.py
 +++ b/tools/releasetools/target_files_diff.py
 @@ -41,10 +41,6 @@ def ignore(name):
@@ -564,7 +573,7 @@ index 4402c8d..8a92885 100755
    if name in ['BOOT/RAMDISK/selinux_version',
 
 diff --git a/tools/releasetools/test_common.py b/tools/releasetools/test_common.py
-index 3a73253..6cb958e 100644
+index 3a73253d0..6cb958e7c 100644
 --- a/tools/releasetools/test_common.py
 +++ b/tools/releasetools/test_common.py
 @@ -1084,12 +1084,6 @@ class InstallRecoveryScriptFormatTest(test_utils.ReleaseToolsTestCase):
@@ -582,7 +591,7 @@ index 3a73253..6cb958e 100644
  class MockScriptWriter(object):
 
 diff --git a/tools/zipalign/Android.bp b/tools/zipalign/Android.bp
-index 8e6196d..9e65a5c 100644
+index 8e6196d29..9e65a5cf9 100644
 --- a/tools/zipalign/Android.bp
 +++ b/tools/zipalign/Android.bp
 @@ -13,7 +13,7 @@ cc_binary_host {
@@ -596,7 +605,7 @@ index 8e6196d..9e65a5c 100644
      // static_sdk_tools target.
 
 diff --git a/tools/ziptime/Android.bp b/tools/ziptime/Android.bp
-index 5ef45ed..7d882ae 100644
+index 5ef45ed40..7d882ae72 100644
 --- a/tools/ziptime/Android.bp
 +++ b/tools/ziptime/Android.bp
 @@ -27,7 +27,7 @@ cc_binary_host {
@@ -608,6 +617,162 @@ index 5ef45ed..7d882ae 100644
      target: {
          windows: {
              enabled: true,
+
+project device/xiaomi/libra/
+diff --git a/sepolicy/vendor.te b/sepolicy/vendor.te
+index 93594f4..8b62624 100644
+--- a/sepolicy/vendor.te
++++ b/sepolicy/vendor.te
+@@ -6,6 +6,7 @@ allow bootstat bootstat:{ capability capability2 } *;
+
+ # Cnd
+ allow cnd cnd:capability *;
++allow cnd device:file *;
+ allow cnd diag_device:chr_file *;
+ allow cnd self:{ capability socket udp_socket } *;
+ allowxperm cnd self:socket ioctl msm_sock_ipc_ioctls;
+@@ -14,6 +15,10 @@ allowxperm cnd self:socket ioctl msm_sock_ipc_ioctls;
+ type lirc_device, file_type;
+ allow system_server lirc_device:chr_file *;
+
++# FSCK
++allow fsck block_device:blk_file *;
++allow fsck mnt_vendor_file:{ dir file } *;
++
+ # HAL
+ allow hal_fingerprint_default fingerprintd_data_file:{ dir file sock_file } *;
+ allow hal_fingerprint_default input_device:{ chr_file file } *;
+@@ -31,6 +36,9 @@ allow healthd sysfs:{ dir file } *;
+ allow hwservicemanager runtime_event_log_tags_file:file *;
+ allow hwservicemanager init:{ binder dir file process } *;
+
++# Installd
++allow installd device:file *;
++
+ # Init
+ allow init devpts:chr_file *;
+ allow init diag_device:chr_file *;
+@@ -42,10 +50,12 @@ allow init hwservicemanager:binder *;
+ allow init init:{ socket capability } *;
+ allow init lirc_device:chr_file *;
+ allow init mm-pp-daemon:unix_stream_socket *;
++allow init mnt_vendor_file:{ dir file } *;
+ allow init pps_socket:sock_file *;
+ allow init qmuxd_socket:sock_file *;
+ allow init qmuxd:unix_stream_socket *;
+ allow init shell_exec:{ dir file } *;
++allow init socket_device:sock_file *;
+ allow init sysfs_graphics:file *;
+ allow init sysfs_ssr:lnk_file *;
+ allow init sysfs:{ dir file } *;
+@@ -67,16 +77,26 @@ qmux_socket(mmbn-daemon)
+ diag_use(mmbn-daemon)
+ allow mm-pp-daemon default_android_service:service_manager *;
+ allow mm-pp-daemon diag_device:chr_file *;
++allow mm-pp-daemon mnt_vendor_file:{ dir file } *;
++allow mm-pp-daemon persist_file:{ dir file lnk_file } *;
+ allow mm-pp-daemon surfaceflinger:binder *;
+ allow mm-qcamerad camera_prop:file *;
+ allow mm-qcamerad sysfs:{ dir file } *;
+-allow mmbn-daemon firmware_file:{ dir file } *;
++allow mmbn-daemon firmware_file:{ dir file lnk_file } *;
+ allow mmbn-daemon mmbn-daemon:capability *;
+ allow mmbn-daemon self:socket *;
+ allow mmbn-daemon vfat:{ dir file } *;
+ allowxperm mmbn-daemon self:socket ioctl msm_sock_ipc_ioctls;
+
++# Netd
++allow netd device:file *;
++
++# Peripheral Mananager
++allow per_mgr per_mgr:capability *;
++allow per_mgr self:capability *;
++
+ # QTI init
++allow qti_init_shell app_data_file:{ dir file } *;
+ allow qti_init_shell file_contexts_file:file *;
+ allow qti_init_shell fuse:{ dir file } *;
+ allow qti_init_shell kernel:security *;
+@@ -102,9 +122,12 @@ allow readmac wifi_data_file:{ dir file } *;
+ allowxperm readmac self:socket ioctl msm_sock_ipc_ioctls;
+
+ # Rfs access
++allow rfs_access mnt_vendor_file:{ dir file } *;
++allow rfs_access persist_file:{ dir file lnk_file } *;
+ allow rfs_access rfs_access:capability *;
+
+ # Rild
++allow rild device:file *;
+ allow rild diag_device:chr_file *;
+ allow rild rild:capability *;
+ allow rild system_prop:property_service *;
+@@ -115,6 +138,8 @@ allow servicemanager fidodaemon:{ binder dir file process } *;
+
+ # Surfaceflinger
+ allow surfaceflinger default_android_service:service_manager *;
++allow surfaceflinger mnt_vendor_file:{ dir file } *;
++allow surfaceflinger persist_file:{ dir file lnk_file } *;
+
+ # System APP
+ allow priv_app device:{ dir file } *;
+@@ -148,10 +173,12 @@ allow adbd ctl_start_prop:property_service *;
+ allow lmkd lmkd:capability2 *;
+ allow netmgrd diag_device:chr_file *;
+ allow system_server diag_device:chr_file *;
++allow system_server iio_device:chr_file *;
+ allow system_server init:binder *;
+ allow system_server kernel:system *;
+ allow system_server mnt_vendor_file:{ dir file } *;
+-allow system_server persist_file:{ dir file } *;
++allow system_server persist_file:{ dir file lnk_file } *;
++allow system_server proc:file *;
+ allow system_server sysfs:{ dir file } *;
+ allow wcnss_service diag_device:chr_file *;
+
+@@ -166,12 +193,12 @@ allow tee firmware_file:{ dir file } *;
+ allow tee graphics_device:{ chr_file dir } *;
+ allow tee persist_data_file:{ dir file } *;
+ allow tee persist_drm_file:{ dir file } *;
+-allow tee persist_file:dir *;
++allow tee persist_file:{ dir file lnk_file } *;
+ allow tee self:capability *;
+ allow tee system_app:unix_dgram_socket *;
+ allow tee system_data_file:dir *;
+ allow tee tee_device:chr_file *;
+-allow tee vfat:file *;
++allow tee vfat:{ dir file } *;
+
+ # Time
+ type timekeep_exec, exec_type, vendor_file_type, file_type;
+@@ -185,6 +212,7 @@ set_prop(timekeep, vendor_timekeep_prop)
+ allow timekeep self:capability sys_time;
+ allow timekeep sysfs_rtc:{ file lnk_file } r_file_perms;
+ allow timekeep sysfs_rtc:dir search;
++allow timekeep sysfs:file r_file_perms;
+ allow timekeep time_data_file:dir rw_dir_perms;
+ allow timekeep time_data_file:file create_file_perms;
+ allow timekeep_app activity_service:service_manager find;
+@@ -203,11 +231,14 @@ allow ueventd vfat:{ dir file } *;
+ allow vendor_init bluetooth_data_file:{ dir file } *;
+ allow vendor_init dhcp_data_file:{ dir file } *;
+ allow vendor_init media_rw_data_file:{ dir file } *;
++allow vendor_init persist_file:{ dir file lnk_file } *;
+ allow vendor_init proc:file *;
+ allow vendor_init radio_data_file:{ dir file } *;
+ allow vendor_init rootfs:{ dir file } *;
+ allow vendor_init system_data_file:{ dir file } *;
+ allow vendor_init unencrypted_data_file:{ dir file } *;
++allow vendor_init unlabeled:{ dir file } *;
++allow vendor_init vendor_file:{ dir file } *;
+ allow vendor_init wifi_data_file:{ dir file } *;
+ allow vendor_init wpa_socket:{ dir file } *;
+
+@@ -218,4 +249,5 @@ allow vold metadata_block_device:blk_file *;
+ # Zygote
+ allow webview_zygote mnt_expand_file:{ dir file } *;
+ allow webview_zygote zygote:unix_dgram_socket *;
++allow zygote device:file *;
+ allow zygote proc_cmdline:file *;
 
 project external/bash/
 diff --git a/Android.mk b/Android.mk
@@ -838,10 +1003,10 @@ index 858a4e8..c1e7d51 100644
 
 project frameworks/base/
 diff --git a/Android.bp b/Android.bp
-index e9ede0bd..560ab4f0 100644
+index 498f3ccb..b1a7c56c 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -783,11 +783,6 @@ java_defaults {
+@@ -784,11 +784,6 @@ java_defaults {
          "devicepolicyprotosnano",
      ],
 
@@ -1166,18 +1331,10 @@ index 5b9c78f6..289bdd31 100644
                  controller = mController;
 
 diff --git a/services/core/java/com/android/server/am/ActivityManagerService.java b/services/core/java/com/android/server/am/ActivityManagerService.java
-index c4edda37..d8a94bde 100644
+index 3f651196..007b0653 100644
 --- a/services/core/java/com/android/server/am/ActivityManagerService.java
 +++ b/services/core/java/com/android/server/am/ActivityManagerService.java
-@@ -241,7 +241,6 @@ import android.os.BinderProxy;
- import android.os.Build;
- import android.os.Bundle;
- import android.os.Debug;
--import android.os.DropBoxManager;
- import android.os.FactoryTest;
- import android.os.FileUtils;
- import android.os.Handler;
-@@ -484,8 +483,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -484,8 +484,6 @@ public class ActivityManagerService extends IActivityManager.Stub
 
      static final String[] EMPTY_STRING_ARRAY = new String[0];
 
@@ -1186,7 +1343,7 @@ index c4edda37..d8a94bde 100644
      // Assumes logcat entries average around 100 bytes; that's not perfect stack traces count
      // as one line, but close enough for now.
      static final int RESERVED_BYTES_PER_LOGCAT_LINE = 100;
-@@ -9260,9 +9257,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9261,9 +9259,6 @@ public class ActivityManagerService extends IActivityManager.Stub
              crashInfo.crashTag = crashInfo.crashTag + " " + relaunchReasonString;
          }
 
@@ -1196,7 +1353,7 @@ index c4edda37..d8a94bde 100644
          mAppErrors.crashApplication(r, crashInfo);
      }
 
-@@ -9293,9 +9287,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9294,9 +9289,6 @@ public class ActivityManagerService extends IActivityManager.Stub
                      mAlreadyLoggedViolatedStacks.add(stackFingerprint);
                  }
              }
@@ -1206,7 +1363,7 @@ index c4edda37..d8a94bde 100644
          }
 
          if ((penaltyMask & StrictMode.PENALTY_DIALOG) != 0) {
-@@ -9319,68 +9310,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9320,68 +9312,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
      }
 
@@ -1275,7 +1432,7 @@ index c4edda37..d8a94bde 100644
      /**
       * Used by {@link Log} via {@link com.android.internal.os.RuntimeInit} to report serious errors.
       * @param app object of the crashing app, null for the system server
-@@ -9433,8 +9362,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9434,8 +9364,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          StatsLog.write(StatsLog.WTF_OCCURRED, callingUid, tag, processName,
                  callingPid, (r != null) ? r.getProcessClassEnum() : 0);
 
@@ -1284,7 +1441,7 @@ index c4edda37..d8a94bde 100644
          return r;
      }
 
-@@ -9452,54 +9379,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9453,54 +9381,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
      }
 
@@ -1339,7 +1496,7 @@ index c4edda37..d8a94bde 100644
      private static String processClass(ProcessRecord process) {
          if (process == null || process.pid == MY_PID) {
              return "system_server";
-@@ -9513,144 +9392,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -9514,144 +9394,6 @@ public class ActivityManagerService extends IActivityManager.Stub
      private volatile long mWtfClusterStart;
      private volatile int mWtfClusterCount;
 
@@ -1484,7 +1641,7 @@ index c4edda37..d8a94bde 100644
      @Override
      public List<ActivityManager.ProcessErrorStateInfo> getProcessesInErrorState() {
          enforceNotIsolatedCaller("getProcessesInErrorState");
-@@ -13563,8 +13304,6 @@ public class ActivityManagerService extends IActivityManager.Stub
+@@ -13564,8 +13306,6 @@ public class ActivityManagerService extends IActivityManager.Stub
          }
          dropBuilder.append(catSw.toString());
          StatsLog.write(StatsLog.LOW_MEM_REPORTED);
@@ -1732,10 +1889,10 @@ index 3b3ee587..ddd3a0fb 100644
       * Return null if system cannot get digest from uid.
 
 diff --git a/services/core/java/com/android/server/pm/PackageManagerService.java b/services/core/java/com/android/server/pm/PackageManagerService.java
-index d3b5fa30..c9a8a5d6 100644
+index 2f2c1689..4f313682 100644
 --- a/services/core/java/com/android/server/pm/PackageManagerService.java
 +++ b/services/core/java/com/android/server/pm/PackageManagerService.java
-@@ -4191,8 +4191,8 @@ public class PackageManagerService extends IPackageManager.Stub
+@@ -4203,8 +4203,8 @@ public class PackageManagerService extends IPackageManager.Stub
                  });
              }
 
@@ -1746,7 +1903,7 @@ index d3b5fa30..c9a8a5d6 100644
 
              if (packageInfo == null) {
                  return null;
-@@ -4228,6 +4228,24 @@ public class PackageManagerService extends IPackageManager.Stub
+@@ -4240,6 +4240,24 @@ public class PackageManagerService extends IPackageManager.Stub
          }
      }
 
@@ -1764,7 +1921,7 @@ index d3b5fa30..c9a8a5d6 100644
 +        } catch (Throwable t) {
 +            // We should never die because of any failures, this is system code!
 +            Log.w("PackageManagerService.FAKE_PACKAGE_SIGNATURE", t);
-+           }
++            }
 +        return pi;
 +    }
 +
@@ -1948,7 +2105,7 @@ index 423dc60..a34485f 100644
          return super.onPreferenceTreeClick(preference);
 
 diff --git a/src/org/lineageos/lineageparts/power/PerfProfileSettings.java b/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
-index 949562f..de3868a 100644
+index 949562f..82a103f 100644
 --- a/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
 +++ b/src/org/lineageos/lineageparts/power/PerfProfileSettings.java
 @@ -28,6 +28,7 @@ import android.graphics.drawable.AnimatedVectorDrawable;
@@ -2006,7 +2163,7 @@ index 949562f..de3868a 100644
              Global.putInt(getContentResolver(), Global.LOW_POWER_MODE_TRIGGER_LEVEL, level);
              updateAutoPowerSaveSummary(level);
 +        } else if (preference == mCPUOverclockPref) {
-+            SystemProperties.set("persist.sys.cpu_overclock", SystemProperties.getBoolean("persist.sys.cpu_overclock", true) ? "false" : "true");
++            SystemProperties.set("persist.sys.cpu_overclock", mCPUOverclockPref.isChecked() ? "false" : "true");
          }
          return true;
      }
@@ -2015,7 +2172,7 @@ index 949562f..de3868a 100644
      }
 
 +    private void updateCPUOverclockValue() {
-+        mCPUOverclockPref.setChecked(SystemProperties.getBoolean("persist.sys.cpu_overclock", true));
++        mCPUOverclockPref.setChecked(SystemProperties.getBoolean("persist.sys.cpu_overclock", false));
 +    }
 +
      private void updateAutoPowerSaveValue() {
@@ -2033,9 +2190,9 @@ index d84f2db..5a26514 100644
      <string name="directly_show_lock_summary">跳过滑动解锁屏幕直接开始输入密码</string>
 +    <string name="root_access">Root 授权</string>
 +    <string name="root_access_summary">允许所有应用获取 Root 权限</string>
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="tablet">在您平板的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到 >
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="device">在您设备的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到 >
-     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到>
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="tablet">在您平板的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="device">在您设备的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
+     <string name="security_settings_fingerprint_enroll_find_sensor_message_cm" product="default">在您手机的 <xliff:g id="sensor_location">%1$s</xliff:g> 找到指纹传感器。</string>
 @@ -69,6 +71,9 @@
      <string name="security_settings_fingerprint_sensor_location_front">前置</string>
      <string name="security_settings_fingerprint_sensor_location_left">左侧</string>
@@ -2081,7 +2238,7 @@ index bc509ad..09acc25 100644
  </resources>
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 959d8be..1719947 100644
+index 12ad48e..49500e1 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
 @@ -122,6 +122,15 @@
@@ -2193,7 +2350,7 @@ index 5f7d65d..8cdc24f 100644
 
      @Override
 
-diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboar>
+diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 index f18225e..d22e7d0 100644
 --- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
 +++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java

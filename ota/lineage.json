@@ -98,6 +98,15 @@
             "size": 718789047,
             "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2021.01.16/lineage-17.1-20210116-UNOFFICIAL-libra.zip",
             "version": "17.1"
+        },
+        {
+            "datetime": 1612849837,
+            "filename": "lineage-17.1-20210209-UNOFFICIAL-libra.zip",
+            "id": "f4eb2da41a0e4c458cc81299b4c5632b",
+            "romtype": "unofficial",
+            "size": 720105214,
+            "url": "https://github.com/WJXXBSH/android_device_xiaomi_libra/releases/download/v2021.02.09/lineage-17.1-20210209-UNOFFICIAL-libra.zip",
+            "version": "17.1"
         }
     ]
 }

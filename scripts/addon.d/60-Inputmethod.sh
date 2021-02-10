@@ -1,6 +1,6 @@
 #!/sbin/sh
 #
-# ADDOND_VERSION=2
+# ADDOND_VERSION=3
 #
 # /system/addon.d/60-Inputmethod.sh
 # During a LineageOS upgrade, this script backs up /system/app/Inputmethod/,

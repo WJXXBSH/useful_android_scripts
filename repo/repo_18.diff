@@ -1,6 +1,6 @@
 project build/make/
 diff --git a/core/Makefile b/core/Makefile
-index 4f047bd..2fda7dc 100644
+index 4f047bd59..2fda7dcd1 100644
 --- a/core/Makefile
 +++ b/core/Makefile
 @@ -325,9 +325,9 @@ endif
@@ -43,7 +43,7 @@ index 4f047bd..2fda7dc 100644
  $(INTERNAL_OTA_PACKAGE_TARGET): .KATI_IMPLICIT_OUTPUTS := $(INTERNAL_OTA_METADATA)
 
 diff --git a/core/binary.mk b/core/binary.mk
-index 99250c0..8137aa6 100644
+index 99250c0f1..8137aa661 100644
 --- a/core/binary.mk
 +++ b/core/binary.mk
 @@ -1571,7 +1571,7 @@ ifneq (HEADER_LIBRARIES,$(LOCAL_MODULE_CLASS))
@@ -57,7 +57,7 @@ index 99250c0..8137aa6 100644
            my_cflags := -Wall $(my_cflags)
 
 diff --git a/core/main.mk b/core/main.mk
-index b91c51a..cacb128 100644
+index b91c51acf..cacb12858 100644
 --- a/core/main.mk
 +++ b/core/main.mk
 @@ -282,8 +282,6 @@ ifneq (,$(user_variant))
@@ -88,7 +88,7 @@ index b91c51a..cacb128 100644
  endif
 
 diff --git a/core/product.mk b/core/product.mk
-index 13a182a..a85cd59 100644
+index 13a182a02..a85cd59d4 100644
 --- a/core/product.mk
 +++ b/core/product.mk
 @@ -556,11 +556,17 @@ _readonly_late_variables := \
@@ -112,7 +112,7 @@ index 13a182a..a85cd59 100644
  _readonly_early_variables := $(filter-out $(_readonly_late_variables),$(_product_var_list))
 
 diff --git a/target/product/base_system.mk b/target/product/base_system.mk
-index 5b118ee..b299fb0 100644
+index 5b118eee7..a9d0bb71c 100644
 --- a/target/product/base_system.mk
 +++ b/target/product/base_system.mk
 @@ -31,7 +31,6 @@ PRODUCT_PACKAGES += \
@@ -160,7 +160,15 @@ index 5b118ee..b299fb0 100644
      gatekeeperd \
      gpuservice \
      hid \
-@@ -256,9 +246,6 @@ PRODUCT_PACKAGES += \
+@@ -149,6 +139,7 @@ PRODUCT_PACKAGES += \
+     libgui \
+     libhardware \
+     libhardware_legacy \
++    libincident \
+     libinput \
+     libinputflinger \
+     libiprouteutil \
+@@ -256,9 +247,6 @@ PRODUCT_PACKAGES += \
      tc \
      telecom \
      telephony-common \
@@ -170,7 +178,7 @@ index 5b118ee..b299fb0 100644
      tune2fs \
      tzdatacheck \
      uiautomator \
-@@ -268,7 +255,6 @@ PRODUCT_PACKAGES += \
+@@ -268,7 +256,6 @@ PRODUCT_PACKAGES += \
      viewcompiler \
      voip-common \
      vold \
@@ -178,7 +186,7 @@ index 5b118ee..b299fb0 100644
      watchdogd \
      wificond \
      wifi.rc \
-@@ -356,9 +342,6 @@ endif
+@@ -356,9 +343,6 @@ endif
  PRODUCT_COPY_FILES += system/core/rootdir/init.zygote32.rc:system/etc/init/hw/init.zygote32.rc
  PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote32
 
@@ -188,7 +196,7 @@ index 5b118ee..b299fb0 100644
  # Packages included only for eng or userdebug builds, previously debug tagged
  PRODUCT_PACKAGES_DEBUG := \
      adb_keys \
-@@ -393,8 +376,7 @@ endif
+@@ -393,8 +377,7 @@ endif
 
  # The set of packages whose code can be loaded by the system server.
  PRODUCT_SYSTEM_SERVER_APPS += \
@@ -200,7 +208,7 @@ index 5b118ee..b299fb0 100644
  PRODUCT_PACKAGES_DEBUG_ASAN := \
 
 diff --git a/target/product/full_base.mk b/target/product/full_base.mk
-index 267859a..31bfedf 100644
+index 267859a62..31bfedfeb 100644
 --- a/target/product/full_base.mk
 +++ b/target/product/full_base.mk
 @@ -25,7 +25,6 @@ PRODUCT_PACKAGES := \
@@ -213,7 +221,7 @@ index 267859a..31bfedf 100644
  # Bluetooth:
 
 diff --git a/target/product/handheld_system.mk b/target/product/handheld_system.mk
-index f6c92b5..5c240e7 100644
+index f6c92b5e8..5c240e7c4 100644
 --- a/target/product/handheld_system.mk
 +++ b/target/product/handheld_system.mk
 @@ -32,11 +32,9 @@ $(call inherit-product-if-exists, frameworks/base/data/keyboards/keyboards.mk)
@@ -251,7 +259,7 @@ index f6c92b5..5c240e7 100644
      vr \
 
 diff --git a/target/product/media_system.mk b/target/product/media_system.mk
-index f42491e..c5790ed 100644
+index f42491eed..c5790ed9b 100644
 --- a/target/product/media_system.mk
 +++ b/target/product/media_system.mk
 @@ -72,16 +72,6 @@ PRODUCT_COPY_FILES += $(call add-to-product-copy-files-if-exists,\
@@ -273,7 +281,7 @@ index f42491e..c5790ed 100644
  $(call inherit-product-if-exists, vendor/google/products/cfi-vendor.mk)
 
 diff --git a/target/product/runtime_libart.mk b/target/product/runtime_libart.mk
-index ad361dc..d232c9b 100644
+index ad361dc09..d232c9b0e 100644
 --- a/target/product/runtime_libart.mk
 +++ b/target/product/runtime_libart.mk
 @@ -57,22 +57,22 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
@@ -321,7 +329,7 @@ index ad361dc..d232c9b 100644
      ro.iorapd.enable=true
 
 diff --git a/target/product/telephony_system.mk b/target/product/telephony_system.mk
-index ef48719..d910c6b 100644
+index ef4871905..d910c6b7c 100644
 --- a/target/product/telephony_system.mk
 +++ b/target/product/telephony_system.mk
 @@ -19,9 +19,6 @@
@@ -337,7 +345,7 @@ index ef48719..d910c6b 100644
  PRODUCT_COPY_FILES := \
 
 diff --git a/target/product/updatable_apex.mk b/target/product/updatable_apex.mk
-index a84a0d2..3c2a224 100644
+index a84a0d2ba..3c2a224aa 100644
 --- a/target/product/updatable_apex.mk
 +++ b/target/product/updatable_apex.mk
 @@ -19,7 +19,6 @@
@@ -350,7 +358,7 @@ index a84a0d2..3c2a224 100644
  endif
 
 diff --git a/tools/releasetools/common.py b/tools/releasetools/common.py
-index 6e28c7a..5fc2ce4 100644
+index 6e28c7a0a..5fc2ce442 100644
 --- a/tools/releasetools/common.py
 +++ b/tools/releasetools/common.py
 @@ -3047,89 +3047,6 @@ def MakeRecoveryPatch(input_dir, output_sink, recovery_img, boot_img,
@@ -445,7 +453,7 @@ index 6e28c7a..5fc2ce4 100644
    def __init__(self, src_group=None, tgt_group=None, progress=None,
 
 diff --git a/tools/releasetools/ota_from_target_files.py b/tools/releasetools/ota_from_target_files.py
-index 2ec6d41..aafde88 100755
+index 2ec6d4176..aafde88c4 100755
 --- a/tools/releasetools/ota_from_target_files.py
 +++ b/tools/releasetools/ota_from_target_files.py
 @@ -541,26 +541,6 @@ def _WriteRecoveryImageToBoot(script, output_zip):
@@ -486,7 +494,7 @@ index 2ec6d41..aafde88 100755
    #ts_text = target_info.GetBuildProp("ro.build.date")
 
 diff --git a/tools/releasetools/target_files_diff.py b/tools/releasetools/target_files_diff.py
-index 4402c8d..8a92885 100755
+index 4402c8d20..8a928852c 100755
 --- a/tools/releasetools/target_files_diff.py
 +++ b/tools/releasetools/target_files_diff.py
 @@ -41,10 +41,6 @@ def ignore(name):
@@ -502,7 +510,7 @@ index 4402c8d..8a92885 100755
    if name in ['BOOT/RAMDISK/selinux_version',
 
 diff --git a/tools/releasetools/test_common.py b/tools/releasetools/test_common.py
-index e4f0812..aee23c5 100644
+index e4f081237..aee23c5e2 100644
 --- a/tools/releasetools/test_common.py
 +++ b/tools/releasetools/test_common.py
 @@ -1582,12 +1582,6 @@ class InstallRecoveryScriptFormatTest(test_utils.ReleaseToolsTestCase):
@@ -519,22 +527,217 @@ index e4f0812..aee23c5 100644
 
  class MockBlockDifference(object):
 
-project device/qcom/sepolicy-legacy/
-diff --git a/legacy-common/file_contexts b/legacy-common/file_contexts
-index dac8c84..e0758ce 100644
---- a/legacy-common/file_contexts
-+++ b/legacy-common/file_contexts
-@@ -83,10 +83,6 @@
- /sys/devices/bt_qca6174\.[0-9]+/extldo                                        u:object_r:sysfs_bluetooth_writable:s0
- /sys/devices/bt_qca6174\.[0-9]+/rfkill/rfkill0/state                          u:object_r:sysfs_bluetooth_writable:s0
+project device/xiaomi/libra/
+diff --git a/rootdir/etc/fstab.qcom b/rootdir/etc/fstab.qcom
+index 0f884e1..2df7a55 100644
+--- a/rootdir/etc/fstab.qcom
++++ b/rootdir/etc/fstab.qcom
+@@ -11,13 +11,13 @@
+ /dev/block/bootdevice/by-name/recovery /recovery emmc defaults defaults
+ /dev/block/bootdevice/by-name/bluetooth /vendor/bt_firmware vfat ro,noatime,uid=1002,gid=3002,fmask=0337,dmask=0227,shortname=lower defaults
+ /dev/block/bootdevice/by-name/modem /vendor/modem_firmware vfat ro,noatime,uid=1000,gid=1000,fmask=0337,dmask=0227,shortname=lower defaults
+-/dev/block/bootdevice/by-name/cache /cache ext4 nosuid,nodev,noatime,discard,nobarrier,noauto_da_alloc wait,check
+-/dev/block/bootdevice/by-name/cache /cache f2fs rw,nosuid,nodev,noatime,discard,inline_xattr,nobarrier wait,check
+-/dev/block/bootdevice/by-name/cust /mnt/vendor/cust ext4 nosuid,nodev,noatime,discard,nobarrier,noauto_da_alloc wait,check
+-/dev/block/bootdevice/by-name/persist /mnt/vendor/persist ext4 nosuid,nodev,noatime,discard,nobarrier,noauto_da_alloc wait,check
+-/dev/block/bootdevice/by-name/system /system ext4 ro,noatime,discard,nobarrier,noauto_da_alloc wait,recoveryonly
+-/dev/block/bootdevice/by-name/userdata /data ext4 nosuid,nodev,noatime,discard,nobarrier,noauto_da_alloc wait,check,encryptable=/dev/block/bootdevice/by-name/bk1
+-/dev/block/bootdevice/by-name/userdata /data f2fs rw,nosuid,nodev,noatime,discard,inline_xattr,nobarrier wait,check,encryptable=/dev/block/bootdevice/by-name/bk1
++/dev/block/bootdevice/by-name/cache /cache ext4 nosuid,nodev,noatime,discard,noauto_da_alloc wait,check
++/dev/block/bootdevice/by-name/cache /cache f2fs rw,nosuid,nodev,noatime,discard,inline_xattr wait,check
++/dev/block/bootdevice/by-name/cust /mnt/vendor/cust ext4 nosuid,nodev,noatime,discard,noauto_da_alloc wait,check
++/dev/block/bootdevice/by-name/persist /mnt/vendor/persist ext4 nosuid,nodev,noatime,discard,noauto_da_alloc wait,check
++/dev/block/bootdevice/by-name/system /system ext4 ro,noatime,discard,noauto_da_alloc wait,recoveryonly
++/dev/block/bootdevice/by-name/userdata /data ext4 nosuid,nodev,noatime,discard,noauto_da_alloc wait,check,encryptable=/dev/block/bootdevice/by-name/bk1
++/dev/block/bootdevice/by-name/userdata /data f2fs rw,nosuid,nodev,noatime,discard,inline_xattr wait,check,encryptable=/dev/block/bootdevice/by-name/bk1
 
--# Block/storage
--/sys/devices/msm_sdcc\.[0-9]/mmc_host/mmc[0-9]/mmc[0-9]:[0-9]+/block/mmcblk[0-9]/stat  u:object_r:sysfs_disk_stat:s0
--/sys/devices(/platform)?/soc(\.[0-9])?/[a-f0-9]+\.sdhci/mmc_host/mmc[0-9]/mmc[0-9]:[a-f0-9]+/block/mmcblk[0-9]/stat u:object_r:sysfs_disk_stat:s0
--
- # USB
- /sys/devices/msm_dwc3/[a-f0-9]+\.dwc3/gadget/lun[0-9]+(/.*)?                  u:object_r:sysfs_android_usb:s0
- /sys/devices(/platform)?/msm_hsusb/gadget/lun[0-9]+(/.*)?                     u:object_r:sysfs_android_usb:s0
+ # Removable devices
+ /devices/soc.0/f9200000.ssusb/f9200000.dwc3/xhci-hcd.0.auto/usb* auto auto defaults voldmanaged=usb:auto
+
+diff --git a/rootdir/etc/init.target.rc b/rootdir/etc/init.target.rc
+index 58047fc..f23a6ea 100644
+--- a/rootdir/etc/init.target.rc
++++ b/rootdir/etc/init.target.rc
+@@ -121,6 +121,17 @@ service fidodaemon /system/vendor/bin/fidodaemon
+     user system
+     group system
+
++service logger /system/bin/logcat -b all -D -f /data/boot.log
++    class main
++    user root
++    group root system
++    disabled
++    oneshot
++
++on post-fs-data
++    rm /data/boot.log
++    start logger
++
+ service per_mgr /vendor/bin/pm-service
+     class core
+     user system
+@@ -218,3 +229,6 @@ on property:sys.boot_completed=1
+     write /sys/class/devfreq/qcom,cpubw.27/governor bw_hwmon
+     write /sys/class/devfreq/qcom,mincpubw.28/governor cpufreq
+     write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 7
++
++    # Stop the logger service
++    stop logger
+
+diff --git a/sepolicy/vendor.te b/sepolicy/vendor.te
+index e82ad12..0c9c77f 100644
+--- a/sepolicy/vendor.te
++++ b/sepolicy/vendor.te
+@@ -6,6 +6,7 @@ allow bootstat bootstat:{ capability capability2 } *;
+
+ # Cnd
+ allow cnd cnd:capability *;
++allow cnd device:file *;
+ allow cnd diag_device:chr_file *;
+ allow cnd self:{ capability socket udp_socket } *;
+ allowxperm cnd self:socket ioctl msm_sock_ipc_ioctls;
+@@ -14,6 +15,10 @@ allowxperm cnd self:socket ioctl msm_sock_ipc_ioctls;
+ type lirc_device, file_type;
+ allow system_server lirc_device:chr_file *;
+
++# FSCK
++allow fsck block_device:blk_file *;
++allow fsck mnt_vendor_file:{ dir file } *;
++
+ # HAL
+ allow hal_fingerprint_default fingerprintd_data_file:{ dir file sock_file } *;
+ allow hal_fingerprint_default input_device:{ chr_file file } *;
+@@ -31,6 +36,9 @@ allow healthd sysfs:{ dir file } *;
+ allow hwservicemanager runtime_event_log_tags_file:file *;
+ allow hwservicemanager init:{ binder dir file process } *;
+
++# Installd
++allow installd device:file *;
++
+ # Init
+ allow init devpts:chr_file *;
+ allow init diag_device:chr_file *;
+@@ -42,10 +50,12 @@ allow init hwservicemanager:binder *;
+ allow init init:{ socket capability } *;
+ allow init lirc_device:chr_file *;
+ allow init mm-pp-daemon:unix_stream_socket *;
++allow init mnt_vendor_file:{ dir file } *;
+ allow init pps_socket:sock_file *;
+ allow init qmuxd_socket:sock_file *;
+ allow init qmuxd:unix_stream_socket *;
+ allow init shell_exec:{ dir file } *;
++allow init socket_device:sock_file *;
+ allow init sysfs_graphics:file *;
+ allow init sysfs_ssr:lnk_file *;
+ allow init sysfs:{ dir file } *;
+@@ -67,16 +77,26 @@ qmux_socket(mmbn-daemon)
+ diag_use(mmbn-daemon)
+ allow mm-pp-daemon default_android_service:service_manager *;
+ allow mm-pp-daemon diag_device:chr_file *;
++allow mm-pp-daemon mnt_vendor_file:{ dir file } *;
++allow mm-pp-daemon persist_file:{ dir file lnk_file } *;
+ allow mm-pp-daemon surfaceflinger:binder *;
+ allow mm-qcamerad camera_prop:file *;
+ allow mm-qcamerad sysfs:{ dir file } *;
+-allow mmbn-daemon firmware_file:{ dir file } *;
++allow mmbn-daemon firmware_file:{ dir file lnk_file } *;
+ allow mmbn-daemon mmbn-daemon:capability *;
+ allow mmbn-daemon self:socket *;
+ allow mmbn-daemon vfat:{ dir file } *;
+ allowxperm mmbn-daemon self:socket ioctl msm_sock_ipc_ioctls;
+
++# Netd
++allow netd device:file *;
++
++# Peripheral Mananager
++allow per_mgr per_mgr:capability *;
++allow per_mgr self:capability *;
++
+ # QTI init
++allow qti_init_shell app_data_file:{ dir file } *;
+ allow qti_init_shell file_contexts_file:file *;
+ allow qti_init_shell fuse:{ dir file } *;
+ allow qti_init_shell kernel:security *;
+@@ -102,9 +122,12 @@ allow readmac wifi_data_file:{ dir file } *;
+ allowxperm readmac self:socket ioctl msm_sock_ipc_ioctls;
+
+ # Rfs access
++allow rfs_access mnt_vendor_file:{ dir file } *;
++allow rfs_access persist_file:{ dir file lnk_file } *;
+ allow rfs_access rfs_access:capability *;
+
+ # Rild
++allow rild device:file *;
+ allow rild diag_device:chr_file *;
+ allow rild rild:capability *;
+ allow rild system_prop:property_service *;
+@@ -115,6 +138,8 @@ allow servicemanager fidodaemon:{ binder dir file process } *;
+
+ # Surfaceflinger
+ allow surfaceflinger default_android_service:service_manager *;
++allow surfaceflinger mnt_vendor_file:{ dir file } *;
++allow surfaceflinger persist_file:{ dir file lnk_file } *;
+
+ # System APP
+ allow priv_app device:{ dir file } *;
+@@ -147,10 +172,12 @@ allow adbd ctl_start_prop:property_service *;
+ allow lmkd lmkd:capability2 *;
+ allow netmgrd diag_device:chr_file *;
+ allow system_server diag_device:chr_file *;
++allow system_server iio_device:chr_file *;
+ allow system_server init:binder *;
+ allow system_server kernel:system *;
+ allow system_server mnt_vendor_file:{ dir file } *;
+-allow system_server persist_file:{ dir file } *;
++allow system_server persist_file:{ dir file lnk_file } *;
++allow system_server proc:file *;
+ allow system_server sysfs:{ dir file } *;
+ allow wcnss_service diag_device:chr_file *;
+
+@@ -165,12 +192,12 @@ allow tee firmware_file:{ dir file } *;
+ allow tee graphics_device:{ chr_file dir } *;
+ allow tee persist_data_file:{ dir file } *;
+ allow tee persist_drm_file:{ dir file } *;
+-allow tee persist_file:dir *;
++allow tee persist_file:{ dir file lnk_file } *;
+ allow tee self:capability *;
+ allow tee system_app:unix_dgram_socket *;
+ allow tee system_data_file:dir *;
+ allow tee tee_device:chr_file *;
+-allow tee vfat:file *;
++allow tee vfat:{ dir file } *;
+
+ # Time
+ type timekeep_exec, exec_type, vendor_file_type, file_type;
+@@ -184,6 +211,7 @@ set_prop(timekeep, vendor_timekeep_prop)
+ allow timekeep self:capability sys_time;
+ allow timekeep sysfs_rtc:{ file lnk_file } r_file_perms;
+ allow timekeep sysfs_rtc:dir search;
++allow timekeep sysfs:file r_file_perms;
+ allow timekeep time_data_file:dir rw_dir_perms;
+ allow timekeep time_data_file:file create_file_perms;
+ allow timekeep_app activity_service:service_manager find;
+@@ -202,11 +230,14 @@ allow ueventd vfat:{ dir file } *;
+ allow vendor_init bluetooth_data_file:{ dir file } *;
+ allow vendor_init dhcp_data_file:{ dir file } *;
+ allow vendor_init media_rw_data_file:{ dir file } *;
++allow vendor_init persist_file:{ dir file lnk_file } *;
+ allow vendor_init proc:file *;
+ allow vendor_init radio_data_file:{ dir file } *;
+ allow vendor_init rootfs:{ dir file } *;
+ allow vendor_init system_data_file:{ dir file } *;
+ allow vendor_init unencrypted_data_file:{ dir file } *;
++allow vendor_init unlabeled:{ dir file } *;
++allow vendor_init vendor_file:{ dir file } *;
+ allow vendor_init wifi_data_file:{ dir file } *;
+ allow vendor_init wpa_socket:{ dir file } *;
+
+@@ -217,4 +248,5 @@ allow vold metadata_block_device:blk_file *;
+ # Zygote
+ allow webview_zygote mnt_expand_file:{ dir file } *;
+ allow webview_zygote zygote:unix_dgram_socket *;
++allow zygote device:file *;
+ allow zygote proc_cmdline:file *;
 
 project external/bash/
 diff --git a/Android.mk b/Android.mk
@@ -601,48 +804,6 @@ index 4fcd436..78e27ff 100644
 -
  # ========================================================
  include $(call all-makefiles-under,$(LOCAL_PATH))
-
-project external/noto-fonts/
-diff --git a/cjk/Android.bp b/cjk/Android.bp
-index 5ff7204..34a3c1a 100644
---- a/cjk/Android.bp
-+++ b/cjk/Android.bp
-@@ -13,8 +13,8 @@
- // limitations under the License.
-
- prebuilt_font {
--    name: "NotoSansCJK-Regular.ttc",
--    src: "NotoSansCJK-Regular.ttc",
-+    name: "NotoSansCJK.ttc",
-+    src: "NotoSansCJK.ttc",
- }
-
- prebuilt_font {
-diff --git a/cjk/subset_noto_cjk.py b/cjk/subset_noto_cjk.py
-index 5a324bf..499c366 100755
---- a/cjk/subset_noto_cjk.py
-+++ b/cjk/subset_noto_cjk.py
-@@ -99,5 +99,6 @@ def remove_codepoints_from_ttc(ttc_name):
-             os.remove(f)
-
-
-+remove_codepoints_from_ttc('NotoSansCJK.ttc')
- remove_codepoints_from_ttc('NotoSansCJK-Regular.ttc')
- remove_codepoints_from_ttc('NotoSerifCJK-Regular.ttc')
-
-diff --git a/fonts.mk b/fonts.mk
-index 13bfbfb..761a328 100644
---- a/fonts.mk
-+++ b/fonts.mk
-@@ -49,7 +49,7 @@ PRODUCT_PACKAGES := \
-     NotoSansCham-Bold.ttf \
-     NotoSansCham-Regular.ttf \
-     NotoSansCherokee-Regular.ttf \
--    NotoSansCJK-Regular.ttc \
-+    NotoSansCJK.ttc \
-     NotoSansCoptic-Regular.ttf \
-     NotoSansCuneiform-Regular.ttf \
-     NotoSansCypriot-Regular.ttf \
 
 project external/vim/
 diff --git a/Android.mk b/Android.mk
@@ -757,77 +918,6 @@ index c7e2f3c..041f014 100644
 -endif
 
 project frameworks/base/
-diff --git a/Android.bp b/Android.bp
-index fc64efd9..57c380c8 100644
---- a/Android.bp
-+++ b/Android.bp
-@@ -433,12 +433,6 @@ java_defaults {
-         "view-inspector-annotation-processor",
-         "staledataclass-annotation-processor",
-     ],
--
--    required: [
--        // TODO: remove gps_debug and protolog.conf.json when the build system propagates "required" properly.
--        "gps_debug.conf",
--        "protolog.conf.json.gz",
--    ],
- }
-
- filegroup {
-
-diff --git a/data/fonts/fonts.xml b/data/fonts/fonts.xml
-index 4c214b52..c939ec8d 100644
---- a/data/fonts/fonts.xml
-+++ b/data/fonts/fonts.xml
-@@ -576,19 +576,43 @@
-         <font weight="400" style="normal">NotoSansSymbols-Regular-Subsetted.ttf</font>
-     </family>
-     <family lang="zh-Hans">
--        <font weight="400" style="normal" index="2">NotoSansCJK-Regular.ttc</font>
-+        <font weight="100" style="normal" index="2">NotoSansCJK.ttc</font>
-+        <font weight="300" style="normal" index="7">NotoSansCJK.ttc</font>
-+        <font weight="350" style="normal" index="12">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="27">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="17">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="37">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="22">NotoSansCJK.ttc</font>
-         <font weight="400" style="normal" index="2" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
-     </family>
-     <family lang="zh-Hant,zh-Bopo">
--        <font weight="400" style="normal" index="3">NotoSansCJK-Regular.ttc</font>
-+        <font weight="100" style="normal" index="3">NotoSansCJK.ttc</font>
-+        <font weight="300" style="normal" index="8">NotoSansCJK.ttc</font>
-+        <font weight="350" style="normal" index="13">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="28">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="18">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="38">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="23">NotoSansCJK.ttc</font>
-         <font weight="400" style="normal" index="3" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
-     </family>
-     <family lang="ja">
--        <font weight="400" style="normal" index="0">NotoSansCJK-Regular.ttc</font>
-+        <font weight="100" style="normal" index="0">NotoSansCJK.ttc</font>
-+        <font weight="300" style="normal" index="5">NotoSansCJK.ttc</font>
-+        <font weight="350" style="normal" index="10">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="25">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="15">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="35">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="20">NotoSansCJK.ttc</font>
-         <font weight="400" style="normal" index="0" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
-     </family>
-     <family lang="ko">
--        <font weight="400" style="normal" index="1">NotoSansCJK-Regular.ttc</font>
-+        <font weight="100" style="normal" index="1">NotoSansCJK.ttc</font>
-+        <font weight="300" style="normal" index="6">NotoSansCJK.ttc</font>
-+        <font weight="350" style="normal" index="11">NotoSansCJK.ttc</font>
-+        <font weight="400" style="normal" index="26">NotoSansCJK.ttc</font>
-+        <font weight="500" style="normal" index="16">NotoSansCJK.ttc</font>
-+        <font weight="700" style="normal" index="36">NotoSansCJK.ttc</font>
-+        <font weight="900" style="normal" index="21">NotoSansCJK.ttc</font>
-         <font weight="400" style="normal" index="1" fallbackFor="serif">NotoSerifCJK-Regular.ttc</font>
-     </family>
-     <family lang="und-Zsye">
-
 diff --git a/packages/overlays/Android.mk b/packages/overlays/Android.mk
 index 999ab080..6b98ac7f 100644
 --- a/packages/overlays/Android.mk
@@ -858,48 +948,6 @@ index 999ab080..6b98ac7f 100644
  	IconPackCircularAndroidOverlay \
  	IconPackCircularLauncherOverlay \
  	IconPackCircularSettingsOverlay \
-
-diff --git a/services/core/Android.bp b/services/core/Android.bp
-index 2510f678..4ae11258 100644
---- a/services/core/Android.bp
-+++ b/services/core/Android.bp
-@@ -103,11 +103,6 @@ java_library_static {
-         "org.lineageos.platform.internal",
-     ],
-
--    required: [
--        "gps_debug.conf",
--        "protolog.conf.json.gz",
--    ],
--
-     static_libs: [
-         "time_zone_distro",
-         "time_zone_distro_installer",
-@@ -161,11 +156,6 @@ java_library_host {
-     srcs: ["java/com/android/server/notification/SmallHash.java"]
- }
-
--prebuilt_etc {
--    name: "gps_debug.conf",
--    src: "java/com/android/server/location/gps_debug.conf",
--}
--
- genrule {
-     name: "services.core.json.gz",
-     srcs: [":checked-protolog.json"],
-@@ -173,8 +163,3 @@ genrule {
-     cmd: "$(location minigzip) -c < $(in) > $(out)",
-     tools: ["minigzip"],
- }
--
--prebuilt_etc {
--    name: "protolog.conf.json.gz",
--    src: ":services.core.json.gz",
--}
-
-diff --git a/services/core/java/com/android/server/location/gps_debug.conf b/services/core/java/com/android/server/location/gps_debug.conf
-deleted file mode 100644
-index 34ce96f3..00000000
 
 project packages/apps/Updater/
 diff --git a/push-update.sh b/push-update.sh
@@ -969,7 +1017,7 @@ index e8084b3..5cd8f5e 100644
 
 project system/core/
 diff --git a/adb/daemon/main.cpp b/adb/daemon/main.cpp
-index 1e33128..8cb9f46 100644
+index 1e33128f5..8cb9f46a1 100644
 --- a/adb/daemon/main.cpp
 +++ b/adb/daemon/main.cpp
 @@ -74,7 +74,6 @@ static bool should_drop_privileges() {
@@ -991,7 +1039,7 @@ index 1e33128..8cb9f46 100644
      // ... and "adb unroot" lets you explicitly drop privileges.
 
 diff --git a/adb/root/adbroot_service.cpp b/adb/root/adbroot_service.cpp
-index 0cd9825..90a6c0a 100644
+index 0cd98255f..90a6c0a1c 100644
 --- a/adb/root/adbroot_service.cpp
 +++ b/adb/root/adbroot_service.cpp
 @@ -72,8 +72,11 @@ ndk::ScopedAStatus ADBRootService::setEnabled(bool enabled) {
@@ -1010,7 +1058,7 @@ index 0cd9825..90a6c0a 100644
          }
 
 diff --git a/healthd/Android.bp b/healthd/Android.bp
-index 14d46b3..eaa43dd 100644
+index 14d46b3d3..eaa43dda3 100644
 --- a/healthd/Android.bp
 +++ b/healthd/Android.bp
 @@ -10,7 +10,7 @@ cc_library_headers {
@@ -1060,7 +1108,7 @@ index 14d46b3..eaa43dd 100644
          // common
 
 diff --git a/init/Android.bp b/init/Android.bp
-index e28d9f0..20874d0 100644
+index e28d9f026..20874d0b0 100644
 --- a/init/Android.bp
 +++ b/init/Android.bp
 @@ -94,7 +94,7 @@ cc_defaults {
@@ -1074,7 +1122,7 @@ index e28d9f0..20874d0 100644
          "-DDUMP_ON_UMOUNT_FAILURE=0",
 
 diff --git a/init/Android.mk b/init/Android.mk
-index 416b732..56a2478 100644
+index 416b732d8..56a24782f 100644
 --- a/init/Android.mk
 +++ b/init/Android.mk
 @@ -18,7 +18,7 @@ else
@@ -1088,7 +1136,7 @@ index 416b732..56a2478 100644
      -DDUMP_ON_UMOUNT_FAILURE=0
 
 diff --git a/libcutils/trace-dev.cpp b/libcutils/trace-dev.cpp
-index 5a09a2d..080e671 100644
+index 5a09a2d39..080e67184 100644
 --- a/libcutils/trace-dev.cpp
 +++ b/libcutils/trace-dev.cpp
 @@ -24,23 +24,14 @@ static pthread_once_t atrace_once_control = PTHREAD_ONCE_INIT;
@@ -1119,7 +1167,7 @@ index 5a09a2d..080e671 100644
  static void atrace_seq_number_changed(uint32_t prev_seq_no, uint32_t seq_no) {
 
 diff --git a/libcutils/trace-dev.inc b/libcutils/trace-dev.inc
-index 6543426..a8fc338 100644
+index 654342649..a8fc3389d 100644
 --- a/libcutils/trace-dev.inc
 +++ b/libcutils/trace-dev.inc
 @@ -52,7 +52,7 @@ atomic_bool              atrace_is_ready      = ATOMIC_VAR_INIT(false);
@@ -1139,124 +1187,6 @@ index 6543426..a8fc338 100644
      atrace_is_debuggable = debuggable;
      atrace_update_tags();
  }
-
-diff --git a/rootdir/init.rc b/rootdir/init.rc
-index a9af0b0..9170cc8 100644
---- a/rootdir/init.rc
-+++ b/rootdir/init.rc
-@@ -540,11 +540,6 @@ on post-fs-data
-     # Make sure we have the device encryption key.
-     installkey /data
-
--    # Start bootcharting as soon as possible after the data partition is
--    # mounted to collect more data.
--    mkdir /data/bootchart 0755 shell shell encryption=Require
--    bootchart start
--
-     # Make sure that apexd is started in the default namespace
-     enter_default_mount_ns
-
-@@ -611,22 +606,13 @@ on post-fs-data
-     mkdir /data/misc/audioserver 0700 audioserver audioserver
-     mkdir /data/misc/cameraserver 0700 cameraserver cameraserver
-     mkdir /data/misc/vold 0700 root root
--    mkdir /data/misc/boottrace 0771 system shell
--    mkdir /data/misc/update_engine 0700 root root
--    mkdir /data/misc/update_engine_log 02750 root log
--    mkdir /data/misc/trace 0700 root root
--    # create location to store surface and window trace files
--    mkdir /data/misc/wmtrace 0700 system system
-     # profile file layout
-     mkdir /data/misc/profiles 0771 system system
-     mkdir /data/misc/profiles/cur 0771 system system
-     mkdir /data/misc/profiles/ref 0770 system system
--    mkdir /data/misc/profman 0770 system shell
--    mkdir /data/misc/gcov 0770 root root
-     mkdir /data/misc/installd 0700 root root
-     mkdir /data/misc/apexdata 0711 root root
-     mkdir /data/misc/apexrollback 0700 root root
--    mkdir /data/misc/snapshotctl_log 0755 root root
-     # create location to store pre-reboot information
-     mkdir /data/misc/prereboot 0700 system system
-
-@@ -640,7 +626,6 @@ on post-fs-data
-     # For security reasons, /data/local/tmp should always be empty.
-     # Do not place files or directories in /data/local/tmp
-     mkdir /data/local/tmp 0771 shell shell
--    mkdir /data/local/traces 0777 shell shell
-     mkdir /data/data 0771 system system encryption=None
-     mkdir /data/app-private 0771 system system encryption=Require
-     mkdir /data/app-ephemeral 0771 system system encryption=Require
-@@ -648,14 +633,9 @@ on post-fs-data
-     mkdir /data/app-lib 0771 system system encryption=Require
-     mkdir /data/app 0771 system system encryption=Require
-     mkdir /data/property 0700 root root encryption=Require
--    mkdir /data/tombstones 0771 system system encryption=Require
--    mkdir /data/vendor/tombstones 0771 root root
--    mkdir /data/vendor/tombstones/wifi 0771 wifi wifi
-
-     # create dalvik-cache, so as to enforce our permissions
-     mkdir /data/dalvik-cache 0771 root root encryption=Require
--    # create the A/B OTA directory, so as to enforce our permissions
--    mkdir /data/ota 0771 root root encryption=Require
-
-     # create the OTA package directory. It will be accessed by GmsCore (cache
-     # group), update_engine and update_verifier.
-@@ -677,20 +657,11 @@ on post-fs-data
-     # the following directory.
-     mkdir /data/mediadrm 0770 mediadrm mediadrm encryption=Require
-
--    mkdir /data/anr 0775 system system encryption=Require
--
--    # NFC: create data/nfc for nv storage
--    mkdir /data/nfc 0770 nfc nfc encryption=Require
--    mkdir /data/nfc/param 0770 nfc nfc
--
-     # Create all remaining /data root dirs so that they are made through init
-     # and get proper encryption policy installed
-     mkdir /data/backup 0700 system system encryption=Require
--    mkdir /data/ss 0700 system system encryption=Require
-
-     mkdir /data/system 0775 system system encryption=Require
--    mkdir /data/system/dropbox 0700 system system
--    mkdir /data/system/heapdump 0700 system system
-     mkdir /data/system/users 0775 system system
-
-     mkdir /data/system_de 0770 system system encryption=None
-@@ -733,10 +704,6 @@ on post-fs-data
-     mkdir /data/cache/backup_stage 0700 system system
-     mkdir /data/cache/backup 0700 system system
-
--    # Delete these if need be, per b/139193659
--    mkdir /data/rollback 0700 system system encryption=DeleteIfNecessary
--    mkdir /data/rollback-observer 0700 system system encryption=DeleteIfNecessary
--
-     # Create root dir for Incremental Service
-     mkdir /data/incremental 0771 system system encryption=Require
-
-@@ -980,9 +947,6 @@ on property:vold.decrypt=trigger_shutdown_framework
-
- on property:sys.boot_completed=1
-     bootchart stop
--    # Setup per_boot directory so other .rc could start to use it on boot_completed
--    exec - system system -- /bin/rm -rf /data/per_boot
--    mkdir /data/per_boot 0700 system system encryption=Require key=per_boot_ref
-
- # system server cannot write to /proc/sys files,
- # and chown/chmod does not work for /proc/sys/ entries.
-@@ -1043,13 +1007,6 @@ service console /system/bin/sh
-     seclabel u:r:shell:s0
-     setenv HOSTNAME console
-
--on property:ro.debuggable=1
--    # Give writes to anyone for the trace folder on debug builds.
--    # The folder is used to store method traces.
--    chmod 0773 /data/misc/trace
--    # Give reads to anyone for the window trace folder on debug builds.
--    chmod 0775 /data/misc/wmtrace
--
- on init && property:ro.debuggable=1
-     start console
 
 project system/sepolicy/
 diff --git a/Android.mk b/Android.mk
@@ -1304,7 +1234,7 @@ index e8b9be8..c9eee71 100644
 
 project vendor/lineage/
 diff --git a/build/tasks/kernel.mk b/build/tasks/kernel.mk
-index 979c8b2..fa00b95 100644
+index 979c8b21..fa00b951 100644
 --- a/build/tasks/kernel.mk
 +++ b/build/tasks/kernel.mk
 @@ -90,10 +90,13 @@ KERNEL_DEFCONFIG_SRC := $(KERNEL_DEFCONFIG_DIR)/$(KERNEL_DEFCONFIG)
@@ -1350,7 +1280,7 @@ index 979c8b2..fa00b95 100644
  		 $(call make-kernel-target,alldefconfig)
 
 diff --git a/config/common.mk b/config/common.mk
-index 89a25f9..e2f49ea 100644
+index 89a25f9e..e2f49ead 100644
 --- a/config/common.mk
 +++ b/config/common.mk
 @@ -97,10 +97,6 @@ PRODUCT_MINIMIZE_JAVA_DEBUG_INFO := true
@@ -1428,7 +1358,7 @@ index 89a25f9..e2f49ea 100644
  PRODUCT_DEXPREOPT_SPEED_APPS += \
 
 diff --git a/config/common_full.mk b/config/common_full.mk
-index 91bf198..67bfa73 100644
+index 91bf1984..67bfa73c 100644
 --- a/config/common_full.mk
 +++ b/config/common_full.mk
 @@ -3,16 +3,6 @@ $(call inherit-product, vendor/lineage/config/common_mobile.mk)
@@ -1450,10 +1380,10 @@ index 91bf198..67bfa73 100644
      Recorder
 
 diff --git a/config/common_mobile.mk b/config/common_mobile.mk
-index 2077d1a..af4ef9b 100644
+index 5080c360..e227d432 100644
 --- a/config/common_mobile.mk
 +++ b/config/common_mobile.mk
-@@ -13,9 +13,7 @@ endif
+@@ -8,9 +8,7 @@ PRODUCT_PRODUCT_PROPERTIES += \
 
  # AOSP packages
  PRODUCT_PACKAGES += \
@@ -1464,7 +1394,7 @@ index 2077d1a..af4ef9b 100644
 
  # Lineage packages
  PRODUCT_PACKAGES += \
-@@ -26,11 +24,6 @@ PRODUCT_PACKAGES += \
+@@ -21,11 +19,6 @@ PRODUCT_PACKAGES += \
      Profiles \
      Seedvault
 
@@ -1478,7 +1408,7 @@ index 2077d1a..af4ef9b 100644
      TrebuchetQuickStepGo
 
 diff --git a/config/data_only.mk b/config/data_only.mk
-index 5ff877c..ab70301 100644
+index 5ff877c9..ab70301b 100644
 --- a/config/data_only.mk
 +++ b/config/data_only.mk
 @@ -1,7 +1,3 @@
@@ -1491,7 +1421,7 @@ index 5ff877c..ab70301 100644
 -    Stk
 
 diff --git a/config/telephony.mk b/config/telephony.mk
-index 67e190f..3e488db 100644
+index 67e190f5..3e488db8 100644
 --- a/config/telephony.mk
 +++ b/config/telephony.mk
 @@ -8,8 +8,7 @@ PRODUCT_PACKAGES += \
@@ -1507,31 +1437,31 @@ index 67e190f..3e488db 100644
 
 diff --git a/overlay/common/frameworks/base/core/res/res/values/colors.xml b/overlay/common/frameworks/base/core/res/res/values/colors.xml
 deleted file mode 100644
-index 27fd690..0000000
+index 27fd690c..00000000
 
 diff --git a/prebuilt/common/bin/backuptool.sh b/prebuilt/common/bin/backuptool.sh
-index e002092..de40a3e 100755
+index 878187f7..55c19833 100755
 --- a/prebuilt/common/bin/backuptool.sh
 +++ b/prebuilt/common/bin/backuptool.sh
-@@ -97,6 +97,7 @@ case "$1" in
-       run_stage restore
-       run_stage post-restore
-       restore_addon_d
+@@ -174,6 +174,7 @@ case "$1" in
+     if check_prereq; then
+       run_stages pre-restore restore post-restore
+       umount_extra $all_V3_partitions
 +      chmod +rx $S/xbin/su
+       restore_addon_d
        rm -rf $C
        sync
-     fi
 
 diff --git a/prebuilt/common/etc/fonts_customization.xml b/prebuilt/common/etc/fonts_customization.xml
 deleted file mode 100644
-index 0c9a7fb..0000000
+index 0c9a7fb3..00000000
 
 diff --git a/prebuilt/common/etc/init/lineage-ssh.rc b/prebuilt/common/etc/init/lineage-ssh.rc
 deleted file mode 100644
-index edf3863..0000000
+index f3613c34..00000000
 
 diff --git a/prebuilt/common/etc/init/lineage-system.rc b/prebuilt/common/etc/init/lineage-system.rc
-index f26a64b..deb4c99 100644
+index f26a64bd..deb4c99d 100644
 --- a/prebuilt/common/etc/init/lineage-system.rc
 +++ b/prebuilt/common/etc/init/lineage-system.rc
 @@ -8,9 +8,3 @@ on post-fs-data
@@ -1544,7 +1474,3 @@ index f26a64b..deb4c99 100644
 -    oneshot
 -    disabled
 -    keycodes 114 115 116
-
-diff --git a/prebuilt/common/etc/init/lineage-updates.rc b/prebuilt/common/etc/init/lineage-updates.rc
-deleted file mode 100644
-index 3a9b481..0000000
